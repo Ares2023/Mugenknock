@@ -14,7 +14,7 @@ import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
-  DOMAIN_WEIGHTS, PASS_SCORES, qDomainName,
+  DOMAIN_WEIGHTS, PASS_SCORES, qDomainName, DOMAIN_RATE_WARNING,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
   tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam,
 } from '../constants';
@@ -26,7 +26,7 @@ import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
-import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSave, IconSaveCheck, IconExternalLink } from '../components/Icons';
+import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconCircleCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSave, IconSaveCheck, IconExternalLink } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
@@ -42,6 +42,7 @@ type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: numbe
 type SessionEntry = { correct: number; total: number };
 type DomainHistory = Record<string, SessionEntry[]>;
 type ScoreEntry = { date: string; score: number };
+type WeakQuestion = { questionId: string; questionText: string; correctCount: number; incorrectCount: number };
 
 // ── ユーティリティ ───────────────────────────────────────────────
 function getGrade(pct: number | null): string {
@@ -182,7 +183,7 @@ function SessionScoreChart({ data, passScore, lang = 'ja', animate = true, isMob
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, nodeWindow, onNodeWindowChange, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, nodeWindow, onNodeWindowChange, inline = false, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
@@ -196,7 +197,13 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   sessionScoreLog?: ScoreEntry[];
   nodeWindow: 5 | 10;
   onNodeWindowChange: (w: 5 | 10) => void;
-  onClose: () => void;
+  // モーダル(背景オーバーレイ・✕ボタン・スクロールロック・タブ)を出さず、
+  // 指定セクションだけをページ内に直接描画する（デスクトップの常時展開表示用）。
+  //   'score' … 予想スコア＋ドメイン別スコア内訳（=「実力の現在地」パネル）
+  //   'trend' … スコア推移＋ハイスコア記録を縦に並べる（=「推移と記録」パネル）
+  // タブでの出し分けをやめ、役割ごとに別パネルへ分けるための prop。
+  inline?: false | 'score' | 'trend';
+  onClose?: () => void;
 }) {
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
@@ -224,14 +231,16 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
   // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
   useLayoutEffect(() => {
+    if (inline) return; // インラインはタブ切替が無いので高さ固定不要
     if (tab === 'score' && !showCalc && scoreTabRef.current) {
       setContentMinH(scoreTabRef.current.offsetHeight);
     }
-  }, [tab, showCalc]);
+  }, [tab, showCalc, inline]);
 
   useEffect(() => {
+    if (inline) return; // インライン表示（常時展開）はモーダルではないのでスクロールロック不要
     return lockBodyScroll();
-  }, []);
+  }, [inline]);
 
   // レンダー後に prevWindow と animated を更新。非表示になったノード(dk>=nodeWindow)は
   // 再表示時にまたアニメさせるため animated から外す。表示中の dk は animated に登録。
@@ -257,33 +266,36 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     { key: 'hiscore' as const, label: ja ? 'ハイスコア記録' : 'High Scores' },
   ];
 
-  return (
-    <div
-      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      onTouchStart={e => e.stopPropagation()}
-      onTouchMove={e => e.stopPropagation()}
-    >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px 16px 0' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
-        {/* ヘッダー行 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-              {ja ? '成績詳細' : 'Performance Detail'}
-            </span>
-            {tab === 'score' && (
-              <button
-                data-kbnav="1"
-                onClick={() => setShowCalc(v => !v)}
-                style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
-                aria-label={ja ? '計算方法' : 'How calculated'}
-              >?</button>
-            )}
-          </div>
-          <button data-kbclose="1" onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-h3)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
-        </div>
+  // インライン表示ではタブを使わず、指定セクションを直接出す。
+  const showScore = inline ? inline === 'score' : tab === 'score';
+  const showHistory = inline ? inline === 'trend' : tab === 'history';
+  const showHiscore = inline ? inline === 'trend' : tab === 'hiscore';
 
-        {/* タブ */}
+  const body = (
+    <>
+        {/* ヘッダー行（インラインはパネル側が見出しを持つので出さない。
+            ただしスコア内訳の「?」計算方法だけはインラインでも必要なので残す） */}
+        {!inline ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                {ja ? '成績詳細' : 'Performance Detail'}
+              </span>
+              {tab === 'score' && (
+                <button
+                  data-kbnav="1"
+                  onClick={() => setShowCalc(v => !v)}
+                  style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
+                  aria-label={ja ? '計算方法' : 'How calculated'}
+                >?</button>
+              )}
+            </div>
+            <button data-kbclose="1" onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-h3)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          </div>
+        ) : null}
+
+        {/* タブ（インラインでは役割ごとに別パネルへ分けるため出さない） */}
+        {!inline && (
         <div style={{ display: 'flex', gap: isMobile ? 4 : 0, marginBottom: 16, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
           {tabs.map(t => (
             <button
@@ -303,9 +315,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             >{t.label}</button>
           ))}
         </div>
+        )}
 
         {/* 計算方法 */}
-        {tab === 'score' && showCalc && (
+        {showScore && showCalc && (
           <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
             <p style={{ margin: 0 }}>
               {ja
@@ -315,9 +328,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         )}
 
-        {/* タブコンテンツ */}
-        <div style={{ minHeight: contentMinH || undefined }}>
-        {tab === 'score' ? (
+        {/* タブコンテンツ（インラインは showScore / showHistory+showHiscore で出し分け） */}
+        <div style={{ minHeight: inline ? undefined : (contentMinH || undefined) }}>
+        {showScore && (
           <div ref={scoreTabRef}>
             <style>{`@keyframes scoreNodePop { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }`}</style>
             <div style={{ marginBottom: 16 }}>
@@ -331,8 +344,17 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             </div>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', letterSpacing: '0.5px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', letterSpacing: '0.5px' }}>
                   {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+                  {/* インラインではヘッダー行を出さないので、計算方法の「?」をここに置く */}
+                  {inline && (
+                    <button
+                      data-kbnav="1"
+                      onClick={() => setShowCalc(v => !v)}
+                      style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 'var(--font-size-2xs)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1, padding: 0 }}
+                      aria-label={ja ? '計算方法' : 'How calculated'}
+                    >?</button>
+                  )}
                 </span>
                 <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
                   {([5, 10] as const).map(w => {
@@ -440,7 +462,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               </div>
             </div>
           </div>
-        ) : tab === 'history' ? (
+        )}
+        {showHistory && (
           <div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
@@ -455,8 +478,16 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               <ScoreLineChart data={dailyMaxLast7} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
           </div>
-        ) : (
-          (() => {
+        )}
+        {/* インラインでは推移の下にハイスコアを続けて出す（タブ廃止のため） */}
+        {showHiscore && (
+          <div style={inline ? { borderTop: '1px solid var(--color-border)', marginTop: 14, paddingTop: 14 } : undefined}>
+            {inline && (
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+                {ja ? 'ハイスコア記録' : 'High Scores'}
+              </div>
+            )}
+          {(() => {
             const hiscoreSource = sessionLog.length > 0 ? sessionLog : history;
             const top5 = [...hiscoreSource].sort((a, b) => b.score - a.score).slice(0, 5);
             if (top5.length === 0) {
@@ -514,10 +545,27 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               </div>
               </>
             );
-          })()
+          })()}
+          </div>
         )}
         </div>
-        {isMobile && <div style={{ height: 16 }} aria-hidden="true" />}
+        {isMobile && !inline && <div style={{ height: 16 }} aria-hidden="true" />}
+    </>
+  );
+
+  if (inline) {
+    return body;
+  }
+
+  return (
+    <div
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose?.(); }}
+      onTouchStart={e => e.stopPropagation()}
+      onTouchMove={e => e.stopPropagation()}
+    >
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px 16px 0' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
+        {body}
       </div>
     </div>
   );
@@ -1612,6 +1660,36 @@ export default function Home() {
     }
   }, [answeredCountReady, focusedUnlocked, uid]);
 
+  // ── ホーム「苦手分析」カード（デスクトップ限定・ログイン専用）用 ──
+  // マイページ苦手分析タブと同じデータ源。頻出ミス問題は解放(30問)まで取得しない。
+  const [weakQuestions, setWeakQuestions] = useState<WeakQuestion[]>([]);
+  const [weakLoaded, setWeakLoaded] = useState(false);
+  useEffect(() => {
+    if (!user || !targetExam || !effectiveFocusedUnlocked || weakLoaded) return;
+    fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${user.userId}&examType=${targetExam}&minIncorrect=2`)
+      .then(r => r.json())
+      .then(d => { setWeakQuestions(d.items ?? []); setWeakLoaded(true); })
+      .catch(() => {});
+  }, [user, targetExam, effectiveFocusedUnlocked, weakLoaded]);
+  // targetExam を切り替えたら再取得する
+  useEffect(() => { setWeakLoaded(false); setWeakQuestions([]); }, [targetExam]);
+
+  // 苦手ドメイン上位2件（直近10問正答率が閾値未満・未演習は除外）
+  const weakDomains = useMemo(() => {
+    const examDomains = EXAM_DOMAINS[targetExam ?? ''] ?? [];
+    return examDomains
+      .map((domain, idx) => {
+        const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', idx));
+        const recent = (stat?.recentResults ?? []).slice(-10);
+        if (recent.length === 0) return null;
+        const pct = recent.filter(Boolean).length / recent.length;
+        return pct < DOMAIN_RATE_WARNING ? { domain, pct } : null;
+      })
+      .filter((v): v is { domain: string; pct: number } => v !== null)
+      .sort((a, b) => a.pct - b.pct)
+      .slice(0, 2);
+  }, [targetExam, domainStats]);
+
   // 別デバイスで scoreWindow が変更された場合に kvSynced で反映する
   useEffect(() => {
     const h = (e: Event) => {
@@ -2110,19 +2188,9 @@ export default function Home() {
     );
   }
 
-  return (
-    <PageLayout maxWidth={HOME_MAX_WIDTH} className="page-container">
-      <Helmet>
-        <title>ホーム | 無限ノック</title>
-        <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
-      </Helmet>
-
-      {/* ダッシュボード本体。デスクトップは 2カラム（左=進捗と成績 / 右=日めくり）、
-          モバイルは従来どおり縦一列。 */}
-      <div style={isMobile ? undefined : { display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 'var(--spacing-md)', alignItems: 'start' }}>
-      <div>
-
-      {/* ── 目標演習量 ── */}
+  // 目標演習量カード。モバイルは従来どおり先頭（左カラム）、デスクトップは
+  // 「今日の行動」をまとめた右カラムの先頭に置くため、両方から使えるよう変数にする。
+  const dailyGoalCard = (
       <Card
         data-kbnav="1"
         padding="var(--spacing-md)"
@@ -2137,7 +2205,8 @@ export default function Home() {
             {ja ? '目標演習量' : 'Daily Goal'}
           </span>
           {ja && <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-sub)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
-          <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+            {dailyCount >= dailyGoal && <IconCircleCheck size={14} />}
             {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
           </span>
         </div>
@@ -2152,13 +2221,73 @@ export default function Home() {
           })()}
         </div>
       </Card>
+  );
 
-      {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
+  // 成績パネルの共通 props（「実力の現在地」「推移と記録」で同じデータを渡す）
+  const perfProps = {
+    domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats,
+    scoreHistory: serverScoreHistory ?? undefined,
+    sessionHistory: serverSessionHistory ?? undefined,
+    sessionScoreLog: serverSessionScoreLog ?? undefined,
+    nodeWindow,
+    onNodeWindowChange: (w: 5 | 10) => { setNodeWindow(w); localStorage.setItem(`scoreWindow_${uid}`, String(w)); },
+  };
+
+  // デスクトップのパネル見出し（カード内の小見出し）
+  const panelHeading = (icon: React.ReactNode, text: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>{icon}</span>
+      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{text}</span>
+    </div>
+  );
+
+  return (
+    <PageLayout maxWidth={HOME_MAX_WIDTH} className="page-container">
+      <Helmet>
+        <title>ホーム | 無限ノック</title>
+        <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
+      </Helmet>
+
+      {/* ダッシュボード本体。デスクトップは役割で2カラムに分ける。
+            左（2fr）= 成績: 「実力の現在地」「推移と記録」＝これまでの結果を見る
+            右（1fr）= 今日の行動: 「目標演習量」「日めくり」「苦手分析」＝今日やること
+          モバイルは従来どおり縦一列（目標演習量 → サマリー → 日めくり）で変更なし。
+          alignItems:'stretch'（既定）で両カラムの高さを揃え、右カラムは
+          flexDirection:'column'+最後のパネルへの flex:1 で、短い方の最終パネルの
+          下端を左カラムの下端に合わせる（ページ最下部でパネルの底が揃うように）。 */}
+      <div style={isMobile ? undefined : { display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 'var(--spacing-md)' }}>
+      <div>
+
+      {/* ── 目標演習量（モバイルのみ先頭。デスクトップは右カラム＝今日の行動へ） ── */}
+      {isMobile && dailyGoalCard}
+
+      {/* ── デスクトップ「実力の現在地」──
+          予想スコアとドメイン別の内訳は同じデータの粒度違いなので、
+          サマリー(バー)と内訳(ノード)を二重に出さず、この1パネルに統合する。 */}
+      {!isMobile && targetExam && (
+        <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
+          {panelHeading(<IconChart size={13} />, ja ? '実力の現在地' : 'Where You Stand')}
+          <CombinedDetailModal targetExam={targetExam} {...perfProps} inline="score" />
+        </Card>
+      )}
+
+      {/* ── デスクトップ「推移と記録」──
+          時系列で見るもの(セッション別推移・日次最高点・ハイスコア)をまとめる。 */}
+      {!isMobile && targetExam && (
+        <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
+          {panelHeading(<IconTrendingUp size={13} />, ja ? '推移と記録' : 'Trend & Records')}
+          <CombinedDetailModal targetExam={targetExam} {...perfProps} inline="trend" />
+        </Card>
+      )}
+
+      {/* ── ドメイン別正答率 + 予想スコア（モバイルのみ。タップでモーダル詳細）──
+          デスクトップは上の「実力の現在地」に統合済みのため出さない。 */}
+      {isMobile && (
       <Card
         data-kbnav="1"
         padding="var(--spacing-md)"
-        style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default', position: 'relative' }}
-        onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}
+        style={{ marginBottom: 'var(--spacing-md)', cursor: (isMobile && targetExam && !statsLoading) ? 'pointer' : 'default', position: 'relative' }}
+        onClick={() => { if (isMobile && targetExam && !statsLoading) setShowCombinedDetail(true); }}
       >
         <div style={isMobile ? { display: 'flex', flexDirection: 'column-reverse' } : { display: 'flex', gap: 0 }}>
 
@@ -2269,26 +2398,42 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>/1000</span>
-                  {scoreDelta !== null && (
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
-                      {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
-                    </span>
-                  )}
-                </div>
-                <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible', marginTop: passScore !== null ? 18 : 0 }}>
-                  {passScore !== null && (
-                    <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, transform: 'translateX(-50%)', top: 0, bottom: 0, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 'var(--font-size-3xs)', fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
-                        {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
+                {(() => {
+                  // 合格ラインはバー上の細い境目線＋数値ラベルだけで示す。
+                  // バー自体・スコア数値は下のドメイン別正答率と統一して常に青（合格圏でも変えない）。
+                  // ただし右上の「合格」ラベルだけは、達成時にチェック＋緑で目標達成を伝える。
+                  const passPct = passScore !== null ? (passScore / 1000) * 100 : 0;
+                  const reachedPass = passScore !== null && estimatedScore >= passScore;
+                  return (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
+                        <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>/1000</span>
+                        {scoreDelta !== null && (
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
+                            {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
+                          </span>
+                        )}
+                        {passScore !== null && (
+                          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 'var(--font-size-2xs)', fontWeight: reachedPass ? 700 : 600, color: reachedPass ? 'var(--color-success)' : 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
+                            {reachedPass && <IconCircleCheck size={12} />}
+                            {reachedPass
+                              ? (ja ? `合格：${passScore}点` : `Pass: ${passScore}`)
+                              : (ja ? `合格 ${passScore}` : `Pass ${passScore}`)}
+                          </span>
+                        )}
                       </div>
-                      <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
-                    </div>
-                  )}
-                  <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
-                </div>
+                      <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden' }}>
+                        {/* 実力バー（常に青。合格圏でも色は変えない） */}
+                        <div style={{ position: 'relative', width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+                        {/* 合格ラインの境目 */}
+                        {passScore !== null && (
+                          <div style={{ position: 'absolute', left: `${passPct}%`, top: 0, bottom: 0, width: 2, marginLeft: -1, background: 'var(--color-bg-white)', opacity: 0.9 }} />
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </>
             )}
           </div>
@@ -2296,9 +2441,13 @@ export default function Home() {
         </div>
 
       </Card>
+      )}
 
       </div>
-      <div>
+      <div style={isMobile ? undefined : { display: 'flex', flexDirection: 'column' }}>
+
+      {/* ── 目標演習量（デスクトップは「今日の行動」列の先頭） ── */}
+      {!isMobile && dailyGoalCard}
 
       {/* ── 日めくりAWSサービス ── */}
       <TodayServiceSection
@@ -2309,6 +2458,72 @@ export default function Home() {
         onReveal={svc => setRevealService(svc)}
         isMobile={isMobile}
       />
+
+      {/* ── 苦手分析（デスクトップ・ログイン専用。ゲストは非表示） ──
+          マイページ苦手分析タブの要約。詳細はクリックでマイページへ遷移して見る。
+          flex:1 + 中央寄せで、右カラム最後のパネルとして左カラムの下端まで
+          自然に伸ばし、ページ最下部でパネルの底を左カラムに揃える。 */}
+      {!isMobile && user && targetExam && (
+        <Card
+          padding="var(--spacing-md)"
+          style={{ marginTop: 'var(--spacing-md)', cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          onClick={() => navigate('/aws/mypage', { state: { tab: 'analysis' } })}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+              <IconTrendingUp size={13} />
+            </span>
+            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+              {ja ? '苦手分析' : 'Weak Point Analysis'}
+            </span>
+          </div>
+          {!effectiveFocusedUnlocked ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'var(--color-bg-main)' }}>
+              <IconLock size={14} />
+              <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)' }}>
+                {!answeredCountReady
+                  ? (ja ? '演習量を確認中...' : 'Checking progress...')
+                  : (ja ? `あと${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)}問でアンロック` : `${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)} more to unlock`)}
+              </span>
+            </div>
+          ) : weakDomains.length === 0 && weakQuestions.length === 0 ? (
+            <p style={{ margin: 0, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
+              {ja ? '目立った苦手はありません' : 'No weak points found'}
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {weakDomains.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                    {ja ? '苦手ドメイン' : 'Weak Domains'}
+                  </div>
+                  {weakDomains.map(({ domain, pct }) => (
+                    <div key={domain} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--color-danger)' }}>{Math.round(pct * 100)}%</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{domain}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {weakQuestions.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                    {ja ? '間違えやすい問題' : 'Frequent Mistakes'}
+                  </div>
+                  {weakQuestions.slice(0, 2).map(q => (
+                    <div key={q.questionId} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.5, marginBottom: 4 }}>
+                      <span style={{ flexShrink: 0, fontWeight: 700, color: 'var(--color-danger)', background: 'var(--color-danger-light)', borderRadius: 4, padding: '1px 5px' }}>
+                        ×{q.incorrectCount}
+                      </span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.questionText}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
+      )}
 
       </div>
       </div>
@@ -3180,8 +3395,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* 成績詳細モーダル */}
-      {showCombinedDetail && targetExam && (
+      {/* 成績詳細モーダル（デスクトップは常時展開表示のためモーダルは使わない） */}
+      {isMobile && showCombinedDetail && targetExam && (
         <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} nodeWindow={nodeWindow} onNodeWindowChange={w => { setNodeWindow(w); localStorage.setItem(`scoreWindow_${uid}`, String(w)); }} onClose={() => setShowCombinedDetail(false)} />
       )}
 

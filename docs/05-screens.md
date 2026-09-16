@@ -61,10 +61,28 @@
 [ゲストバナー]（未ログイン時）
 [オンボーディングモーダル]（targetExam 未設定時）
 ─────────────────────────
- 今日のサービス（日めくり）
+ モバイル: 縦1列
+ デスクトップ: 2カラム（左 2fr / 右 1fr）
 ─────────────────────────
- 予想スコア + ドメイン別正答率
-   → タップで CombinedDetailModal（スコア推移・ドメイン詳細）
+ デスクトップは役割で左右を分ける（タブによる出し分けはしない）
+ 左カラム 2fr =「成績」これまでの結果を見る
+   実力の現在地   … CombinedDetailModal `inline="score"`
+     予想スコアとドメイン別内訳は同じデータの粒度違いなので、サマリー(バー)と
+     内訳(ノード)を二重に出さずこの1パネルに統合している
+   推移と記録     … CombinedDetailModal `inline="trend"`
+     セッション別推移・日次最高点・ハイスコア記録を縦に並べる
+ 右カラム 1fr =「今日の行動」今日やること
+   目標演習量
+   今日のサービス（日めくり）
+   苦手分析（ログイン専用。ゲストは非表示）
+     マイページ苦手分析タブの要約（苦手ドメイン上位2件・頻出ミス問題2件）。
+     30問未満は「あとX問でアンロック」。クリックで /aws/mypage（苦手分析タブ）へ
+     右カラムを flexDirection:'column' にし、苦手分析カードに flex:1 を付けて
+     左カラムの下端（ページ最下部）までパネルの底を揃える
+
+ モバイルは従来どおり縦一列（変更なし）
+   目標演習量 → 予想スコア + ドメイン別正答率 → 今日のサービス
+   サマリーをタップで CombinedDetailModal（タブ付きモーダル）
 ─────────────────────────
  プライマリ演習ボタン
    ├ サクッと演習（quick）        … 常時
@@ -183,10 +201,25 @@ navigate('/aws/result', { state: { results, questions, score, ... } })
 
 ### その他の機能
 
-- **コピーボタン** — 問題文・選択肢・解説をクリップボードへ（プロダクト原則2の実装）
-- **PromptMenu** — ChatGPT / Gemini / Claude に貼るプロンプトを生成
-- **ブックマークトグル** — `POST/DELETE /questions/:id/bookmark`
-- **通報** — `ReportModal` → `POST /questions/:id/report`
+- **アクション列** `[👍][👎][コピー][♡][⋮]`（左揃え） — 回答前は選択肢の下、
+  回答後は解説の下に同じ並びで表示する（`renderActionRow()`）。回答の前後で
+  ♡等の位置が変わらないようにするため、共通関数で描画している。
+  - **コピー** — 回答前＝問題文＋選択肢、回答後＝問題文＋選択肢＋解答解説をクリップボードへ
+  - **♡（ブックマーク）** — `POST/DELETE /questions/:id/bookmark`。旧・見出し右の☆から移動。
+    ONにした瞬間だけピンクのパーティクルバースト（`ConfirmBurst` 流用）
+  - **👍👎（リアクション）** — `PUT /questions/:id/reaction`。ログイン専用・1ユーザー1問1票
+    （`UserQuestionStats(userId,questionId)` の単一属性上書きで構造的に保証）。
+    ONにした瞬間だけポップ演出、色は「しっかり対策」開始ボタンと同じ青緑(`#009E9E`)。
+    詳細は `docs/04-api.md` §4.3b、`specs/002-question-reactions/`
+  - **⋮** — 「この問題を通報」（`ReportModal` → `POST /questions/:id/report`）／
+    「ここまでで採点」（`setShowAbortConfirm`）のメニューを開く
+  - **送信はデバウンス**: ♡/👍👎はクリックのたびに送信せず、UIだけ即時反映して
+    実送信は①回答確定②別の問題へ移動③画面離脱、のいずれか最初のタイミングで
+    まとめて1回行う（`pendingBookmarkRef`/`pendingReactionRef` + `flushBookmark`/
+    `flushReaction`）。同一セッション内で前の問題に戻って評価を変更するケースは
+    ②（`currentQuestion.questionId` の変化を監視するeffect）で拾う。
+    詳細は `docs/04-api.md` §4.3b
+- **PromptMenu（質問プロンプト生成）** — 2026-09-15 廃止。`specs/002-question-reactions/` 参照
 - **コラム** — `GET /tips?examType=` を問題間に挟む
 - **「わからない」** — 選択肢とは別の回答（`WAKARANAI` 定数）
 
@@ -242,6 +275,10 @@ navigate('/aws/result', { state: { results, questions, score, ... } })
 | 直近セッション | `GET /users/me/sessions?limit=200` |
 
 「しっかり対策を開始する」ボタンは `/aws/` へ `{ startFocused: true }` を渡して遷移し、Home 側で自動起動する。
+
+`tab` の初期値は `location.state?.tab`（`'analysis' | 'history'`）で外部から指定できる。
+Home の「苦手分析」カード（デスクトップ）は `navigate('/aws/mypage', { state: { tab: 'analysis' } })` で
+このタブへ直接遷移する。
 
 ---
 

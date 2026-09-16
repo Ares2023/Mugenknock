@@ -1202,7 +1202,7 @@ app.get('/admin/questions', async (req, res) => {
       // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
       items = await scanAll(docClient, {
         TableName: 'Questions',
-        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt, globalAttempts, globalCorrect',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt, globalAttempts, globalCorrect, reactionUp, reactionDown',
         ExpressionAttributeNames: { '#dom': 'domain' },
       });
     }
@@ -2190,6 +2190,9 @@ app.get('/users/me/question-status', async (req, res) => {
     // acc = 問題別の累計正答率(correctCount/総試行)。演習フィルタ「正答率フィルタ」が
     // 50/66/75% 未満などの任意しきい値でクライアント側判定できるよう問題別に返す。
     const answered = [], incorrect = {}, weak = [], bookmarked = [], acc = {};
+    // reactions: questionId -> 'up' | 'down'。自分が押したものだけを返す
+    // （他ユーザーを含む合計数はユーザー画面には出さない方針。集計は管理画面のみ）。
+    const reactions = {};
     for (const s of items) {
       const c = s.correctCount ?? 0, i = s.incorrectCount ?? 0, total = c + i;
       answered.push(s.questionId); // 統計行がある=既回答扱い（既存 answered-questions と同一挙動）
@@ -2200,9 +2203,10 @@ app.get('/users/me/question-status', async (req, res) => {
         if (ratio <= WEAK_ACC) weak.push(s.questionId); // 後方互換（既存の weak 利用箇所を維持）
       }
       if (s.bookmarked) bookmarked.push(s.questionId);
+      if (s.reaction === 'up' || s.reaction === 'down') reactions[s.questionId] = s.reaction;
     }
 
-    res.json({ answered, incorrect, weak, bookmarked, acc });
+    res.json({ answered, incorrect, weak, bookmarked, acc, reactions });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -2288,6 +2292,73 @@ app.delete('/questions/:id/bookmark', async (req, res) => {
       ExpressionAttributeValues: { ':b': false }
     }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 問題へのリアクション（👍/👎）の登録・変更・取り消し。ログインユーザーのみ。
+//
+// 1ユーザー1問1票。UserQuestionStats(userId, questionId).reaction に 'up'|'down' を持ち、
+// 取り消しは属性を削除する。Questions 側の reactionUp/reactionDown は表示用の集計で、
+// globalAttempts/globalCorrect と同じく「本体の書き込みとは分けた条件付き加算」にする
+// （集計の失敗でユーザーの操作自体を失敗させない）。
+app.put('/questions/:id/reaction', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, reaction } = req.body;
+    const questionId = req.params.id;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    if (reaction !== 'up' && reaction !== 'down' && reaction !== null) {
+      return res.status(400).json({ error: "reaction must be 'up', 'down' or null" });
+    }
+
+    // 変更前の値を読み、集計の差分を正しく出す（同じ値の再送では二重加算しない）
+    const prevRes = await docClient.send(new GetCommand({
+      TableName: T('UserQuestionStats'),
+      Key: { userId, questionId },
+      ProjectionExpression: 'reaction',
+    }));
+    const prev = prevRes.Item?.reaction ?? null;
+    const next = reaction;
+    if (prev === next) return res.json({ success: true, reaction: next });
+
+    const now = new Date().toISOString();
+    if (next === null) {
+      await docClient.send(new UpdateCommand({
+        TableName: T('UserQuestionStats'),
+        Key: { userId, questionId },
+        UpdateExpression: 'REMOVE reaction',
+      }));
+    } else {
+      await docClient.send(new UpdateCommand({
+        TableName: T('UserQuestionStats'),
+        Key: { userId, questionId },
+        UpdateExpression: 'SET reaction = :r, lastAnsweredAt = if_not_exists(lastAnsweredAt, :now)',
+        ExpressionAttributeValues: { ':r': next, ':now': now },
+      }));
+    }
+
+    // 集計の差分（prev を減らし next を増やす）
+    const delta = { up: 0, down: 0 };
+    if (prev === 'up') delta.up -= 1;
+    if (prev === 'down') delta.down -= 1;
+    if (next === 'up') delta.up += 1;
+    if (next === 'down') delta.down += 1;
+    if (delta.up !== 0 || delta.down !== 0) {
+      try {
+        await docClient.send(new UpdateCommand({
+          TableName: 'Questions',
+          Key: { questionId },
+          UpdateExpression: 'ADD reactionUp :u, reactionDown :d',
+          ConditionExpression: 'attribute_exists(questionId)',
+          ExpressionAttributeValues: { ':u': delta.up, ':d': delta.down },
+        }));
+      } catch (e) { /* 削除済み問題・一時エラーは無視（ユーザーの操作は成功扱い） */ }
+    }
+
+    res.json({ success: true, reaction: next });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

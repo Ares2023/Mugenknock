@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
-import { useNavigate } from '@/compat/react-router-dom';
+import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
@@ -97,11 +97,16 @@ export default function MyPage() {
   const { user } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
   const isMobile = window.innerWidth < 768;
 
-  const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
+  // ホームの苦手分析カード等、外部から特定タブを指定して遷移してくるケースに対応
+  const [tab, setTab] = useState<'target' | 'analysis' | 'history'>(() => {
+    const requested = (location.state as any)?.tab;
+    return requested === 'analysis' || requested === 'history' ? requested : 'target';
+  });
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
   const [settingsSaveMsg, setSettingsSaveMsg] = useState<'saved' | 'already' | null>(null);
   const [settingsSaving, setSettingsSaving] = useState(false);

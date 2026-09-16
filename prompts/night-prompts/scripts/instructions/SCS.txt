@@ -1,9 +1,9 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-security-specialty/
-# DOMAINS: 脅威検出とインシデント対応,セキュリティロギングとモニタリング,インフラストラクチャのセキュリティ,Identity and Access Management,データ保護,管理とセキュリティガバナンス
-# LAST_REFRESHED: 2026-07-30
+# LAST_REFRESHED: 2026-09-03
+
 
 あなたはAWS認定試験の問題作成者です。
-AWS Certified Security – Specialty (SCS-C02) の模擬試験問題を作成してください。
+AWS Certified Security – Specialty (SCS-C03) の模擬試験問題を作成してください。
 
 【難易度】
 - Specialty レベル：AWSクラウドのセキュリティに関する高度な専門知識
@@ -38,64 +38,80 @@ AWS Certified Security – Specialty (SCS-C02) の模擬試験問題を作成し
 - 正解が自明すぎる問題
 
 ---
-【公式試験ガイド概要 (SCS-C02 バージョン1.1)】
+【公式試験ガイド概要 (SCS-C03)】
 ■ ドメイン配点
-- 第1分野：脅威検出とインシデント対応 (14%)
-- 第2分野：セキュリティロギングとモニタリング (18%)
-- 第3分野：インフラストラクチャのセキュリティ (20%)
-- 第4分野：Identity and Access Management (16%)
-- 第5分野：データ保護 (18%)
-- 第6分野：管理とセキュリティガバナンス (14%)
+- 第1分野：検出 (Detection) (16%)
+- 第2分野：インシデント対応 (Incident Response) (14%)
+- 第3分野：インフラストラクチャのセキュリティ (Infrastructure Security) (18%)
+- 第4分野：Identity and Access Management (20%)
+- 第5分野：データ保護 (Data Protection) (18%)
+- 第6分野：セキュリティの基盤とガバナンス (Security Foundations and Governance) (14%)
 
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1分野：脅威検出とインシデント対応】
-- Task 1.1: インシデント対応計画を策定して実装する（IAM認証情報の無効化・ローテーション戦略、AWSリソースの分離、プレイブック・ランブック策定、Security Hub・Macie・GuardDuty・Inspector・Config・Detective・IAM Access Analyzerのデプロイ、EventBridge・ASFF統合）
-- Task 1.2: AWSのサービスを使用してセキュリティの脅威と異常を検出する（GuardDuty・Security Hub・Macie・Config・IAM Access Analyzerの結果評価、Detectiveによる脅威の検索・関連付け、Athenaクエリによるセキュリティイベント検証、CloudWatchメトリクスフィルター・ダッシュボード作成）
-- Task 1.3: 侵害されたリソースとワークロードに対応する（Lambda・Step Functions・EventBridge・Systems Manager ランブック・Security Hub・Configによる修復自動化、EC2インスタンス分離、Detectiveによる根本原因分析、EBSボリュームスナップショット・メモリダンプ取得、Athenaによるログクエリ、S3オブジェクトロック・分離フォレンジックアカウント・S3ライフサイクル・S3レプリケーションによるアーティファクト保護）
+【第1分野：検出 (Detection)】
+- Task 1.1: AWSアカウントまたは組織のモニタリングとアラートソリューションを設計し実装する（ワークロードのモニタリング要件分析、リソースヘルスチェック設定によるワークロード監視戦略の設計・実装、セキュリティ・モニタリングイベントの集約、GuardDuty・Security Lake・Security Hub・Macieによる異常データ・イベント検出メトリクス/アラート/ダッシュボード作成、Config適合パック・Security Hub・Systems Manager State Managerのデプロイによる定期評価・調査の自動化）
+- Task 1.2: ロギングソリューションを設計し実装する（要件に基づくログ取り込み・保存ソースの特定、Organizations向けCloudTrailトレイル設定・専用CloudWatchロギングアカウント作成・CloudWatch Logsエージェント設定、Security Lakeを含むログストレージ・データレイクの実装とサードパーティセキュリティツール統合、CloudWatch Logs Insights・Athena・Security Hubフィンディングによるログ分析、OpenSearch Service・Lambda・Managed GrafanaによるログのNormalize/Parse/相関付け、ネットワーク設計・脅威・攻撃に基づくVPCフローログ・Transit Gatewayフローログ・Route 53 Resolverログの設定）
+- Task 1.3: セキュリティモニタリング・ロギング・アラートソリューションのトラブルシューティングを行う（Lambda関数ロギング・API Gatewayロギング・ヘルスチェック・CloudFrontロギングなどのリソース機能・権限・設定の分析、CloudWatch Agentの設定トラブルシューティング・ログ欠損のトラブルシューティングによるリソース設定ミスの修正）
 
-【第2分野：セキュリティロギングとモニタリング】
-- Task 2.1: セキュリティイベントに対処するためのモニタリングとアラートを設計し、実装する（CloudWatch・EventBridgeによるイベントモニタリング・アラーム、Lambda・SNS・Security Hubによるアラート自動化、GuardDuty・Systems Managerによるメトリクス・ベースライン監視、Security Hubカスタムインサイト作成、アラートのメトリクスとしきい値定義）
-- Task 2.2: セキュリティモニタリングとアラートのトラブルシューティングを行う（可視性・アラート欠如後のサービス機能・アクセス許可・リソース構成分析、カスタムアプリケーションのロギング設定分析・修正、セキュリティ要件を満たすロギング・モニタリングサービスの評価）
-- Task 2.3: ロギングソリューションを設計し、実装する（VPCフローログ・DNSログ・CloudTrail・CloudWatch Logsの設定、ロギング要件とデータソースの特定、AWSベストプラクティスに基づくログストレージとライフサイクル管理実装）
-- Task 2.4: ロギングソリューションのトラブルシューティングを行う（設定ミスとアクセス許可不足の特定・修正、読み取り/書き込み権限・S3バケットポリシー・パブリックアクセス・整合性管理、ログ欠損原因の特定と修正手順）
-- Task 2.5: ログ分析ソリューションを設計する（Athena・CloudWatch Logsフィルターによるログ分析、CloudWatch Logs Insights・CloudTrailインサイト・Security Hubインサイト活用、ログ内パターン特定による異常・脅威の指摘、ログの正規化・解析・関連付け）
+【第2分野：インシデント対応 (Incident Response)】
+- Task 2.1: インシデント対応計画を設計しテストする（Systems Manager OpsCenter・SageMaker AI ノートブックを活用したセキュリティインシデント対応計画とランブックの設計・実装、アクセスのプロビジョニング・セキュリティツールのデプロイ・爆発半径の最小化・Shield Advancedプロテクション設定によるインシデント準備、AWS Fault Injection Service・Resilience Hubによるインシデント対応計画の有効性テスト・検証手順の推奨、Systems Manager・EC2向け自動フォレンジックオーケストレーター・Step Functions・Application Recovery Controller・Lambda関数によるインシデントの自動修復）
+- Task 2.2: セキュリティイベントに対応する（フォレンジックアーティファクトとしての関連システム・アプリケーションログの取得・保存、アプリケーションとAWSサービス横断でのセキュリティイベントログ検索・相関付け、イベントのスコープ・影響評価のためのAWSセキュリティサービスフィンディングの検証、ネットワーク隔離コントロール実装・バックアップ復元による影響リソースの封じ込め・根絶・回復、Detectiveを用いた根本原因分析手法）
 
-【第3分野：インフラストラクチャのセキュリティ】
-- Task 3.1: エッジサービスのセキュリティコントロールを設計し、実装する（AWS WAF・ロードバランサー・Route 53・CloudFront・Shieldの機能、OWASP Top 10・DDoS対策、公開ウェブサイト・サーバーレス・モバイルバックエンド向けエッジセキュリティ戦略、地域・位置情報・レート制限によるエッジ制限、エッジサービスのログ・メトリクス・モニタリング有効化）
-- Task 3.2: ネットワークのセキュリティコントロールを設計し、実装する（セキュリティグループ・ネットワークACL・AWS Network Firewall、Transit Gateway・VPCエンドポイント・PrivateLink、VPCフローログ・トラフィックミラーリングによるテレメトリ、AWS VPN・Direct Connect・MACsecによるオンプレミス接続冗長化、Firewall Managerによるネットワーク設定管理）
-- Task 3.3: コンピューティングワークロードのセキュリティコントロールを設計し、実装する（強化されたEC2 AMI作成・EC2 Image Builder、インスタンスロール・サービスロールの適用、Inspector・ECRによるEC2・コンテナイメージ脆弱性スキャン、Systems Manager Patch Managerによるパッチ適用、ホストベースのファイアウォール有効化、コンピューティングワークロードへのシークレット・認証情報の安全な受け渡し）
-- Task 3.4: ネットワークセキュリティのトラブルシューティングを行う（VPC Reachability Analyzer・Amazon Inspectorによるネットワーク到達可能性分析、トラフィックミラーリングによるサンプルキャプチャ、Route 53ログ・WAFログ・VPCフローログ解析）
+【第3分野：インフラストラクチャのセキュリティ (Infrastructure Security)】
+- Task 3.1: ネットワークエッジサービスのセキュリティコントロールを設計・実装・トラブルシューティングする（予測される脅威・攻撃に基づくエッジセキュリティ戦略の定義・選択、CloudFrontヘッダー・WAF・IoTポリシー・OWASP Top 10対策・S3 CORS・Shield Advancedによる適切なネットワークエッジ保護の実装、地域・ジオロケーション・レート制限・クライアントフィンガープリンティングに基づくAWSエッジコントロール・ルールの設計・実装、OCSFフォーマットでのデータ取り込み・サードパーティWAFルール使用によるAWSエッジサービスとサードパーティサービスの統合設定）
+- Task 3.2: コンピューティングワークロードのセキュリティコントロールを設計・実装・トラブルシューティングする（Systems Manager・EC2 Image Builderを活用したハードニング済みEC2 AMI・コンテナイメージの設計・実装によるセキュリティコントロールの組み込み、インスタンスプロファイル・サービスロール・実行ロールの適切な適用、Inspector によるコンテナイメージ・Lambda関数の脆弱性スキャン・GuardDutyによるコンピューティングランタイム監視、Systems Manager Patch Manager・Inspectorによるパッチ適用自動化と継続的検証の統合、Systems Manager Session Manager・EC2 Instance Connectによるコンピューティングリソースへの安全な管理アクセス設定、Amazon Q Developer・CodeGuru Securityによるパイプライン内脆弱性の発見・修正、GenAI OWASP Top 10 for LLM Applications保護の適用による生成AIアプリケーションの保護・ガードレール実装）
+- Task 3.3: ネットワークセキュリティコントロールを設計しトラブルシューティングする（セキュリティグループ・ネットワークACL・AWS Network Firewallによるネットワークトラフィックの許可/拒否コントロールの設計・トラブルシューティング、AWS Site-to-Site VPN・Direct Connect・MACsecによるハイブリッド・マルチクラウドネットワーク間の安全な接続設計、AWS Verified Accessを使用したハイブリッド環境とAWS間通信のセキュリティワークロード要件の決定・設定、north/southおよびeast/westトラフィック保護・隔離サブネットに基づくネットワークセグメンテーション設計、Verified Access・Network Access Analyzer・Inspector ネットワーク到達可能性フィンディングによる不要なネットワークアクセスの特定）
 
 【第4分野：Identity and Access Management】
-- Task 4.1: AWSリソースの認証を設計、実装、トラブルシューティングする（フェデレーション・IDプロバイダー・IAM Identity Center（SSO）・Cognito、長期・一時的認証情報管理メカニズム、MFAセットアップ、AWS STSによる一時的認証情報発行、CloudTrail・IAMアクセスアドバイザー・IAMポリシーシミュレーターによるトラブルシューティング）
-- Task 4.2: AWSリソースの認可を設計、実装、トラブルシューティングする（マネージドポリシー・インラインポリシー・アイデンティティベースポリシー・リソースベースポリシー・セッション制御ポリシー、プリンシパル・アクション・リソース・条件キー、ABAC・RBAC戦略、最小権限原則の適用、職務分掌の実施、アクセスエラー・認可エラーの原因特定、意図しないアクセス許可・権限付与の調査）
+- Task 4.1: 認証戦略を設計・実装・トラブルシューティングする（IAM Identity Center・Cognito・MFA・IdP統合による人間・アプリケーション・システム認証のIDソリューション設計・確立、AWS STS・S3プリサインURL による一時的認証情報の発行メカニズム設定、CloudTrail・Cognito・IAM Identity Centerアクセス許可セット・AWS Directory Serviceを使用した認証問題のトラブルシューティング）
+- Task 4.2: 認可戦略を設計・実装・トラブルシューティングする（Amazon Verified Permissions・IAMパス・IAM Roles Anywhere・クロスアカウントアクセス用リソースポリシー・IAMロール信頼ポリシーによる人間・アプリケーション・システムアクセスの認可コントロール設計・評価、タグ・属性に基づくリソースアクセス設定によるABAC・RBAC戦略の設計、アクセス許可の境界・セッションポリシーによる最小権限原則に基づくIAMポリシーの設計・解釈・実装、IAMポリシーシミュレーター・IAM Access Analyzerによる認可失敗の原因・影響分析、IAM Access Analyzerによるリソース・サービス・エンティティへの意図しないアクセス許可・認可・権限の調査・修正）
 
-【第5分野：データ保護】
-- Task 5.1: 転送中のデータに機密性と整合性を提供するコントロールを設計し、実装する（TLS・IPsec・SSH・Systems Manager Session Manager経由RDP、ACM証明書とCloudFront・ロードバランサー連携、Direct Connect・VPNゲートウェイ・MACsecによる安全な接続、EC2 Instance Connect、プライベートVIF・パブリックVIFを使用したクロスリージョン設計）
-- Task 5.2: 保管中のデータに機密性と整合性を提供するコントロールを設計し、実装する（クライアント側・サーバー側・対称・非対称暗号化の選択、ハッシュアルゴリズム・デジタル署名による整合性チェック、S3バケットポリシー・DynamoDBポリシーによるアクセス制限、S3パブリックアクセスブロック・パブリックスナップショット・パブリックAMI防止、S3/RDS/DynamoDB/SQS/EBS/EFS暗号化設定、S3オブジェクトロック・KMSキーポリシー・S3 Glacierボールトロック・AWS Backupボールトロックによるデータ整合性保護、CloudHSMを使用したリレーショナルDB保管時暗号化）
-- Task 5.3: 保存中のデータのライフサイクルを管理するためのコントロールを設計し、実装する（S3オブジェクトロック・S3 Glacierボールトロック・S3ライフサイクルポリシー、EBSスナップショット・RDSスナップショット・AMI・コンテナイメージ・CloudWatchロググループ・Amazon Data Lifecycle Managerによる自動ライフサイクル管理、AWS Backupスケジュールと保持設定）
-- Task 5.4: 認証情報、シークレット、暗号化キーマテリアルを保護するためのコントロールを設計し、実装する（Secrets Managerによるシークレット管理・ローテーション設計、Systems Manager Parameter Store、AWS KMSによる対称・非対称キー管理、KMSキーポリシーによるキー使用制限、顧客提供キーマテリアルのインポート・削除メカニズム）
+【第5分野：データ保護 (Data Protection)】
+- Task 5.1: 転送中のデータに対するコントロールを設計し実装する（ELBセキュリティポリシー設定・TLS設定の強制による暗号化必須メカニズムの設計・設定、AWS PrivateLink・VPCエンドポイント・AWS Client VPN・AWS Verified Accessによるリソースへの安全・プライベートアクセスの設計・設定、EMR・EKS・SageMaker AI・Nitro暗号化のノード間暗号化設定によるリソース間転送中暗号化の設計・設定）
+- Task 5.2: 保管中のデータに対するコントロールを設計し実装する（CloudHSM・KMSなど適切な暗号化キーサービスの選択・クライアント側/サーバー側暗号化タイプの選択による保管時データ暗号化の設計・実装・設定、S3オブジェクトロック・S3 Glacierボールトロック・バージョニング・デジタルコード署名・ファイル検証によるデータ整合性保護メカニズムの設計・設定、S3ライフサイクルポリシー・S3オブジェクトロック・EFSライフサイクルポリシー・FSx for Lustreバックアップポリシーによるデータの自動ライフサイクル管理・保持ソリューションの設計、Amazon Data Lifecycle Manager・AWS Backup・ランサムウェア対策・DataSyncによる安全なデータレプリケーション・バックアップソリューションの設計・設定）
+- Task 5.3: 機密データ・認証情報・シークレット・暗号化キーマテリアルを保護するコントロールを設計し実装する（AWS Secrets Managerによる認証情報・シークレットの管理・ローテーション設計、インポートキーマテリアルのローテーション管理・外部キーストアの管理・設定、インポートキーマテリアルとAWS生成キーマテリアルの違いの説明、CloudWatch Logsデータ保護ポリシー・Amazon SNSメッセージデータ保護による機密データのマスキング、単一リージョンまたは複数リージョン横断でのAWS KMSカスタマーマネージドキー・AWS Private Certificate Authorityによる暗号化キー・証明書の作成・管理）
 
-【第6分野：管理とセキュリティガバナンス】
-- Task 6.1: AWSアカウントを一元的にデプロイして管理する戦略を策定する（AWS Organizationsのデプロイ・設定、Control Towerのデプロイタイミングと方法決定、SCPによるポリシー適用・ルートアカウント使用制限、委任管理・Config アグリゲーターによるセキュリティサービスの一元管理・調査結果集計、ルートユーザー認証情報の保護）
-- Task 6.2: クラウドリソースのための安全で一貫したデプロイ戦略を実装する（CloudFormationによる安全なIaCデプロイ・ドリフト検出、マルチアカウントタグ付け戦略、Service Catalogによる承認済みサービスポートフォリオ設定・デプロイ、Firewall Managerデプロイ、AWS RAMによるアカウント間リソース共有）
-- Task 6.3: AWSリソースのコンプライアンスを評価する（Macieによる機密データ特定、Config Rulesによる非準拠リソース検出、Security Hub・Audit Managerによる証拠収集・整理）
-- Task 6.4: アーキテクチャレビューとコスト分析を通じてセキュリティギャップを特定する（コスト・使用量の異常特定、Trusted Advisor・Cost Explorerによる未使用リソース特定、Well-Architected Toolによるセキュリティギャップ特定）
+【第6分野：セキュリティの基盤とガバナンス (Security Foundations and Governance)】
+- Task 6.1: AWSアカウントを一元的にデプロイして管理する戦略を策定する（AWS Organizationsを使用した組織のデプロイ・設定、新規・既存環境でのAWS Control Towerの実装・管理とオプション・カスタムコントロールのデプロイ、SCP・RCP・AIサービスオプトアウトポリシー・宣言型ポリシーによる組織ポリシーの実装・権限管理、委任管理者アカウントによるセキュリティサービスの一元管理、メンバーアカウントのルートアクセス一元化・MFA管理・break-glass手順設計によるAWSアカウントルートユーザー認証情報の管理）
+- Task 6.2: クラウドリソースのための安全で一貫したデプロイ戦略を実装する（CloudFormationスタックセット・サードパーティIaCツール・CloudFormation Guard・cfn-lintによるアカウント横断での一貫した安全なIaCデプロイ、部門・コストセンター・環境などによるグループ管理のためのAWSリソースへのタグ付け、AWS Firewall Managerによる中央ソースからのポリシー・設定のデプロイ・強制、AWS Service Catalog・AWS RAMによるAWSアカウント間での安全なリソース共有）
+- Task 6.3: AWSリソースのコンプライアンスを評価する（AWS Configによる非準拠リソースの集約アラート・修正およびSecurity Hubを使用した非準拠AWSリソースの検出・修正・通知ルールの作成・有効化、AWS Audit Manager・AWS Artifactによる証拠収集・整理、AWS Well-Architected Frameworkツールによるセキュリティのベストプラクティス準拠のアーキテクチャ評価）
 
-■ 出題範囲の主要サービスと概念（公式試験ガイド記載）
+■ 出題範囲の主要サービスと概念（公式試験ガイド SCS-C03 記載）
+【分析】
+Amazon Athena, Amazon OpenSearch Service
+
+【アプリケーション統合】
+Amazon SNS, AWS Step Functions
+
+【コンピューティング】
+Amazon API Gateway, Amazon EC2（EC2 Image Builder・EC2 Instance Connect含む）, Amazon EKS, Amazon EMR, AWS Lambda, Amazon Data Lifecycle Manager
+
+【開発者ツール】
+AWS Fault Injection Service
+
+【モノのインターネット】
+AWS IoT Core
+
+【機械学習・生成AI】
+Amazon Bedrock, Amazon CodeGuru Security, Amazon Q Business, Amazon Q Developer, Amazon SageMaker AI
+
 【マネジメントとガバナンス】
-AWS CloudTrail, Amazon CloudWatch, AWS Config, AWS Organizations, AWS Systems Manager, AWS Trusted Advisor
+AWS CloudFormation（CloudFormation Guard・cfn-lint含む）, AWS CloudTrail, AWS CloudTrail Lake, Amazon CloudWatch, AWS Config, AWS Control Tower, Amazon Managed Grafana, AWS Organizations, AWS Resilience Hub, AWS Resource Access Manager（AWS RAM）, AWS Service Catalog, AWS Systems Manager（OpsCenter・Patch Manager・Session Manager・State Manager・Runbook含む）, AWS Trusted Advisor, AWS User Notifications, AWS Well-Architected Tool
 
 【ネットワークとコンテンツ配信】
-Amazon VPC（Network Access Analyzer・ネットワークACL・セキュリティグループ・VPCエンドポイント含む）, AWS Transit Gateway, AWS Direct Connect, AWS VPN, AWS Network Firewall, AWS WAF, AWS Shield, Amazon CloudFront, Amazon Route 53, AWS Firewall Manager
+Amazon Application Recovery Controller, Amazon VPC（Network Access Analyzer・ネットワークACL・セキュリティグループ・VPCエンドポイント・Site-to-Site VPN・VPCフローログ・AWS Verified Access含む）, AWS Client VPN, Amazon CloudFront, Amazon Verified Permissions, Amazon Route 53（Route 53 Resolver DNS Firewall含む）, AWS Direct Connect（MACsec含む）, Elastic Load Balancing（ELB）, Network Access Analyzer, AWS Transit Gateway（Transit Gatewayフローログ含む）, AWS Network Firewall
 
-【セキュリティ・アイデンティティ・コンプライアンス（公式記載）】
-AWS Audit Manager, AWS Certificate Manager (ACM), AWS CloudHSM, Amazon Detective, AWS Directory Service, AWS Firewall Manager, Amazon GuardDuty, AWS IAM Identity Center (SSO), AWS Identity and Access Management (IAM), Amazon Inspector, AWS Key Management Service (AWS KMS), Amazon Macie, AWS Network Firewall, AWS Security Hub, AWS Shield, AWS WAF
+【セキュリティ・アイデンティティ・コンプライアンス】
+AWS Artifact, AWS Audit Manager, AWS Certificate Manager（ACM）, AWS CloudHSM, Amazon Cognito, Amazon Detective, AWS Directory Service, AWS Firewall Manager, Automated Forensics Orchestrator for Amazon EC2, Amazon GuardDuty, AWS IAM（IAM Access Analyzer・IAMポリシーシミュレーター・IAM Roles Anywhere・IAMパス含む）, AWS IAM Identity Center, Amazon Inspector, AWS KMS（カスタマーマネージドキー・インポートキーマテリアル・外部キーストア含む）, Amazon Macie, AWS Network Firewall, AWS Private Certificate Authority, AWS Secrets Manager, AWS Security Hub, Amazon Security Lake（OCSF形式含む）, AWS Shield, AWS Shield Advanced, AWS STS, AWS WAF
 
-【その他の重要サービス・概念（タスク文から抽出）】
-- 脅威検出・モニタリング: GuardDuty, Security Hub, Detective, Inspector, Macie, Config, CloudTrail, CloudWatch Logs/Insights, VPC Flow Logs, EventBridge, Amazon Athena, Amazon SNS, IAM Access Analyzer, AWS Health
-- インシデント対応・自動化: AWS Lambda, AWS Step Functions, Systems Manager（Incident Manager・Session Manager・Parameter Store・Patch Manager・Runbook）, AWS Backup, EBSボリュームスナップショット, S3オブジェクトロック, ASFF（AWS Security Finding Format）
-- インフラ保護: CloudFront OAC, WAF, Shield Advanced, Network Firewall, Firewall Manager, VPC Reachability Analyzer, Traffic Mirroring, EC2 Image Builder, PrivateLink, Direct Connect MACsec
-- IAM: IAMポリシー（マネージド・インライン・アイデンティティベース・リソースベース・セッション制御）, SCPs（Service Control Policies）, ABAC, RBAC, IAM Identity Center, Cognito, AWS STS, IAMアクセスアドバイザー, IAMポリシーシミュレーター
-- データ保護: KMS（CMK・AWS管理キー）, CloudHSM, S3暗号化（SSE-S3・SSE-KMS・SSE-C・DSSE-KMS）, Secrets Manager, ACM, Amazon Data Lifecycle Manager, AWS Backup ボールトロック, S3 Glacierボールトロック
-- コンプライアンス・ガバナンス: Organizations, Control Tower, Config Aggregator, Service Catalog, AWS RAM（Resource Access Manager）, CloudFormation（IaC・ドリフト検出）, Audit Manager, Well-Architected Framework, Well-Architected Tool, Trusted Advisor, Cost Explorer
+【ストレージとデータ管理】
+Amazon S3（S3オブジェクトロック・S3 Glacierボールトロック・S3ライフサイクルポリシー・パブリックアクセスブロック含む）, AWS Backup（ボールトロック含む）, AWS DataSync, Amazon EFS（EFSライフサイクルポリシー含む）, Amazon FSx for Lustre
+
+【その他の重要な概念・フレームワーク】
+- 組織ポリシー: SCP（Service Control Policies）, RCP（Resource Control Policies）, AIサービスオプトアウトポリシー, 宣言型ポリシー
+- ABAC・RBAC, 最小権限原則, 職務分掌, アクセス許可の境界（Permission Boundaries）, セッションポリシー
+- OWASP Top 10, GenAI OWASP Top 10 for LLM Applications
+- OCSF（Open Cybersecurity Schema Framework）
+- ASFF（AWS Security Finding Format）
+- フォレンジックアーティファクト取得・保護, フォレンジック専用アカウント分離
+- ランサムウェア対策, バックアップ・DR戦略, break-glass手順

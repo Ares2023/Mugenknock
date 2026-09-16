@@ -7,8 +7,9 @@ import { ORIGINAL_INSTRUCTIONS, COMMON_RULES } from '../data/originalInstruction
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { ServiceIcon, isServiceIconKey, IconChevronDown, IconChevronRight, IconCopy, IconCheck } from '../components/Icons';
+import { ServiceIcon, isServiceIconKey, IconChevronDown, IconChevronRight, IconCopy, IconCheck, IconClose, IconCircleX, IconAlertTriangle, IconThumbsUp, IconThumbsDown, IconLightbulb, IconEye, IconPenLine, IconArrowRight, IconArrowLeft, IconPencil, IconTrash, IconRefreshCw } from '../components/Icons';
 import { useTheme, CustomColors } from '../contexts/ThemeContext';
+import { useHorizontalScrollHint } from '../hooks/useHorizontalScrollHint';
 
 const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const session = await fetchAuthSession();
@@ -370,7 +371,7 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
         {/* ヘッダー */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
           <span style={{ fontWeight: 700, fontSize: 15 }}>問題プレビュー（演習時の表示を再現）</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--color-text-sub)', lineHeight: 1, padding: '0 4px' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-sub)', lineHeight: 0, padding: '0 4px', display: 'inline-flex', alignItems: 'center' }}><IconClose /></button>
         </div>
 
         <div style={{ padding: '16px 20px' }}>
@@ -426,8 +427,8 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
                   >
                     <span style={{ fontWeight: 700, fontSize: 13, color: getChoiceColor(c, idx), flexShrink: 0, minWidth: 18 }}>{CHOICE_LABELS_P[idx]}.</span>
                     <span style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{stripLabelP(c)}</span>
-                    {answered && isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-success)', fontWeight: 700, flexShrink: 0 }}>✓</span>}
-                    {answered && selected.includes(c) && !isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-danger)', fontWeight: 700, flexShrink: 0 }}>✗</span>}
+                    {answered && isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-success)', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><IconCheck size={15} /></span>}
+                    {answered && selected.includes(c) && !isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-danger)', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><IconCircleX size={15} /></span>}
                   </button>
                 ))}
               </div>
@@ -512,6 +513,11 @@ export default function Admin() {
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
+  // サブタブ行(.admin-tabs)は9タブ分あり、モバイル幅には収まらず横スクロールで見せている
+  // （src/index.css の .admin-tabs で overflow-x:auto 済み）が、スクロールバーが出ない
+  // モバイルブラウザでは「続きがある」ことに気づけず、末尾のタブが見切れて見えていた。
+  // チートシート/目標資格オーバーレイのレベルタブと同じ対策（右端フェード）を適用する。
+  const adminTabsHint = useHorizontalScrollHint(isMobile);
   // 直前に開いていたタブ/画面を復元する（不正・廃止済みのキーは無視して既定へ）
   const [tab, setTab] = useState<Tab>(() => {
     try {
@@ -523,6 +529,20 @@ export default function Admin() {
   useEffect(() => {
     try { localStorage.setItem('adminActiveTab', tab); } catch {}
   }, [tab]);
+  // 選択中のサブタブが横スクロール行内で見切れないよう位置を合わせる（資格カード行と同じ方式）
+  useEffect(() => {
+    const row = adminTabsHint.ref.current;
+    const btn = row?.querySelector<HTMLElement>(`[data-tab="${tab}"]`);
+    if (!row || !btn) return;
+    const bLeft = btn.offsetLeft;
+    const bRight = bLeft + btn.offsetWidth;
+    const viewLeft = row.scrollLeft;
+    if (bRight > viewLeft + row.clientWidth) {
+      row.scrollTo({ left: bRight - row.clientWidth + 8, behavior: 'smooth' });
+    } else if (bLeft < viewLeft) {
+      row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
+    }
+  }, [tab, isMobile, adminTabsHint.ref]);
   const [adminError, setAdminError] = useState<string | null>(null);
   const { customColors, customColorsEnabled, applyColors, setCustomColorsEnabled } = useTheme();
   const [themeColors, setThemeColors] = useState<CustomColors>(() => ({ ...DEFAULT_COLORS, ...customColors }));
@@ -1405,7 +1425,7 @@ export default function Admin() {
           <Card style={{ width: '100%', maxWidth: 780, flexShrink: 0, boxShadow: 'var(--box-shadow-md)' }} padding="var(--spacing-xl)">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>問題を編集</h3>
-              <button onClick={() => setEditingQuestion(null)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
+              <button onClick={() => setEditingQuestion(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 0, display: 'inline-flex', alignItems: 'center' }}><IconClose /></button>
             </div>
 
             {/* 試験種別 */}
@@ -1492,7 +1512,7 @@ export default function Admin() {
                       choices: f.choices.filter((_, idx) => idx !== i),
                       correctAnswers: f.correctAnswers.filter(c => c !== choice)
                     }))}
-                      style={{ fontSize: 16, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', padding: '0 4px', flexShrink: 0 }}>✕</button>
+                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', padding: '0 4px', flexShrink: 0, lineHeight: 0, display: 'inline-flex', alignItems: 'center' }}><IconClose /></button>
                   )}
                 </div>
               ))}
@@ -1568,7 +1588,7 @@ export default function Admin() {
 
       {adminError && (
         <Card padding="var(--spacing-md) var(--spacing-lg)" style={{ background: 'var(--color-danger-light)', borderColor: 'var(--color-danger)', marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-          <span style={{ fontSize: 20 }}>⚠️</span>
+          <span style={{ color: 'var(--color-warning)', display: 'inline-flex', alignItems: 'center' }}><IconAlertTriangle size={20} /></span>
           <div>
             <div style={{ fontWeight: 700, color: 'var(--color-danger)', fontSize: 'var(--font-size-base)' }}>{adminError}</div>
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginTop: 2 }}>
@@ -1604,9 +1624,13 @@ export default function Admin() {
               ))}
             </div>
             {/* サブタブ */}
-            <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap' }}>
+            <div
+              className="admin-tabs"
+              ref={adminTabsHint.ref}
+              style={{ borderBottom: '1px solid var(--color-border)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap', ...adminTabsHint.maskStyle }}
+            >
               {TAB_GROUPS.find(g => g.key === activeGroup)!.tabs.map(t => (
-                <button key={t} style={tabStyle(t)} onClick={() => setTab(t)}>
+                <button key={t} data-tab={t} style={tabStyle(t)} onClick={() => setTab(t)}>
                   {t === 'messages' && messages.length > 0
                     ? `メッセージ (${messages.length})`
                     : t === 'dailyservice' && dailyServices.length > 0
@@ -1631,8 +1655,8 @@ export default function Admin() {
             </button>
             <button
               onClick={() => { fetchQuestions(currentPage); fetchSummary(sinceDate || undefined); }}
-              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-              更新
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }} title="再読み込み">
+              <IconRefreshCw size={14} />
             </button>
           </div>
           {/* カバレッジ */}
@@ -1677,7 +1701,7 @@ export default function Admin() {
                   style={{ fontSize: 12, padding: '2px 6px', border: '1px solid var(--color-border)', borderRadius: 6, color: 'var(--color-text-main)', background: 'var(--color-bg-white)', cursor: 'pointer' }}
                 />
                 {sinceDate && (
-                  <button onClick={() => setSinceDate('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', padding: '2px 4px' }}>✕</button>
+                  <button onClick={() => setSinceDate('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', padding: '2px 4px', lineHeight: 0, display: 'inline-flex', alignItems: 'center' }}><IconClose /></button>
                 )}
               </div>
             </div>
@@ -1849,14 +1873,16 @@ export default function Admin() {
           </form>
 
           {/* 件数・一括削除バー */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          {/* コラムのネタタブで同じパターン(外側・内側ともflexWrap無し)がモバイルで
+              テキストの文字単位改行崩れを起こしたため、ここも同様に折り返し可能にしておく。 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
               {loadingQ ? '読み込み中...' : totalQuestions > 0
                 ? `${totalQuestions} 件中 ${currentPage * PAGE_SIZE + 1}–${Math.min((currentPage + 1) * PAGE_SIZE, totalQuestions)} 件表示`
                 : `${questions.length} 件`}
             </p>
             {selectedIds.size > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 700 }}>{selectedIds.size}件選択中</span>
                 <button
                   onClick={handleBulkDelete}
@@ -1958,15 +1984,27 @@ export default function Admin() {
                     </span>
                   );
                 })()}
+                {!isMobile && (() => {
+                  // 演習画面の👍👎の集計（問題改善の指標。ユーザー側には合計を出していない）
+                  const up = Number((q as any).reactionUp ?? 0);
+                  const down = Number((q as any).reactionDown ?? 0);
+                  if (up === 0 && down === 0) return null;
+                  return (
+                    <span title={`参考になった ${up} / 分かりにくい ${down}`} style={{ fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: up > 0 ? 'var(--color-primary)' : 'var(--color-text-light)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}><IconThumbsUp size={13} />{up}</span>
+                      <span style={{ color: down > 0 ? 'var(--color-danger)' : 'var(--color-text-light)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}><IconThumbsDown size={13} />{down}</span>
+                    </span>
+                  );
+                })()}
                 {!isMobile && q.validityCheckedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>✓</span>
+                    <span style={{ color: 'var(--color-success)', display: 'inline-flex', alignItems: 'center' }}><IconCheck size={12} /></span>
                     AI: {fmtDate(q.validityCheckedAt)}
                   </span>
                 )}
                 {!isMobile && q.formatCheckedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <span style={{ color: '#009E9E', fontWeight: 700 }}>✓</span>
+                    <span style={{ color: '#009E9E', display: 'inline-flex', alignItems: 'center' }}><IconCheck size={12} /></span>
                     体裁: {fmtDate(q.formatCheckedAt)}
                   </span>
                 )}
@@ -1978,13 +2016,13 @@ export default function Admin() {
                 <button
                   onClick={e => { e.stopPropagation(); setPreviewInitId(q.questionId); setShowPreview(true); }}
                   title="演習時の見え方をプレビュー"
-                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-                  👁
+                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0, lineHeight: 0, display: 'inline-flex', alignItems: 'center' }}>
+                  <IconEye size={14} />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); openEdit(q); }}
-                  style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-                  編集
+                  style={{ padding: '4px 9px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }} title="編集">
+                  <IconPencil size={14} />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); handleDelete(q); }}
@@ -1999,8 +2037,8 @@ export default function Admin() {
                     fontSize: 12,
                     fontWeight: 700,
                     flexShrink: 0
-                  }}>
-                  {deletingId === q.questionId ? '削除中...' : '削除'}
+                  }} title={deletingId === q.questionId ? '削除中...' : '削除'}>
+                  <IconTrash size={14} />
                 </button>
               </div>
 
@@ -2022,7 +2060,7 @@ export default function Admin() {
                             border: `1.5px solid ${isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
                             color: isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)',
                           }}>
-                            <span style={{ whiteSpace: 'pre-wrap' }}>{isCorrect ? '✓ ' : ''}{c}</span>
+                            <span style={{ whiteSpace: 'pre-wrap', display: 'inline-flex', alignItems: 'baseline', gap: 'var(--spacing-xs)' }}>{isCorrect && <span style={{ display: 'inline-flex', alignSelf: 'center' }}><IconCheck size={13} /></span>}{c}</span>
                           </div>
                         );
                       })}
@@ -2063,7 +2101,7 @@ export default function Admin() {
                 onClick={() => { fetchQuestions(currentPage - 1); setSelectedIds(new Set()); }}
                 disabled={currentPage === 0}
                 style={{ padding: '6px 16px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: currentPage === 0 ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: currentPage === 0 ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: currentPage === 0 ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
-                ← 前
+                <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconArrowLeft size={13} /></span>前
               </button>
               <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
                 {currentPage + 1} / {Math.ceil(totalQuestions / PAGE_SIZE)} ページ
@@ -2072,7 +2110,7 @@ export default function Admin() {
                 onClick={() => { fetchQuestions(currentPage + 1); setSelectedIds(new Set()); }}
                 disabled={(currentPage + 1) * PAGE_SIZE >= totalQuestions}
                 style={{ padding: '6px 16px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
-                次 →
+                次<span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginLeft: 'var(--spacing-xs)' }}><IconArrowRight size={13} /></span>
               </button>
             </div>
           )}
@@ -2085,8 +2123,8 @@ export default function Admin() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
             <button
               onClick={fetchGrowthData}
-              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-              更新
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }} title="再読み込み">
+              <IconRefreshCw size={14} />
             </button>
           </div>
           {growthLoading ? (
@@ -2179,7 +2217,7 @@ export default function Admin() {
                     onClick={() => deleteReport(r.reportId, r.questionId)}
                     style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', fontWeight: 700 }}
                     title="解決済みとして削除">
-                    ✓ 解決済み
+                    <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={13} /></span>解決済み
                   </button>
                 </div>
               </div>
@@ -2394,7 +2432,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                         color: promptCopied ? 'var(--color-success)' : 'var(--color-primary)',
                         border: `1.5px solid ${promptCopied ? 'var(--color-success)' : 'var(--color-primary)'}`,
                         transition: 'all 0.2s', fontWeight: 700 }}>
-                      {promptCopied ? '✓ コピー済み' : 'コピー'}
+                      {promptCopied ? <><span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={13} /></span>コピー済み</> : 'コピー'}
                     </button>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 6 }}>
@@ -2449,12 +2487,12 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
 
             {importParsed && !importResult && (
               <div style={{ marginBottom: importMismatchTypes.length > 0 ? 8 : 16, padding: '10px 14px', background: 'var(--color-primary-light)', border: '1px solid #aab7b8', borderRadius: 6, fontSize: 13, color: 'var(--color-primary)' }}>
-                ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
+                <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={14} /></span>{importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
               </div>
             )}
             {importMismatchTypes.length > 0 && !importResult && (
               <div style={{ marginBottom: 16, padding: '10px 14px', background: '#fff8e1', border: '1.5px solid #f9a825', borderRadius: 6, fontSize: 13, color: '#7c4d00' }}>
-                ⚠️ JSON内に選択中の試験種別（<strong>{importExamType}</strong>）と異なる examType が含まれています：<strong>{importMismatchTypes.join(', ')}</strong>。
+                <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconAlertTriangle size={14} /></span>JSON内に選択中の試験種別（<strong>{importExamType}</strong>）と異なる examType が含まれています：<strong>{importMismatchTypes.join(', ')}</strong>。
                 該当問題はドロップダウンではなく <strong>JSON内の examType のままインポート</strong>されます。意図的でない場合はドロップダウンを正しい試験種別に切り替えてください。
               </div>
             )}
@@ -2465,7 +2503,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
             )}
             {importResult && (
               <div style={{ marginBottom: 16, padding: '14px 16px', background: '#eafaf1', border: '1px solid #6eb57d', borderRadius: 6 }}>
-                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}>✓ {importResult.count}件をインポートしました</div>
+                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}><span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={14} /></span>{importResult.count}件をインポートしました</div>
                 <div style={{ fontSize: 12, color: '#555', fontFamily: 'monospace' }}>{importResult.ids.join(', ')}</div>
               </div>
             )}
@@ -2593,7 +2631,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       color: tipPromptCopied ? 'var(--color-success)' : 'var(--color-primary)',
                       border: `1.5px solid ${tipPromptCopied ? 'var(--color-success)' : 'var(--color-primary)'}`,
                       transition: 'all 0.2s', fontWeight: 700 }}>
-                    {tipPromptCopied ? '✓ コピー済み' : 'コピー'}
+                    {tipPromptCopied ? <><span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={13} /></span>コピー済み</> : 'コピー'}
                   </button>
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 6 }}>
@@ -2652,12 +2690,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               )}
               {tipImportParsed && !tipImportResult && (
                 <div style={{ marginBottom: 12, padding: '10px 14px', background: 'var(--color-primary-light)', border: '1px solid #aab7b8', borderRadius: 6, fontSize: 13, color: 'var(--color-primary)' }}>
-                  ✓ {tipImportParsed.length}件を認識しました
+                  <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={14} /></span>{tipImportParsed.length}件を認識しました
                 </div>
               )}
               {tipImportResult !== null && (
                 <div style={{ marginBottom: 12, padding: '10px 14px', background: '#eafaf1', border: '1px solid #6eb57d', borderRadius: 6, fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>
-                  ✓ {tipImportResult}件をインポートしました
+                  <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={14} /></span>{tipImportResult}件をインポートしました
                 </div>
               )}
 
@@ -2789,12 +2827,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button onClick={() => { setEditingTip(tip); setTipForm({ examType: tip.examType, title: tip.title, content: tip.content }); setShowTipForm(true); }}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
-                    編集
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }} title="編集">
+                    <IconPencil size={14} />
                   </button>
                   <button onClick={() => handleDeleteTip(tip)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                    削除
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }} title="削除">
+                    <IconTrash size={14} />
                   </button>
                 </div>
               </div>
@@ -2869,11 +2907,14 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
 
             {/* 一覧 切替 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            {/* モバイル(390px)で外側行・内側ボタン群ともflexWrap無しだったため、
+                「未使用 0 件 / 使用済み 0 件」の長いテキストが幅を奪われて
+                文字単位で改行される崩れが発生していた。両方に折り返しを許可する。 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
               <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
                 {loadingCI ? '読み込み中...' : `未使用 ${pending.length} 件 / 使用済み ${used.length} 件`}
               </p>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={() => setCiShowUsed(false)}
                   style={{ padding: '6px 14px', background: !ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>未使用</button>
                 <button onClick={() => setCiShowUsed(true)}
@@ -2901,7 +2942,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </div>
                   <div style={{ fontSize: 14, color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{idea.text}</div>
                   {idea.note && (
-                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 6, wordBreak: 'break-word' }}>📝 {idea.note}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 6, wordBreak: 'break-word', display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}><span style={{ flexShrink: 0, marginTop: 2 }}><IconPenLine size={12} /></span>{idea.note}</div>
                   )}
                   {idea.resultTipId && (
                     <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 6 }}>→ コラム化済み（tipId: {idea.resultTipId}）</div>
@@ -3017,13 +3058,13 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button
                     onClick={() => { setEditingRelease(r); setReleaseForm({ date: r.date, title: r.title, body: r.body }); setShowReleaseForm(true); }}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
-                    編集
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }} title="編集">
+                    <IconPencil size={14} />
                   </button>
                   <button
                     onClick={() => handleDeleteRelease(r)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                    削除
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }} title="削除">
+                    <IconTrash size={14} />
                   </button>
                 </div>
               </div>
@@ -3143,8 +3184,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <button
                   onClick={() => { setEditingAnnouncement(a); setAnnForm({ title: a.title, body: a.body }); setShowAnnForm(true); }}
-                  style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
-                  編集
+                  style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }} title="編集">
+                  <IconPencil size={14} />
                 </button>
                 {a.status === 'published' ? (
                   <button
@@ -3161,8 +3202,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 )}
                 <button
                   onClick={() => handleDeleteAnnouncement(a)}
-                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  削除
+                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }} title="削除">
+                  <IconTrash size={14} />
                 </button>
               </div>
             </div>
@@ -3373,8 +3414,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
                   {/* アクションボタン */}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }}>
-                      編集
+                    <button onClick={() => openEdit(q)} style={{ padding: '4px 9px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }} title="編集">
+                      <IconPencil size={14} />
                     </button>
                     {q.isHidden ? (
                       <button onClick={() => handleVisibility(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-success)', border: '1px solid #037f0c' }}>
@@ -3391,8 +3432,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                         await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`, { method: 'DELETE' });
                         setFlaggedQuestions(prev => prev.filter(x => x.questionId !== q.questionId));
                       }}
-                      style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212' }}>
-                      削除
+                      style={{ padding: '4px 9px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212' }} title="削除">
+                      <IconTrash size={14} />
                     </button>
                   </div>
                 </div>
@@ -3424,8 +3465,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               { key: 'sentAt_asc', label: '受信日時（古い順）' },
               { key: 'subject_asc', label: '件名（A→Z）' },
             ]} />
-            <button onClick={fetchMessages} style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-              更新
+            <button onClick={fetchMessages} style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }} title="再読み込み">
+              <IconRefreshCw size={14} />
             </button>
             </div>
           </div>
@@ -3446,8 +3487,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <button
                   onClick={() => handleDeleteMessage(m)}
                   style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}
-                >
-                  削除
+                 title="削除">
+                  <IconTrash size={14} />
                 </button>
               </div>
               {m.subject && (
@@ -3476,8 +3517,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 { key: 'category_asc', label: 'カテゴリ' },
               ]} />
               <button onClick={fetchDailyServices}
-                style={{ padding: '6px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-                更新
+                style={{ padding: '6px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }} title="再読み込み">
+                <IconRefreshCw size={14} />
               </button>
               <button
                 onClick={() => { setEditingDS(null); setDsForm(emptyDSForm); setShowDSForm(true); }}
@@ -3541,7 +3582,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </div>
 
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>💡 豆知識・意外な用途（任意）</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}><IconLightbulb size={12} />豆知識・意外な用途（任意）</div>
                 <textarea value={dsForm.trivia} onChange={e => setDsForm(f => ({ ...f, trivia: e.target.value }))}
                   placeholder="「実はこんな使い方も！」「名前の由来は〇〇」など"
                   rows={2} style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
@@ -3616,7 +3657,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-bg-main)', borderRadius: 6, color: 'var(--color-primary)', fontSize: 22 }}>
                   {isImg
                     ? (broken
-                        ? <span title="画像を読み込めません" style={{ fontSize: 20 }}>⚠️</span>
+                        ? <span title="画像を読み込めません" style={{ color: 'var(--color-warning)', display: 'inline-flex', alignItems: 'center' }}><IconAlertTriangle size={20} /></span>
                         : <img src={ds.icon} alt={ds.name} style={{ width: 26, height: 26, objectFit: 'contain' }}
                             onError={() => setDsBrokenIcons(prev => prev.has(ds.serviceId) ? prev : new Set(prev).add(ds.serviceId))} />)
                     : isServiceIconKey(ds.icon)
@@ -3635,17 +3676,17 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     </span>
                   </div>
                   <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5, wordBreak: 'break-word' }}>{ds.description}</p>
-                  {ds.trivia && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', lineHeight: 1.5, wordBreak: 'break-word' }}>💡 {ds.trivia}</p>}
+                  {ds.trivia && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', lineHeight: 1.5, wordBreak: 'break-word', display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}><span style={{ flexShrink: 0, marginTop: 2 }}><IconLightbulb size={12} /></span>{ds.trivia}</p>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                   <button
                     onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', docUrl: ds.docUrl ?? '', order: ds.order, isActive: ds.isActive !== false }); setShowDSForm(true); }}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }}>
-                    編集
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }} title="編集">
+                    <IconPencil size={14} />
                   </button>
                   <button onClick={() => deleteDailyService(ds.serviceId)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-                    削除
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }} title="削除">
+                    <IconTrash size={14} />
                   </button>
                 </div>
               </div>
@@ -3773,7 +3814,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               style={{ padding: '8px 18px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 700 }}>
               すべてデフォルトに戻す
             </button>
-            {themeSaved && <span style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</span>}
+            {themeSaved && <span style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}><span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={13} /></span>保存しました</span>}
           </div>
         </div>
       )}
@@ -3818,15 +3859,15 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <button
                     onClick={() => { if (window.confirm(`${email} を管理者から削除しますか？`)) removeAdminEmail(email); }}
                     disabled={adminSaving}
-                    style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: adminSaving ? 'default' : 'pointer', fontSize: 13, fontWeight: 700, padding: '2px 8px' }}>
-                    削除
+                    style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: adminSaving ? 'default' : 'pointer', fontSize: 13, fontWeight: 700, padding: '2px 8px' }} title="削除">
+                    <IconTrash size={14} />
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          {adminSaved && <p style={{ marginTop: 16, fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</p>}
+          {adminSaved && <p style={{ marginTop: 16, fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}><span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={13} /></span>保存しました</p>}
         </div>
       )}
 
@@ -3875,7 +3916,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </div>
                 </div>
               ))}
-              {aboutSaved && <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</p>}
+              {aboutSaved && <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}><span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={13} /></span>保存しました</p>}
             </div>
           )}
         </div>
@@ -3907,7 +3948,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
           {delDone && (
             <div style={{ padding: '10px 14px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, color: '#166534', fontSize: 13, marginBottom: 16, fontWeight: 700 }}>
-              ✓ データを削除しました
+              <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={14} /></span>データを削除しました
             </div>
           )}
 
@@ -3961,7 +4002,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
           {passCommentSaved && (
             <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, color: '#166534', fontSize: 13, marginBottom: 12, fontWeight: 700 }}>
-              ✓ 保存しました
+              <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: '-2px', marginRight: 'var(--spacing-xs)' }}><IconCheck size={14} /></span>保存しました
             </div>
           )}
 

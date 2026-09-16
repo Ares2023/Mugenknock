@@ -5,7 +5,7 @@
 
 ## 易しすぎ・正解特定の漏れ（warn。既存問題は作り直さず action=ok、難易度は生成時に担保）
 - [warn] キーワード照合で即答できる: 要件語や正解を一意特定する固有語（例 マイクロ秒/7年保持、Gremlin→Neptune、MongoDB互換→DocumentDB、「ベイズを引き継ぐ」→Warm Start）が正解肢だけに出る、または正解が要件文言をほぼ反復（「変更せず」→「リフト＆シフト」）。要件は挙動・性質で書き全肢に分散し、サービス特性で正誤が分かれるか。
-- [warn] 選択肢自体が答えを漏らす: 不正解が「〜できない/含まれない」と自ら失格理由を明記、または正解に自己解説的末尾（「〜なので要件を満たす」等）が付き、内容や長さで正解が特定できる。根拠は解説側に置き各肢を簡潔・中立に。
+- [warn] 選択肢自体が答えを漏らす: 不正解が「〜できない/含まれない」と自ら失格理由を明記、正解に自己解説的末尾（「〜なので要件を満たす」等）、または各肢がコロン以降に「解決できる/できない」等の評価文を持ち、解かずに正解が特定できる。根拠は解説側に置き各肢を簡潔・中立に。
 - [warn] ひっかけ不足: 不正解が露骨に弱い捨て肢（無関係・単一AZでSPOF・全ユーザーにフルアクセス等）や分野違いの肢ばかり（同カテゴリの紛らわしい近接肢が無い）で消去法・連想で即答できる。定番即答パターン（DynamoDB＋マイクロ秒＝DAX、共有＋マルチAZ＝EFS）や機能名1つで解ける暗記寄りも同様。本番相当のひっかけ強度と要件比較があるか。
 - [warn] 汎用/定義暗記: AWS固有シナリオの無い定義暗記（JDBC/ODBC、SQLのUNION、REINDEX/VACUUM/CLUSTER/ANALYZE、評価指標や基礎ML概念の定義、セキュリティ基礎概念=ゼロトラスト/最小権限/MFA/RBAC/CVSS/IDS/PKI/ハッシュの一方向性 等）で、名称連想だけで解け複数要件の取捨選択が無い。Associate以上では易しすぎ/模試不適。
 - [warn] Professional資格(SAP/DOP)の易問: 用語定義・単一サービスの目的・2サービスの違いをそのまま問う、または決め手がAssociate級の定番論点（ゲートウェイエンドポイントのNATコスト削減、単一AZ→Multi-AZ 等）にとどまる。プロ級の複合要件・トレードオフ・制約が無いなら易しすぎ。
@@ -50,3 +50,6 @@
 - [warn] AIP: SageMaker Clarifyのバイアス検出を生成テキストの属性別測定に充てない（表形式データ・モデル予測向け）。「改ざん不可(immutable)な監査証跡」にはS3 Object Lock(Compliance mode)等の不変化機構が必要（二重送信での単一障害点排除だけでは不足）。
 - [warn] MLA: SageMaker network isolation(enable_network_isolation=True)でもコンテナ間ピア通信(NCCL/DDP)は許可・S3入出力は実行ロールで処理する（「DDPが起動直後に失敗」は誤認）。Serverless Inferenceは1エンドポイント1モデルでMMEのように同居不可。NLP/トランスフォーマー推論の現行推奨はInferentia2(inf2)。
 - [fix] MLA: SageMaker非同期推論(Async Inference)の上限は最大処理1時間・ペイロード最大1GB（「15分」等の数値誤りは修正）。
+- [fix] 選択肢本体(choices)に略語のフルスペル括弧展開が混入し（例「PR AUC(Precision-Recall Area Under the Curve)」）、その肢（多くは正解）だけ文字数が膨らんで長さから正解が特定できる。choicesは短い名称のみに揃え（展開はexplanation/choiceExplanations側）、correctAnswersも短縮後の表記に一致させる。
+- [fix] 前提条件の指定不足で複数肢が同等に正解になり一意に定まらない（例 BGP経路選択でピアのAS関係未指定→MEDが比較されず正解不定／SCD Type 2で valid_to 方式と is_current フラグ方式が共に要件充足）。判定に必要な前提を明示し単一正解が一義に定まるよう修正（担保できなければ delete）。
+- [fix] MLA: サービス短縮名が汎用語と衝突し正解・解説・選択肢で曖昧（例「Ground Truth」は汎用語ground truth=正解ラベル/教師データと混同）。正式名（Amazon SageMaker Ground Truth）に統一する。

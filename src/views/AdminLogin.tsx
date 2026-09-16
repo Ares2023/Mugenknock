@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ADMIN_EMAIL, API_ENDPOINT } from '../constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { IconArrowLeft } from '../components/Icons';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -78,9 +79,10 @@ export default function AdminLogin() {
       <Button
         variant="outline"
         onClick={() => navigate('/')}
-        style={{ marginTop: 'var(--spacing-xl)', color: 'var(--color-text-light)' }}
+        style={{ marginTop: 'var(--spacing-xl)', color: 'var(--color-text-light)', gap: 'var(--spacing-xs)' }}
       >
-        ← サイトへ戻る
+        <IconArrowLeft size={14} />
+        サイトへ戻る
       </Button>
     </div>
   );

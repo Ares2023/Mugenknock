@@ -423,9 +423,11 @@ PYEOF
     RESULT=$(cat "$_STDOUT_F"); _STDERR=$(cat "$_STDERR_F")
     rm -f "$_STDOUT_F" "$_STDERR_F"
 
+    # npm更新による一時的なバイナリ消失 → 再探索してリトライ（--model opus を継続。
+    # 落とすと上のコメント通りアカウント既定モデルに意図せず変わってしまう）。
     if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && RESULT=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>/dev/null)
+      [ -x "${CLAUDE_CMD:-}" ] && RESULT=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model opus --allowed-tools WebFetch < "$PROMPT_FILE" 2>/dev/null)
     fi
 
     if echo "$_STDERR" | grep -qiE "command not found|GEMINI_API_KEY|API.?key"; then

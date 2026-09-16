@@ -99,6 +99,38 @@
 | DELETE | `/questions/:id/bookmark?userId=` | なし | `bookmarked = false`（行は残る） |
 | GET | `/users/me/bookmarks?userId=` | ✅ user | `{ questionIds: [...] }` |
 
+## 4.3b 問題へのリアクション（👍👎）
+
+1ユーザー1問1票。`UserQuestionStats.reaction`（`'up' | 'down'`、未設定=無反応）が正。
+合計集計は `Questions.reactionUp` / `reactionDown`（`globalAttempts` と同じく本体書き込みとは
+別トランザクションの条件付き加算）で、**ユーザー向けAPIには合計を出さない**（管理画面専用）。
+
+- **1人1票の保証はアプリ側のチェックではなく構造で担保する**: `UserQuestionStats` は
+  `(userId, questionId)` を主キーとする単一項目で、`reaction` はその項目の1属性
+  （`SET reaction = :r` で毎回上書き）。同じユーザー・同じ問題で複数の評価を同時に
+  持つことがデータ構造上できない。
+- **問題との紐付けは questionId 単位**で、どのセッション・どの出題経路
+  （通常演習・しっかり対策・ブックマークフィルタ等）で出会った問題でも同じ状態が
+  復元される。演習画面はセッション起動のたびに `GET /users/me/bookmarks` /
+  `GET /users/me/question-status` を取得し直す（`docs/05-screens.md` §5.4）。
+
+| メソッド | パス | 認証 | 説明 |
+|---|---|---|---|
+| PUT | `/questions/:id/reaction` | なし（body.userId） | `{ userId, reaction: 'up'\|'down'\|null }`。`null`で取り消し。同じ値の再送は無処理 |
+| GET | `/users/me/question-status?userId=&examType=` | ✅ user | `reactions: Record<questionId, 'up'\|'down'>` を含む（自分の分のみ） |
+
+**クライアント側はボタン連打のたびに送信しない（デバウンス）**: ♡/👍👎ボタンを押した瞬間は
+UI（色・アニメーション）だけ即時反映し、実際の `PUT/POST/DELETE` は以下いずれか最初に
+到達したタイミングでまとめて1回だけ送る（詳細は `docs/05-screens.md` §5.4）。
+
+1. その問題の回答確定（スコアのコミット）時
+2. 別の問題へ移動する時
+3. 画面を離れる時（セッション中断・ホームへ戻る等、コンポーネントのアンマウント）
+
+同じ問題を表示中に何度も押し直しても、最後に確定した値だけが送信される。②が必要なのは、
+「前の問題に戻って評価を変更し、また先に進む」場合のように**新たな回答確定イベントが
+発生しないケース**があるため（この場合①は発火しない）。
+
 ---
 
 ## 4.4 セッション

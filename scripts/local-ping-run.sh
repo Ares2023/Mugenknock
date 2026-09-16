@@ -2,7 +2,7 @@
 # ローカルピン実行(mugenknock-localping.timer から発火)。旧Fargateピンのローカル版。
 #   1. claudeセッションを軽く叩いて起こす(既存の run-prompts.sh --run を PING_ONLY で再利用)
 #   2. /usage のトークン回復時刻から次回ピン時刻を決め、ローカル時計に書く
-#   3. sync-local-schedule.sh で localping 自身と衛星(hook/hook2/postping)を再アーム
+#   3. sync-local-schedule.sh で localping 自身と衛星(prelog/hook/hook2/postping)を再アーム
 # Fargate/EventBridge には一切依存しない(ローカル自己完結・PCが動いている間だけ回る)。
 set -uo pipefail
 export TZ=Asia/Tokyo
@@ -12,7 +12,7 @@ REPO=/home/yuzuki/aws-quiz-app
 CFG="$HOME/.config/mugenknock"
 CLOCK="$CFG/next_ping"
 DISABLED_FLAG="$CFG/ping_disabled"
-BUFFER_MIN="${PING_BUFFER_MIN:-2}"
+BUFFER_MIN="${PING_BUFFER_MIN:-0}"
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 mkdir -p "$CFG"
@@ -28,29 +28,35 @@ FARGATE_MODE=1 PING_ONLY=1 bash "$REPO/prompts/run-prompts.sh" --run
 EC=$?
 log "ピン完了 (exit $EC)"
 
-# ── 2. 次回ピン時刻 = /usage回復時刻+バッファ、失敗時 now+5h ──
+# ── 2. 次回ピン時刻 = /usage のセッション回復時刻+バッファ(既定0=定刻発火) ──
+# 使用量ログは別系統(ピンの1分前に mugenknock-prelog が log-usage.sh で「枠の終わり際」に記録)なので、
+# ここは回復時刻だけ取れればよい → get-usage-reset.sh を使う(ログ重複を避け 1サイクル1ログに)。
+# フェールオーバー:
+#   - /usage 取得失敗            → now+5h(暫定)。次回以降で自己修復。
+#   - reset が未来にならない      → 早発火/時計ズレで reset が過去扱い。5hでなく数分後に再プローブ。
 RESET=$(bash "$REPO/scripts/get-usage-reset.sh" 2>/dev/null || true)
-NEXT=$(BUFFER_MIN="$BUFFER_MIN" RESET="$RESET" python3 -c "
+read -r NEXT MODE < <(BUFFER_MIN="$BUFFER_MIN" RETRY_MIN="${PING_RETRY_MIN:-3}" RESET="$RESET" python3 -c "
 import os
 from datetime import datetime, timedelta
 n = datetime.now()
 r = os.environ.get('RESET', '').strip()
-dt = None
 if r:
     dt = datetime.strptime(r, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=int(os.environ['BUFFER_MIN']))
-    if dt <= n + timedelta(minutes=1):
-        dt = None
-if dt is None:
+    if dt <= n:                       # リセット未達(早発火/時計ズレ) → 数分後に再プローブ
+        dt = n + timedelta(minutes=int(os.environ['RETRY_MIN'])); mode='retry'
+    else:
+        mode='ok'
+else:                                 # /usage取得失敗 → now+5h 暫定フォールバック
     b = n.replace(minute=(n.minute // 10) * 10, second=0, microsecond=0)
-    dt = b + timedelta(hours=5)
-print(dt.strftime('%Y-%m-%dT%H:%M:%S'))
+    dt = b + timedelta(hours=5); mode='fallback'
+print(dt.strftime('%Y-%m-%dT%H:%M:%S'), mode)
 ")
 printf '%s' "$NEXT" > "$CLOCK"
-if [ -n "$RESET" ]; then
-  log "次回ピン: ${NEXT/T/ } (/usage回復 ${RESET/T/ } +${BUFFER_MIN}分)"
-else
-  log "次回ピン: ${NEXT/T/ } (now+5h フォールバック・/usage取得失敗)"
-fi
+case "$MODE" in
+  ok)       log "次回ピン: ${NEXT/T/ } (/usage回復 ${RESET/T/ } +${BUFFER_MIN}分)" ;;
+  retry)    log "次回ピン: ${NEXT/T/ } (⚠reset未達=早発火/時計ズレ → 再プローブ)" ;;
+  fallback) log "次回ピン: ${NEXT/T/ } (now+5h フォールバック・/usage取得失敗)" ;;
+esac
 
 # ── 3. localping/衛星タイマーを再アーム ──
 bash "$REPO/scripts/sync-local-schedule.sh" || true
