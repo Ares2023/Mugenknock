@@ -2398,15 +2398,13 @@ export default function Home() {
             ) : (
               <>
                 {(() => {
-                  // 合格ラインは「看板」ではなくバーの地色で示す。
-                  // 合格ゾーン(合格点〜1000)を淡い緑で敷き、到達するとバー自体も緑に変わるので、
-                  // 数字を読まなくても「緑の帯に届いているか」だけで合否が分かる。
-                  const reachedPass = passScore !== null && estimatedScore >= passScore;
+                  // 合格ラインはバー上の細い境目線＋数値ラベルだけで示す。
+                  // バー自体・スコア数値は下のドメイン別正答率と統一して常に青。
                   const passPct = passScore !== null ? (passScore / 1000) * 100 : 0;
                   return (
                     <>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-                        <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: reachedPass ? 'var(--color-success)' : 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
+                        <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>/1000</span>
                         {scoreDelta !== null && (
                           <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
@@ -2420,12 +2418,8 @@ export default function Home() {
                         )}
                       </div>
                       <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden' }}>
-                        {/* 合格ゾーンの地色 */}
-                        {passScore !== null && (
-                          <div style={{ position: 'absolute', left: `${passPct}%`, right: 0, top: 0, bottom: 0, background: 'var(--color-pass-zone)' }} />
-                        )}
-                        {/* 実力バー（合格圏で緑に変わる） */}
-                        <div style={{ position: 'relative', width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: reachedPass ? 'var(--bar-gradient-success)' : 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both', transition: 'background 0.3s' }} />
+                        {/* 実力バー（常に青。合格圏でも色は変えない） */}
+                        <div style={{ position: 'relative', width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
                         {/* 合格ラインの境目 */}
                         {passScore !== null && (
                           <div style={{ position: 'absolute', left: `${passPct}%`, top: 0, bottom: 0, width: 2, marginLeft: -1, background: 'var(--color-bg-white)', opacity: 0.9 }} />
