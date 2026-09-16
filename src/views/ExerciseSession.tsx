@@ -76,7 +76,7 @@ const IconActionButton = ({ onClick, disabled, active, title, children }: {
   );
 };
 
-const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string }) => {
+const CopyButton = ({ getText }: { getText: () => string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,23 +85,20 @@ const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string })
       setTimeout(() => setCopied(false), 1500);
     });
   };
-  const color = copied ? 'var(--color-success)' : 'var(--color-primary)';
+  // 他のアクション列ボタン([♡][👍][👎][⋮])と同じく枠線なし・灰色統一。
+  // コピー済みの一瞬だけは成功が分かるよう色を変える。
+  const color = copied ? 'var(--color-success)' : 'var(--color-text-sub)';
   return (
     <button
       onClick={handleCopy}
       title={copied ? 'コピー済み' : 'コピー'}
-      style={hint ? {
-        background: 'none', border: `1.5px solid ${color}`, borderRadius: 'var(--border-radius-md)',
-        height: 28, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5,
-        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0, fontSize: 'var(--font-size-xs)', fontWeight: 600,
-      } : {
-        background: 'none', border: `1.5px solid ${color}`, borderRadius: '50%',
+      style={{
+        background: 'none', border: 'none', borderRadius: '50%',
         width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0,
+        cursor: 'pointer', color, transition: 'color 0.2s', flexShrink: 0, padding: 0,
       }}
     >
       {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
-      {hint && <KeyHint keys={hint.split('+')} />}
     </button>
   );
 };
@@ -434,7 +431,7 @@ export default function ExerciseSession() {
   // withActions=false のときはコピーのみ（回答後の「選択肢の下」用）。
   const renderActionRow = (getCopyText: () => string, withActions: boolean) => (
     <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
-      <CopyButton getText={getCopyText} hint={!isMobile && !withActions ? undefined : undefined} />
+      <CopyButton getText={getCopyText} />
       {withActions && (
         <>
           {/* ♡ = ブックマーク（旧・見出し右の☆）。ログイン専用 */}
