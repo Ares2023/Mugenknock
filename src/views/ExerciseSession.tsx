@@ -466,8 +466,33 @@ export default function ExerciseSession() {
   // 解説下（回答前は選択肢下）のアクション列 [コピー][♡][👍][👎][⋮]。
   // 回答前後で並び・位置を変えないよう、同じ関数で両方を描画する。
   // withActions=false のときはコピーのみ（回答後の「選択肢の下」用）。
+  // ボタンの並び: [👍][👎][コピー][♡][⋮]
   const renderActionRow = (getCopyText: () => string, withActions: boolean) => (
     <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
+      {withActions && (
+        <>
+          {/* 👍👎 … ログイン専用。合計数は出さず、自分の選択状態のみ示す。
+              色は「しっかり対策」開始ボタンと同じ青緑(#009E9E)に揃える。 */}
+          <IconActionButton
+            onClick={() => toggleReaction('up')}
+            disabled={!userId}
+            active={reactions[currentQuestion.questionId] === 'up'}
+            activeColor={REACTION_ACTIVE_COLOR}
+            title={lang === 'ja' ? '参考になった' : 'Helpful'}
+          >
+            <IconThumbsUp filled={reactions[currentQuestion.questionId] === 'up'} size={15} />
+          </IconActionButton>
+          <IconActionButton
+            onClick={() => toggleReaction('down')}
+            disabled={!userId}
+            active={reactions[currentQuestion.questionId] === 'down'}
+            activeColor={REACTION_ACTIVE_COLOR}
+            title={lang === 'ja' ? '分かりにくい' : 'Not helpful'}
+          >
+            <IconThumbsDown filled={reactions[currentQuestion.questionId] === 'down'} size={15} />
+          </IconActionButton>
+        </>
+      )}
       <CopyButton getText={getCopyText} />
       {withActions && (
         <>
@@ -488,26 +513,6 @@ export default function ExerciseSession() {
             title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
           >
             <IconHeart filled={bookmarkedIds.has(currentQuestion.questionId)} size={15} />
-          </IconActionButton>
-          {/* 👍👎 … ログイン専用。合計数は出さず、自分の選択状態のみ示す。
-              色は「しっかり対策」開始ボタンと同じ青緑(#009E9E)に揃える。 */}
-          <IconActionButton
-            onClick={() => toggleReaction('up')}
-            disabled={!userId}
-            active={reactions[currentQuestion.questionId] === 'up'}
-            activeColor={REACTION_ACTIVE_COLOR}
-            title={lang === 'ja' ? '参考になった' : 'Helpful'}
-          >
-            <IconThumbsUp filled={reactions[currentQuestion.questionId] === 'up'} size={15} />
-          </IconActionButton>
-          <IconActionButton
-            onClick={() => toggleReaction('down')}
-            disabled={!userId}
-            active={reactions[currentQuestion.questionId] === 'down'}
-            activeColor={REACTION_ACTIVE_COLOR}
-            title={lang === 'ja' ? '分かりにくい' : 'Not helpful'}
-          >
-            <IconThumbsDown filled={reactions[currentQuestion.questionId] === 'down'} size={15} />
           </IconActionButton>
           {/* ⋮ … 通報・途中採点を格納（従来は独立ボタンで並んでいた） */}
           <div ref={actionMenuRef} style={{ position: 'relative' }}>
