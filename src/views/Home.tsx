@@ -26,7 +26,7 @@ import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
-import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSave, IconSaveCheck, IconExternalLink } from '../components/Icons';
+import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconCircleCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSave, IconSaveCheck, IconExternalLink } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
@@ -2205,7 +2205,8 @@ export default function Home() {
             {ja ? '目標演習量' : 'Daily Goal'}
           </span>
           {ja && <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-sub)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
-          <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+            {dailyCount >= dailyGoal && <IconCircleCheck size={14} />}
             {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
           </span>
         </div>
@@ -2399,8 +2400,10 @@ export default function Home() {
               <>
                 {(() => {
                   // 合格ラインはバー上の細い境目線＋数値ラベルだけで示す。
-                  // バー自体・スコア数値は下のドメイン別正答率と統一して常に青。
+                  // バー自体・スコア数値は下のドメイン別正答率と統一して常に青（合格圏でも変えない）。
+                  // ただし右上の「合格」ラベルだけは、達成時にチェック＋緑で目標達成を伝える。
                   const passPct = passScore !== null ? (passScore / 1000) * 100 : 0;
+                  const reachedPass = passScore !== null && estimatedScore >= passScore;
                   return (
                     <>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
@@ -2412,8 +2415,11 @@ export default function Home() {
                           </span>
                         )}
                         {passScore !== null && (
-                          <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
-                            {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
+                          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 'var(--font-size-2xs)', fontWeight: reachedPass ? 700 : 600, color: reachedPass ? 'var(--color-success)' : 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
+                            {reachedPass && <IconCircleCheck size={12} />}
+                            {reachedPass
+                              ? (ja ? `合格：${passScore}点` : `Pass: ${passScore}`)
+                              : (ja ? `合格 ${passScore}` : `Pass ${passScore}`)}
                           </span>
                         )}
                       </div>
