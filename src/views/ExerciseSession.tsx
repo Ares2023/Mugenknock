@@ -15,6 +15,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
+import { ConfirmBurst } from '../components/ExamSelectOverlay';
 import { IconBookOpen, IconBean, IconCopy, IconCheck, IconCircleCheck, IconCircleX, IconHeart, IconThumbsUp, IconThumbsDown, IconMoreVertical } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
@@ -22,6 +23,10 @@ import { isKbMode } from '../utils/keyboardMode';
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
 const WAKARANAI = 'わからない';
+// ♡(ブックマーク)ONの色。ポップな変化を出すためピンク。
+const HEART_ACTIVE_COLOR = '#ec4899';
+// 👍👎の色。「しっかり対策」開始ボタンと同じ青緑で揃える。
+const REACTION_ACTIVE_COLOR = '#009E9E';
 // DBによっては correctAnswers に "B. テキスト" のようなラベル接頭辞が付いている場合がある
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
 
@@ -53,9 +58,21 @@ const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v ==
 // 解説下のアクション列で使う丸アイコンボタン（コピーボタンと同じ 28px の枠に合わせる）。
 // 輪郭は付けず、アイコン色は状態によらず灰色で統一する。押した状態は
 // アイコン自体の塗り(filled)で示す（IconHeart等のfilledプロパティ側で対応）。
-const IconActionButton = ({ onClick, disabled, active, title, children }: {
-  onClick: () => void; disabled?: boolean; active?: boolean; title: string; children: React.ReactNode;
+const IconActionButton = ({ onClick, disabled, active, activeColor, title, children }: {
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void; disabled?: boolean; active?: boolean; activeColor?: string; title: string; children: React.ReactNode;
 }) => {
+  // OFF→ONになった瞬間だけポップ演出（ON→OFFの解除時は再生しない）。
+  const [popping, setPopping] = useState(false);
+  const wasActiveRef = useRef(active);
+  useEffect(() => {
+    const wasActive = wasActiveRef.current;
+    wasActiveRef.current = active;
+    if (active && !wasActive) {
+      setPopping(true);
+      const t = setTimeout(() => setPopping(false), 400);
+      return () => clearTimeout(t);
+    }
+  }, [active]);
   return (
     <button
       onClick={onClick}
@@ -67,8 +84,10 @@ const IconActionButton = ({ onClick, disabled, active, title, children }: {
         background: 'none', border: 'none',
         borderRadius: '50%', width: 28, height: 28,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: disabled ? 'default' : 'pointer', color: 'var(--color-text-sub)',
-        opacity: disabled ? 0.4 : 1, transition: 'opacity 0.2s', flexShrink: 0, padding: 0,
+        cursor: disabled ? 'default' : 'pointer',
+        color: active && activeColor ? activeColor : 'var(--color-text-sub)',
+        opacity: disabled ? 0.4 : 1, transition: 'opacity 0.2s, color 0.2s', flexShrink: 0, padding: 0,
+        animation: popping ? 'actionIconPop 0.4s ease' : 'none',
       }}
     >
       {children}
@@ -311,6 +330,7 @@ export default function ExerciseSession() {
   const [reactions, setReactions] = useState<Record<string, 'up' | 'down'>>({});
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  const [heartBurst, setHeartBurst] = useState<{ x: number; y: number } | null>(null);
   // ⋮ メニューは外側クリック・問題の切り替えで閉じる
   useEffect(() => {
     if (!actionMenuOpen) return;
@@ -434,20 +454,31 @@ export default function ExerciseSession() {
       <CopyButton getText={getCopyText} />
       {withActions && (
         <>
-          {/* ♡ = ブックマーク（旧・見出し右の☆）。ログイン専用 */}
+          {/* ♡ = ブックマーク（旧・見出し右の☆）。ログイン専用。
+              ONにする瞬間だけピンクのパーティクルバースト(ConfirmBurstを流用)を出す。 */}
           <IconActionButton
-            onClick={toggleBookmark}
+            onClick={e => {
+              const becomingActive = !bookmarkedIds.has(currentQuestion.questionId);
+              if (becomingActive) {
+                const r = e.currentTarget.getBoundingClientRect();
+                setHeartBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+              }
+              toggleBookmark();
+            }}
             disabled={!userId || bookmarkLoading}
             active={bookmarkedIds.has(currentQuestion.questionId)}
+            activeColor={HEART_ACTIVE_COLOR}
             title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
           >
             <IconHeart filled={bookmarkedIds.has(currentQuestion.questionId)} size={15} />
           </IconActionButton>
-          {/* 👍👎 … ログイン専用。合計数は出さず、自分の選択状態のみ示す */}
+          {/* 👍👎 … ログイン専用。合計数は出さず、自分の選択状態のみ示す。
+              色は「しっかり対策」開始ボタンと同じ青緑(#009E9E)に揃える。 */}
           <IconActionButton
             onClick={() => toggleReaction('up')}
             disabled={!userId}
             active={reactions[currentQuestion.questionId] === 'up'}
+            activeColor={REACTION_ACTIVE_COLOR}
             title={lang === 'ja' ? '参考になった' : 'Helpful'}
           >
             <IconThumbsUp filled={reactions[currentQuestion.questionId] === 'up'} size={15} />
@@ -456,6 +487,7 @@ export default function ExerciseSession() {
             onClick={() => toggleReaction('down')}
             disabled={!userId}
             active={reactions[currentQuestion.questionId] === 'down'}
+            activeColor={REACTION_ACTIVE_COLOR}
             title={lang === 'ja' ? '分かりにくい' : 'Not helpful'}
           >
             <IconThumbsDown filled={reactions[currentQuestion.questionId] === 'down'} size={15} />
@@ -1559,6 +1591,10 @@ export default function ExerciseSession() {
           </div>
         </div>
       </Card>
+
+      {heartBurst && (
+        <ConfirmBurst x={heartBurst.x} y={heartBurst.y} color={HEART_ACTIVE_COLOR} onDone={() => setHeartBurst(null)} />
+      )}
 
       {reportOpen && (
         <ReportModal

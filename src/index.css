@@ -429,6 +429,14 @@ button:active:not(:disabled) {
   100% { transform: scale(1); }
 }
 
+/* 演習画面の[♡][👍][👎]を押してONにした瞬間だけの弾むポップ（OFFに戻す時は再生しない） */
+@keyframes actionIconPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.5); }
+  60%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
+
 /* ── 正誤判定アニメーション ── */
 @keyframes judgment-ok {
   0%   { transform: scale(0.3); opacity: 0; }
