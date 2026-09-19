@@ -2,7 +2,6 @@
 
 import React, { Suspense, useEffect } from 'react';
 import { Open_Sans } from 'next/font/google';
-import { usePathname } from 'next/navigation';
 import { Amplify } from 'aws-amplify';
 import outputs from '../src/amplify_outputs.json';
 import { AuthProvider } from '../src/contexts/AuthContext';
@@ -21,19 +20,7 @@ const openSans = Open_Sans({
   display: 'swap',
 });
 
-// AdSense 広告を許可するコンテンツURL接頭辞。
-// 過去問道場と同じく「問題+解説などの閲覧コンテンツページ」だけで広告を出し、
-// 演習/模試/図鑑のアプリ体験（/aws/*）・ログイン・管理・アカウント等の
-// 行動/認証/薄い画面では広告スクリプト自体を読み込まない（AdSenseポリシー遵守）。
-const AD_CONTENT_PREFIXES = ['/services', '/encyclopedia', '/exam-guide', '/about', '/architecture'];
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const showAds = !!pathname && AD_CONTENT_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'));
-
-  // AdSense は <head> 内の <script> タグ（静的 HTML）として出力するため useEffect 不要。
-  // コンテンツページ（showAds=true）でのみ読み込む。
-
   // エラービーコン（グローバルエラーハンドラ）
   useEffect(() => {
     const API_BASE = process.env.NEXT_PUBLIC_API_ENDPOINT;
@@ -70,11 +57,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* ログイン済み(目標資格設定済み)ユーザーはトップのランディングをペイントせず即アプリへ。
             本文がSSRで静的HTMLに残るためSEOは維持。ゲスト/クローラはCognitoトークンが無いので素通り。 */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(location.search.indexOf('view=')!==-1||location.hash==='#about')return;var sub=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('CognitoIdentityServiceProvider.')===0&&/\\.idToken$/.test(k)){var t=localStorage.getItem(k);if(t){try{sub=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))).sub;}catch(e){}}break;}}if(sub&&localStorage.getItem('targetExam_'+sub)){location.replace('/aws/');}}catch(e){}})();` }} />
-        {/* AdSense 広告配信: コンテンツページ（AD_CONTENT_PREFIXES）でのみ読み込む。
-            演習/模試/図鑑・ログイン・管理・結果/ローディング等の行動・薄い画面では出さない。 */}
-        {showAds && (
-          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898" crossOrigin="anonymous" />
-        )}
         {/* テーマちらつき防止スクリプト */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();` }} />
         {/* JSON-LD */}

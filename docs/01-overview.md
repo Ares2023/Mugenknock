@@ -7,7 +7,7 @@
 
 - 提供形態: Webのみ（Next.js 静的エクスポート / Cloudflare Pages）
 - 対応言語: **日本語のみ**（英語対応は廃止済み。`src/contexts/LanguageContext.tsx` の `type Lang = 'ja'` が固定）
-- 収益: Google AdSense（`src/components/ui/AdPlaceholder.tsx`）
+- 収益化: Web版は収益化なし（旧 Google AdSense。2026-09-20 に撤去。詳細は 02-architecture.md 参照）
 - 登録数: 問題 約 4,900 件（`Questions` テーブル・2026-09 時点）
 
 ### プロダクト原則（`docs/website-manifest.txt` より）

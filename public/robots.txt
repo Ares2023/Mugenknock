@@ -2,9 +2,6 @@ User-agent: *
 Disallow: /admin/
 Disallow: /admin-login/
 Disallow: /aws/
-Allow: /services/
-Allow: /exam-guide/
-Allow: /encyclopedia/
 Allow: /sample/
 Allow: /about/
 Allow: /architecture/
