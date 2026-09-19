@@ -34,7 +34,10 @@
 ```
 
 **重要**: フロントは完全な静的エクスポート（`output: 'export'`）。SSR は無い。
-`app/questions/[examType]/` などの SEO ページはビルド時に API を叩いて静的生成される。
+`app/services/[name]/` などの SEO ページはビルド時に API を叩いて静的生成される。
+（旧 `app/questions/[examType]/[questionId]/` は AdSense 収益化用の問題個別ページとして
+存在したが、試験×問題数で4,000件超に膨れビルドがタイムアウトする一因になっていたため
+2026-09-20 削除。サイトの実態（演習アプリ）と乖離した閲覧専用ページだった）
 
 ## 2.2 環境
 
@@ -116,7 +119,6 @@ LoginPage (Amplify UI Authenticator)
 aws-quiz-app/
 ├── app/                    Next.js App Router のルート定義（page.tsx は薄いラッパー）
 │   ├── aws/                ログイン後のアプリ本体（Layout 付き）
-│   ├── questions/          SEO 用の問題個別ページ（ビルド時に API から静的生成）
 │   ├── exam-guide/         SEO 用の資格別攻略ガイド（constants.ts から静的生成）
 │   ├── services/           SEO 用のサービス解説（awsServiceCatalog.ts から静的生成）
 │   └── layout.tsx          ルート layout（AuthProvider / ThemeProvider）

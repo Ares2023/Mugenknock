@@ -25,7 +25,7 @@ const openSans = Open_Sans({
 // 過去問道場と同じく「問題+解説などの閲覧コンテンツページ」だけで広告を出し、
 // 演習/模試/図鑑のアプリ体験（/aws/*）・ログイン・管理・アカウント等の
 // 行動/認証/薄い画面では広告スクリプト自体を読み込まない（AdSenseポリシー遵守）。
-const AD_CONTENT_PREFIXES = ['/questions', '/services', '/encyclopedia', '/exam-guide', '/about', '/architecture'];
+const AD_CONTENT_PREFIXES = ['/services', '/encyclopedia', '/exam-guide', '/about', '/architecture'];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

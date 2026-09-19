@@ -30,7 +30,6 @@
 | `/encyclopedia` | `PublicEncyclopedia.tsx` | ✅ | 不要 | **SEO 用**の公開サービス図鑑 |
 | `/services` `/services/[name]` | (inline) | ✅ | 不要 | **SEO 用**サービス解説（`awsServiceCatalog.ts` から生成） |
 | `/exam-guide` `/exam-guide/[type]` | (inline) | ✅ | 不要 | **SEO 用**資格別ガイド（`constants.ts` から生成） |
-| `/questions/[examType]` `/[questionId]` | (inline) | ✅ | 不要 | **SEO 用**問題ページ（ビルド時に API から生成） |
 | `/admin` | `Admin.tsx` | ❌ | **管理者** | 管理画面 |
 | `/admin-login` | `AdminLogin.tsx` | ❌ | 不要 | 管理者ログイン |
 
@@ -349,7 +348,6 @@ DB 側は `CheatSheetDeletions` テーブルが「削除予定フラグ」のオ
 
 | ページ | 生成元 | `generateStaticParams` |
 |---|---|---|
-| `/questions/[examType]/[questionId]` | `GET /questions/public?examType=`（ビルド時） | `EXAM_TYPES` × 問題 |
 | `/exam-guide/[type]` | `src/constants.ts`（`EXAM_CONFIGS` / `EXAM_DOMAINS` / `DOMAIN_WEIGHTS`） | `EXAM_TYPES` |
 | `/services/[name]` | `src/data/awsServiceCatalog.ts` + `GET /daily-service?serviceId=` | `CATALOG` |
 | `/encyclopedia` | `awsServiceCatalog.ts` | — |
@@ -358,6 +356,9 @@ DB 側は `CheatSheetDeletions` テーブルが「削除予定フラグ」のオ
 
 > 方針メモ: 「アプリ導線のない独立SEOページは作らない」（2026-07-22 に `/compare` を撤去した際の教訓）。
 > 上記のページはすべてアプリ内から辿れる導線を持つこと。
+> 旧 `/questions/[examType]/[questionId]`（AdSense 収益化用の問題個別ページ）は、
+> 試験×問題数で4,000件超に膨れビルドタイムアウトの一因になっていたことと、
+> サイトの実態（演習アプリ）と乖離した閲覧専用ページだったことから 2026-09-20 削除。
 
 ---
 
