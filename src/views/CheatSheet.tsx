@@ -1630,31 +1630,27 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
     return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
   }, [item, allNames]);
 
-  // 同じサービスの他記事（別資格・別観点版）— 自分を除く
-  const siblings = useMemo(() => {
-    if (!article) return [] as Article[];
-    const all = (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.id !== article.id);
-    // 1資格につき同一サービスは1記事だけリンクする（リンクの肥大化防止）。
-    // 自分の資格は自分自身が代表なので、同一資格の他記事はリンクに出さない。
-    const seen = new Set<string>([article.exam]);
-    return all.filter(a => { if (seen.has(a.exam)) return false; seen.add(a.exam); return true; });
-  }, [article]);
-
   // 親記事 — 自分が機能記事（name ≠ serviceKey）の場合、同じサービスの概要記事（name = serviceKey）。
-  // 「同じサービス」に既出のものは重複させない。
+  // サービス名のみの概要記事は全資格を通して1つの原則（docs/05-screens.md参照）なので、
+  // 資格をまたいでも常に「親記事」側で優先的に確定させる（同じサービスに奪われないよう先に計算）。
   const parentArticles = useMemo(() => {
     if (!article || article.name === article.serviceKey) return [] as Article[];
-    const seen = new Set<string>(siblings.map(a => a.id));
-    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.name === a.serviceKey && !seen.has(a.id));
-  }, [article, siblings]);
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.name === a.serviceKey);
+  }, [article]);
 
   // 子記事 — 自分が概要記事（name = serviceKey）の場合、同じサービスの機能記事（name ≠ serviceKey）。
-  // 「同じサービス」に既出のものは重複させない。
   const childArticles = useMemo(() => {
     if (!article || article.name !== article.serviceKey) return [] as Article[];
-    const seen = new Set<string>(siblings.map(a => a.id));
-    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.name !== a.serviceKey && !seen.has(a.id));
-  }, [article, siblings]);
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.name !== a.serviceKey);
+  }, [article]);
+
+  // 同じサービスの他記事 — 自分と完全に同名の記事が別資格にもある場合のみ（例:「Amazon SageMaker
+  // Clarify」がAIFとMLA双方にある等）。親記事(概要記事)・子記事(機能記事)とは名前が異なるため
+  // 自然に排他になる。
+  const siblings = useMemo(() => {
+    if (!article) return [] as Article[];
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.id !== article.id && a.name === article.name);
+  }, [article]);
 
   // 関連サービス — seeAlso/自動検出で挙がった「他サービス」の全記事を展開して列挙。
   // 自分自身・同じサービス（同じサービス/親記事/子記事）は除外し、純粋な他サービスのみ残す。
@@ -1831,9 +1827,9 @@ function ArticleChip({ label, onClick }: { label: string; onClick: () => void })
   );
 }
 
-// カテゴリごとのリンク一覧。6件までは常時表示、7件目以降は「もっと見る」で展開する
+// カテゴリごとのリンク一覧。3件までは常時表示、4件目以降は「もっと見る」で展開する
 // （カテゴリ内でチップが増え続けてカードが肥大化するのを防ぐため）。
-const LINK_GROUP_VISIBLE_MAX = 6;
+const LINK_GROUP_VISIBLE_MAX = 3;
 
 function LinkChipGroup({ groupKey, label, articles, labelFn, expandedGroups, setExpandedGroups, onNavigate }: {
   groupKey: string;

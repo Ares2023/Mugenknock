@@ -320,6 +320,29 @@ DB 側は `CheatSheetDeletions` テーブルが「削除予定フラグ」のオ
 - `desc`: `和名（English）` — 例「異常検知（Anomaly Detection）」
 - `tags`: `和名 / English` — 例「マネージドルール / Managed Rules」
 
+### 記事間リンクの分類（親記事 / 子記事 / 同じサービス / 関連）
+
+`CHEAT_DATA` は `item.name` からサービスの基底名（`serviceKeyOf`）を推定して自動グルーピングし、
+各記事カードの下部に最大4種類のリンク欄を出す。分類は `name` と `serviceKey` の一致で決まる：
+
+| 分類 | 条件 | 例 |
+|---|---|---|
+| **親記事** | 自分が機能記事（`name ≠ serviceKey`）のとき、同じ`serviceKey`の概要記事（`name = serviceKey`） | 「Amazon SageMaker Studio」→「Amazon SageMaker」 |
+| **子記事** | 自分が概要記事（`name = serviceKey`）のとき、同じ`serviceKey`の機能記事（`name ≠ serviceKey`） | 「Amazon SageMaker」→「Amazon SageMaker Studio」「…Clarify」等 |
+| **同じサービス** | 自分と**完全に同名**の記事が別資格にもある場合 | AIFの「Amazon SageMaker Clarify」↔MLAの「Amazon SageMaker Clarify」 |
+| **関連** | `seeAlso` 明示 or 本文中の自動検出で挙がった**他サービス**の記事（同じ`serviceKey`のものは除外） | — |
+
+**執筆ルール（新規記事を追加する時に必ず守る）**:
+- **サービス名のみの概要記事（親記事）は全資格を通して1つだけ**にする（例:「Amazon SageMaker」は
+  どこか1資格にのみ書き、他資格では書かない。他資格から参照したい場合は機能名を足した子記事側で
+  書くか、`親記事`の自動リンクに任せる）。概要記事を資格ごとに重複作成すると「同じサービス」欄に
+  概要記事同士が紛れ込み親子関係が壊れる。
+- サービス名 + 機能名の記事（子記事、例:「Amazon SageMaker Studio」）は**複数資格にあってよい**。
+  親記事は `serviceKey` 一致で自動的に解決されるため、資格をまたいでも正しくリンクされる。
+
+**表示の折りたたみ**: 4分類それぞれ独立して、3件までは常時表示し4件目以降は
+「+N件 もっと見る」ボタンで折りたたむ（`ItemCard`内 `LinkChipGroup` / `LINK_GROUP_VISIBLE_MAX`）。
+
 ---
 
 ## 5.11 Admin（`/admin`）— 3,985行
