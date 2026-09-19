@@ -1576,6 +1576,8 @@ function descToPlainText(desc: string): string {
 
 function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, scheduledDeletion }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void; scheduledDeletion?: { reason: string; deleteDate: string } }) {
   const [allCopied, setAllCopied] = useState(false);
+  // リンクが7件以上になるカテゴリを「もっと見る」で展開するための状態（カテゴリ名ごとに独立）
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   // この記事のグループ情報（表示番号・同じサービスの兄弟記事の解決に使う）
   const article = useMemo(() => findArticle(exam, item.name), [exam, item.name]);
   const title = article ? articleTitle(article) : item.name;
@@ -1638,31 +1640,41 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
     return all.filter(a => { if (seen.has(a.exam)) return false; seen.add(a.exam); return true; });
   }, [article]);
 
-  // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
-  // 自分自身と、上の「同じサービス」で既に出す兄弟は除外。
-  // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
-  // feature 記事（name ≠ serviceKey）の場合、先頭にベースサービス overview を追加する。
-  // ただし siblings に既に出ている記事は重複しないよう seen チェックで除外。
+  // 親記事 — 自分が機能記事（name ≠ serviceKey）の場合、同じサービスの概要記事（name = serviceKey）。
+  // 「同じサービス」に既出のものは重複させない。
+  const parentArticles = useMemo(() => {
+    if (!article || article.name === article.serviceKey) return [] as Article[];
+    const seen = new Set<string>(siblings.map(a => a.id));
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.name === a.serviceKey && !seen.has(a.id));
+  }, [article, siblings]);
+
+  // 子記事 — 自分が概要記事（name = serviceKey）の場合、同じサービスの機能記事（name ≠ serviceKey）。
+  // 「同じサービス」に既出のものは重複させない。
+  const childArticles = useMemo(() => {
+    if (!article || article.name !== article.serviceKey) return [] as Article[];
+    const seen = new Set<string>(siblings.map(a => a.id));
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.name !== a.serviceKey && !seen.has(a.id));
+  }, [article, siblings]);
+
+  // 関連サービス — seeAlso/自動検出で挙がった「他サービス」の全記事を展開して列挙。
+  // 自分自身・同じサービス（同じサービス/親記事/子記事）は除外し、純粋な他サービスのみ残す。
   const relatedArticles = useMemo(() => {
     const seen = new Set<string>();
     if (article) seen.add(article.id);
     siblings.forEach(a => seen.add(a.id));
+    parentArticles.forEach(a => seen.add(a.id));
+    childArticles.forEach(a => seen.add(a.id));
     const out: Article[] = [];
-    // feature 記事 → ベースサービスの overview を先頭に挿入（siblings 未掲載のもののみ）
-    if (article && article.name !== article.serviceKey) {
-      for (const a of (SERVICE_GROUPS.get(article.serviceKey) ?? [])) {
-        if (a.name === a.serviceKey && !seen.has(a.id)) { seen.add(a.id); out.push(a); }
-      }
-    }
     for (const nm of [...(item.seeAlso ?? []), ...autoSeeAlso]) {
       for (const a of groupOfName(nm)) {
         if (seen.has(a.id)) continue;
+        if (article && a.serviceKey === article.serviceKey) continue;
         seen.add(a.id);
         out.push(a);
       }
     }
     return out;
-  }, [item.seeAlso, autoSeeAlso, article, siblings]);
+  }, [item.seeAlso, autoSeeAlso, article, siblings, parentArticles, childArticles]);
 
   function copyWithContext(text: string) {
     // termKeywords 等で既に（）文脈が付いている場合はそのままコピー
@@ -1781,26 +1793,20 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
           );
         }); })()}
       </p>
-      {(siblings.length > 0 || relatedArticles.length > 0) && (
+      {(parentArticles.length > 0 || childArticles.length > 0 || siblings.length > 0 || relatedArticles.length > 0) && (
         <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* 親記事（自分が機能記事の場合の、同じサービスの概要記事） */}
+          <LinkChipGroup groupKey="parent" label="親記事" articles={parentArticles}
+            labelFn={a => a.exam} expandedGroups={expandedGroups} setExpandedGroups={setExpandedGroups} onNavigate={onNavigate} />
+          {/* 子記事（自分が概要記事の場合の、同じサービスの機能記事） */}
+          <LinkChipGroup groupKey="child" label="子記事" articles={childArticles}
+            labelFn={a => articleTitle(a)} expandedGroups={expandedGroups} setExpandedGroups={setExpandedGroups} onNavigate={onNavigate} />
           {/* 同じサービスの他資格・他観点版へのリンク */}
-          {siblings.length > 0 && (
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>同じサービス:</span>
-              {siblings.map(a => (
-                <ArticleChip key={a.id} label={a.exam} onClick={() => onNavigate(a.id)} />
-              ))}
-            </div>
-          )}
+          <LinkChipGroup groupKey="sibling" label="同じサービス" articles={siblings}
+            labelFn={a => a.exam} expandedGroups={expandedGroups} setExpandedGroups={setExpandedGroups} onNavigate={onNavigate} />
           {/* 関連サービス（挙げたサービスの全記事を展開） */}
-          {relatedArticles.length > 0 && (
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
-              {relatedArticles.map(a => (
-                <ArticleChip key={a.id} label={articleTitle(a)} onClick={() => onNavigate(a.id)} />
-              ))}
-            </div>
-          )}
+          <LinkChipGroup groupKey="related" label="関連" articles={relatedArticles}
+            labelFn={a => articleTitle(a)} expandedGroups={expandedGroups} setExpandedGroups={setExpandedGroups} onNavigate={onNavigate} />
         </div>
       )}
     </div>
@@ -1822,5 +1828,47 @@ function ArticleChip({ label, onClick }: { label: string; onClick: () => void })
         whiteSpace: 'nowrap',
       }}
     >→ {label}</button>
+  );
+}
+
+// カテゴリごとのリンク一覧。6件までは常時表示、7件目以降は「もっと見る」で展開する
+// （カテゴリ内でチップが増え続けてカードが肥大化するのを防ぐため）。
+const LINK_GROUP_VISIBLE_MAX = 6;
+
+function LinkChipGroup({ groupKey, label, articles, labelFn, expandedGroups, setExpandedGroups, onNavigate }: {
+  groupKey: string;
+  label: string;
+  articles: Article[];
+  labelFn: (a: Article) => string;
+  expandedGroups: Set<string>;
+  setExpandedGroups: React.Dispatch<React.SetStateAction<Set<string>>>;
+  onNavigate: (id: string) => void;
+}) {
+  if (articles.length === 0) return null;
+  const expanded = expandedGroups.has(groupKey);
+  const hidden = articles.length - LINK_GROUP_VISIBLE_MAX;
+  const visible = expanded || hidden <= 0 ? articles : articles.slice(0, LINK_GROUP_VISIBLE_MAX);
+  return (
+    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>{label}:</span>
+      {visible.map(a => (
+        <ArticleChip key={a.id} label={labelFn(a)} onClick={() => onNavigate(a.id)} />
+      ))}
+      {!expanded && hidden > 0 && (
+        <button
+          onClick={() => setExpandedGroups(prev => new Set(prev).add(groupKey))}
+          style={{
+            fontSize: 'var(--font-size-2xs)',
+            color: 'var(--color-text-light)',
+            background: 'none',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-md)',
+            padding: '1px 8px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >+{hidden}件 もっと見る</button>
+      )}
+    </div>
   );
 }
