@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -102,7 +102,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (window.innerWidth < 768) return false;
     return localStorage.getItem(`sidebarOpen_${uid}`) !== 'false';
   });
-  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+  // uidの確定(認証確定)と同じレンダーでtargetExamも即座に正しい値になるよう、
+  // useState+useEffectでの遅延同期ではなくuseMemoでレンダー中に直接算出する。
+  // （effect経由だと、authLoadingがfalseになった直後の1フレームだけ
+  //   古いuid('guest')ベースの値が残ってしまい、一瞬誤表示される）
+  const [targetExamTick, setTargetExamTick] = useState(0);
+  const targetExam = useMemo(() => localStorage.getItem(`targetExam_${uid}`), [uid, targetExamTick]);
   const [examDate, setExamDate] = useState<string | null>(() => {
     const te = localStorage.getItem(`targetExam_${uid}`);
     return te ? localStorage.getItem(`examDate_${te}_${uid}`) : null;
@@ -216,9 +221,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const te = localStorage.getItem(`targetExam_${uid}`);
-    setTargetExam(te);
     setExamDate(te ? localStorage.getItem(`examDate_${te}_${uid}`) : null);
-  }, [location.pathname, uid]);
+  }, [location.pathname, uid, targetExamTick]);
+
+  // 他画面(Home/ExamDashboard/preferences同期)でtargetExamが変更された時、
+  // 遷移なしでもヘッダーのtargetExamを即時再算出する
+  useEffect(() => {
+    const handler = () => setTargetExamTick(v => v + 1);
+    window.addEventListener('targetExamChanged', handler);
+    return () => window.removeEventListener('targetExamChanged', handler);
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -275,9 +287,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     });
     loadTargetExamFromServer(user.userId, uid).then(serverExam => {
       if (serverExam) {
-        setTargetExam(serverExam);
-        const te = serverExam;
-        setExamDate(te ? localStorage.getItem(`examDate_${te}_${uid}`) : null);
+        // localStorageの更新とtargetExamChangedイベント発火はloadTargetExamFromServer内で完了済み
+        // （変更が無ければイベントは発火しないため、ここでは念のためtickを進めて確実に同期する）
+        setTargetExamTick(v => v + 1);
+        setExamDate(localStorage.getItem(`examDate_${serverExam}_${uid}`) ?? null);
       }
     });
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -895,7 +908,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage', '/aws/exam-dashboard'].includes(pathname))) && (
+      {(!isMobile || (!authLoading && !!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage', '/aws/exam-dashboard'].includes(pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -929,7 +942,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage', '/aws/exam-dashboard'].includes(pathname)) && (
+        {!authLoading && targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage', '/aws/exam-dashboard'].includes(pathname)) && (
           <button
             onClick={() => navigate('/aws/mypage')}
             title="マイページ"
@@ -958,7 +971,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {(() => {
                   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                   const name = isNonAwsExam(targetExam)
-                    ? `【オリジナル】${targetExam}`
+                    ? `【基礎知識】${targetExam}`
                     : (isMobile ? `AWS ${targetExam}` : ((EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace('AWS Certified ', '')));
                   const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
                   return <>{'設定目標：'}<span style={{ color: examColor, display: 'inline-flex', alignItems: 'center', gap: 3, verticalAlign: 'middle' }}>{ExamIcon && <ExamIcon size={13} />}{name}</span></>;

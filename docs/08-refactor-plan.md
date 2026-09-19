@@ -269,7 +269,6 @@ cp "$REPO_ROOT/src/data/examDomains.json" "$LAMBDA_SRC/examDomains.json"
 src/constants.ts       ADMIN_EMAIL = 'mugenknock@gmail.com', API_ENDPOINT のフォールバック
 lambda/src/constants.js ADMIN_EMAIL
 lambda/src/app.js      userPoolId, clientId, USER_POOL_ID（同じ値が2箇所）
-app/questions/[examType]/page.tsx  API のフォールバックURLを再定義
 ```
 
 **提案**: Lambda 側は環境変数へ、フロント側は `constants.ts` の1箇所に寄せる。

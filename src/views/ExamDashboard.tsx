@@ -242,15 +242,7 @@ export default function ExamDashboard() {
                 )}
               </div>
               <h1 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
-                {(() => {
-                  const name = cfg?.fullName ?? selectedExam;
-                  const bi = name.indexOf('】');
-                  // スマホではオリジナルカード名を【…】の直後で改行する
-                  if (isMobile && isNonAwsExam(selectedExam) && bi >= 0) {
-                    return <>{name.slice(0, bi + 1)}<br />{name.slice(bi + 1)}</>;
-                  }
-                  return name;
-                })()}
+                {cfg?.fullName ?? selectedExam}
               </h1>
               {desc && (
                 <p style={{ margin: '8px 0 0', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>

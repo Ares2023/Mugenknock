@@ -116,6 +116,12 @@ const EXAM_QUESTIONS_CACHE_TTL = 10 * 60 * 1000;
 // 注: questionId 接頭辞は 'gai-' のまま（解放カウント集計の PREFIX_MAP gai→AIP で対応）。
 function resolveExamTypeForDB(et) { return et; }
 
+// 公式資格 → 前提知識(オリジナル資格)の対応表。
+// `includeCompanion=true` 指定時、通常演習の出題プールに companion 側の問題を合流する。
+// specs/003-original-exam-blend 参照。ドメイン体系は公式資格側と別物なので、
+// domainBalancedOrder のバケットキーは examType を含めた複合キーにする必要がある。
+const COMPANION_EXAM = { AIF: 'ML', MLA: 'ML', AIP: 'ML', DEA: 'DB', ANS: 'NW', SCS: 'SEC' };
+
 async function getAllQuestionsForExam(docClient, examType) {
   const dbType = resolveExamTypeForDB(examType);
   const cacheKey = dbType;
@@ -260,13 +266,22 @@ function shuffle(array) {
   return array;
 }
 
+// ドメインのバケットキー。examType を含めた複合キーにすることで、公式資格と
+// companion(オリジナル資格)の問題を混在させたとき（includeCompanion）に、
+// 別体系のドメインインデックスが同じ数値というだけで誤って同一バケット扱いに
+// なるのを防ぐ。単一examTypeのみの呼び出し（従来の全呼び出し）では常に同じ
+// examTypeが入るため、挙動は変わらない安全な一般化。
+function domainBucketKey(q) {
+  return `${q.examType || ''}:${q.domain == null ? -1 : q.domain}`;
+}
+
 // ドメイン均等化: 「ユーザーの既回答数 + 本選定での選出数」が最小のドメインから1問ずつ拾う
 // （deficit round-robin）。回答が少ないドメインほど優先され、出題が特定ドメインに偏らない。
-// answeredPerDomain: { domainIndex: 既回答数 }。ゲスト等で空なら全0＝均等割り。
+// answeredPerDomain: { domainBucketKey: 既回答数 }。ゲスト等で空なら全0＝均等割り。
 function domainBalancedOrder(items, answeredPerDomain) {
   const buckets = new Map();
   for (const q of items) {
-    const d = q.domain == null ? -1 : q.domain;
+    const d = domainBucketKey(q);
     if (!buckets.has(d)) buckets.set(d, []);
     buckets.get(d).push(q);
   }
@@ -544,6 +559,13 @@ app.get('/questions', async (req, res) => {
       if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
       items = await getAllQuestionsForExam(docClient, examType);
+      // includeCompanion=true: 公式資格の通常演習プールに前提知識(オリジナル資格)の
+      // 問題を合流する。domain 絞り込み時は対応するドメインが無いため無視する
+      // （フロント側でも呼ばない想定だが、サーバ側でも防御的に無視する）。
+      if (req.query.includeCompanion === 'true' && !domain && COMPANION_EXAM[examType]) {
+        const companionItems = await getAllQuestionsForExam(docClient, COMPANION_EXAM[examType]);
+        items = items.concat(companionItems);
+      }
     } else {
       items = await scanAll(docClient, { TableName: 'Questions' });
     }
@@ -605,7 +627,7 @@ app.get('/questions', async (req, res) => {
         const incorrectSet = incorrectOnly  === 'true' ? new Set(stats.filter(s => (s.incorrectCount ?? 0) > 0).map(s => s.questionId)) : null;
         const wantUnanswered = unansweredOnly === 'true';
         // ユーザーの既回答数をドメイン別に集計（出題プールの domain で対応付け）
-        const qDomain = new Map(items.map(q => [q.questionId, (q.domain == null ? -1 : q.domain)]));
+        const qDomain = new Map(items.map(q => [q.questionId, domainBucketKey(q)]));
         for (const qid of answeredSet) {
           const d = qDomain.get(qid);
           if (d === undefined) continue;
@@ -2184,6 +2206,12 @@ app.get('/users/me/question-status', async (req, res) => {
 
     if (examType) {
       const examQuestionIds = await getExamQuestionIdSet(docClient, examType, { poolOnly: true });
+      // includeCompanion=true: 演習設定モーダルの未回答数等が出題プール(includeCompanion付き
+      // /questions?idsOnly=true)の母集団とズレないよう、companion側のIDも合流してから絞る。
+      if (req.query.includeCompanion === 'true' && COMPANION_EXAM[examType]) {
+        const companionIds = await getExamQuestionIdSet(docClient, COMPANION_EXAM[examType], { poolOnly: true });
+        for (const id of companionIds) examQuestionIds.add(id);
+      }
       items = items.filter(s => examQuestionIds.has(s.questionId));
     }
 

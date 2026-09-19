@@ -13,6 +13,20 @@ export type ExamType = typeof EXAM_TYPES[number];
 export const NON_AWS_EXAM_TYPES = new Set<string>(['ML', 'DB', 'NW', 'SEC']);
 export const isNonAwsExam = (examType: string): boolean => NON_AWS_EXAM_TYPES.has(examType);
 
+// 公式資格 → 前提知識(オリジナル資格)の対応表。通常演習（サクッと演習/しっかり対策/
+// トレーニング演習タブ）で、対応する公式資格を対象にすると既定でこのオリジナル資格の
+// 問題も出題プールに混ざる（specs/003-original-exam-blend）。模擬試験には適用しない。
+// lambda/src/app.js にも同じ対応表がある（FE/BEで別コードベースのため重複定義）。
+export const COMPANION_EXAM: Record<string, string> = { AIF: 'ML', MLA: 'ML', AIP: 'ML', DEA: 'DB', ANS: 'NW', SCS: 'SEC' };
+
+// COMPANION_EXAM の逆引き: 基礎知識資格(ML/DB/NW/SEC) → それを既定で含む公式資格一覧。
+// 目標資格設定パネル・演習設定パネルで「お互いの資格の存在」を案内するのに使う。
+export function officialExamsForCompanion(companionExamType: string): string[] {
+  return Object.entries(COMPANION_EXAM)
+    .filter(([, companion]) => companion === companionExamType)
+    .map(([official]) => official);
+}
+
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
 export const PASS_SCORES: Record<string, number> = {
   CLF: 700,
@@ -159,10 +173,10 @@ export const EXAM_LEVEL_COLORS: Record<string, string> = {
   Additional:   '#14b8a6',
 };
 
-// レベルの表示ラベル。内部キー 'Additional'（非AWSカード）は「オリジナル」と表示する。
+// レベルの表示ラベル。内部キー 'Additional'（非AWSカード）は「基礎知識」と表示する。
 // 他のレベルは従来どおり英語表記のまま。
 export const levelLabel = (level: string, ja: boolean): string =>
-  level === 'Additional' ? (ja ? 'オリジナル' : 'Original') : level;
+  level === 'Additional' ? (ja ? '基礎知識' : 'Original') : level;
 
 // 試験の説明文
 export const EXAM_DESC_JA: Record<string, string> = {
@@ -235,11 +249,17 @@ export const EXAM_CONFIGS: Record<string, {
   AIP: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 180 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
-  ML: { examCode: 'ML', fullName: '【オリジナル基礎演習】機械学習',                                totalQuestions: 65, timeLimitMin: 90  },
-  DB: { examCode: 'DB', fullName: '【オリジナル基礎演習】データベース',                            totalQuestions: 65, timeLimitMin: 90  },
-  NW: { examCode: 'NW', fullName: '【オリジナル基礎演習】ネットワーク',                            totalQuestions: 65, timeLimitMin: 90  },
-  SEC: { examCode: 'SEC', fullName: '【オリジナル基礎演習】セキュリティ',                          totalQuestions: 65, timeLimitMin: 90  },
+  ML: { examCode: 'ML', fullName: '【基礎知識】機械学習',                                          totalQuestions: 65, timeLimitMin: 90  },
+  DB: { examCode: 'DB', fullName: '【基礎知識】データベース',                                      totalQuestions: 65, timeLimitMin: 90  },
+  NW: { examCode: 'NW', fullName: '【基礎知識】ネットワーク',                                      totalQuestions: 65, timeLimitMin: 90  },
+  SEC: { examCode: 'SEC', fullName: '【基礎知識】セキュリティ',                                    totalQuestions: 65, timeLimitMin: 90  },
 };
+
+// COMPANION_EXAM の表示名（「【基礎知識】」を外した短い名称）。
+// 通常演習の設定モーダルで「基礎知識（機械学習）を含める」のように使う。
+export function companionLabel(companionExamType: string): string {
+  return (EXAM_CONFIGS[companionExamType]?.fullName ?? companionExamType).replace('【基礎知識】', '');
+}
 
 // 管理者画面「AIプロンプト生成」用の資格別補足ルール（任意）。
 // 夜間バッチの生成ルール(prompts/night-prompts/scripts/instructions/*.txt)で

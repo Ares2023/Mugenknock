@@ -34,7 +34,29 @@
 ```
 
 **重要**: フロントは完全な静的エクスポート（`output: 'export'`）。SSR は無い。
-`app/questions/[examType]/` などの SEO ページはビルド時に API を叩いて静的生成される。
+
+### 過去の Google AdSense 収益化施策（2026-09-20 全撤去）
+
+Web版は元々「過去問道場」を参考に、AdSense 収益化のためのコンテンツページ群を持っていた。
+以下をすべて撤去済み（履歴として記録）:
+
+- `app/questions/[examType]/[questionId]/` — 試験×問題数で**4,000件超**に膨れ、ビルドが
+  タイムアウトする一因になっていた問題個別ページ（アプリ内導線なし）
+- `app/services/[name]/` `app/services/` — サービス解説ページ（アプリ内導線なし）
+- `app/encyclopedia/` と `src/views/PublicEncyclopedia.tsx` — ログイン不要の公開版サービス図鑑
+  （ログイン後の本物の図鑑は `/aws/encyclopedia` = `src/views/ServiceEncyclopedia.tsx` で別物・存続）
+- `app/exam-guide/[type]/` `app/exam-guide/` — 資格別攻略ガイド（アプリ内導線なし）
+- `app/layout.tsx` の `AD_CONTENT_PREFIXES` / `showAds` ロジックと adsbygoogle.js 読み込み
+- `src/components/ui/AdPlaceholder.tsx`（未使用の広告枠プレースホルダー）
+
+撤去理由: ①サイトの実態（AWS認定演習アプリ）と乖離した閲覧専用ページで、いずれもアプリ内に
+導線を持たない孤立SEOページだった（「アプリ導線のない独立SEOページは作らない」方針。
+2026-07-22 の `/compare` 撤去と同じ理由）、②静的ページ数の肥大化がビルド時間・タイムアウトの
+主因になっていた。
+`/about`（プライバシーポリシー・利用規約）と `/architecture`（サイト構成図）はアプリ内から
+実際にリンクされて機能しているため**ページ自体は存続**、AdSense 広告読み込みだけを削除した。
+Android/iOS アプリ版の Google AdMob（`app/privacy-policy/page.tsx` に記載）は本施策と別物で
+影響なし（現状 Web版は無収益化・アプリ版のみ AdMob 広告を配信）。
 
 ## 2.2 環境
 
@@ -116,9 +138,8 @@ LoginPage (Amplify UI Authenticator)
 aws-quiz-app/
 ├── app/                    Next.js App Router のルート定義（page.tsx は薄いラッパー）
 │   ├── aws/                ログイン後のアプリ本体（Layout 付き）
-│   ├── questions/          SEO 用の問題個別ページ（ビルド時に API から静的生成）
-│   ├── exam-guide/         SEO 用の資格別攻略ガイド（constants.ts から静的生成）
-│   ├── services/           SEO 用のサービス解説（awsServiceCatalog.ts から静的生成）
+│   ├── about/              プライバシーポリシー・利用規約（アプリ内から実リンク）
+│   ├── architecture/       サイト構成図（`src/views/ArchitecturePage.tsx`。アプリ内から実リンク）
 │   └── layout.tsx          ルート layout（AuthProvider / ThemeProvider）
 │
 ├── src/

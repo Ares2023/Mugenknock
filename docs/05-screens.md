@@ -27,10 +27,6 @@
 | `/about` | `About.tsx` | ✅ | 不要 | サイト情報 / プライバシー / 利用規約 / 運営者情報 |
 | `/architecture` | `ArchitecturePage.tsx` | ✅ | 不要 | サイト構成図（技術紹介） |
 | `/privacy-policy` | (inline) | ✅ | 不要 | SEO 用プライバシーポリシー |
-| `/encyclopedia` | `PublicEncyclopedia.tsx` | ✅ | 不要 | **SEO 用**の公開サービス図鑑 |
-| `/services` `/services/[name]` | (inline) | ✅ | 不要 | **SEO 用**サービス解説（`awsServiceCatalog.ts` から生成） |
-| `/exam-guide` `/exam-guide/[type]` | (inline) | ✅ | 不要 | **SEO 用**資格別ガイド（`constants.ts` から生成） |
-| `/questions/[examType]` `/[questionId]` | (inline) | ✅ | 不要 | **SEO 用**問題ページ（ビルド時に API から生成） |
 | `/admin` | `Admin.tsx` | ❌ | **管理者** | 管理画面 |
 | `/admin-login` | `AdminLogin.tsx` | ❌ | 不要 | 管理者ログイン |
 
@@ -121,6 +117,10 @@ authLoading 解除
 - 演習開始時は `autoScoreAndClearDrafts(userId, [quick, focused])` で**プライマリ枠2種のみ**確定。
   practice / exam のドラフトは残す
 - ドラフト破棄と `targetExamChanged` / `pointsChanged` / `kvSynced` の CustomEvent 購読が多数ある
+- サクッと演習・しっかり対策の設定モーダルには、対応する前提知識(オリジナル資格)がある
+  targetExam（AIF/MLA/AIP/DEA/ANS/SCS）の時のみ「前提知識を含める」トグルが出る（既定ON）。
+  出題プールへの混在の仕組みは → [06-exercise-logic.md](06-exercise-logic.md) §6.1・
+  `specs/003-original-exam-blend`
 
 ---
 
@@ -131,7 +131,8 @@ authLoading 解除
 
 ### 演習タブ
 
-設定: 資格 / ドメイン選択 / 問題数 / 回答状況フィルタ（未回答・不正解・未正解）/ ブックマーク優先。
+設定: 資格 / ドメイン選択 / 問題数 / 回答状況フィルタ（未回答・不正解・未正解）/ ブックマーク優先 /
+前提知識を含める（対応資格があり、全ドメイン選択時のみ表示・既定ON）。
 設定は `localStorage.exercisePrefs_<uid>` に保存され kvSync で同期される。
 
 開始時のフロー:
@@ -338,21 +339,33 @@ DB 側は `CheatSheetDeletions` テーブルが「削除予定フラグ」のオ
 
 ---
 
-## 5.12 SEO ページ群（静的生成）
+## 5.12 【削除済み】SEO ページ群（旧 AdSense 収益化施策）
 
-`app/` に直接 JSX が書かれており、`src/views/` を経由しない。
+**2026-09-20 に全撤去済み。** 以下は履歴としての記録であり、現在は存在しない。
 
-| ページ | 生成元 | `generateStaticParams` |
+`app/` に直接 JSX を書き `src/views/` を経由しない「閲覧専用SEOページ」として、過去問道場を
+参考に AdSense 収益化のために作られていた。
+
+| 旧ページ | 生成元 | `generateStaticParams` |
 |---|---|---|
-| `/questions/[examType]/[questionId]` | `GET /questions/public?examType=`（ビルド時） | `EXAM_TYPES` × 問題 |
+| `/questions/[examType]/[questionId]` | `GET /questions/public?examType=`（ビルド時） | `EXAM_TYPES` × 問題（**4,000件超**） |
 | `/exam-guide/[type]` | `src/constants.ts`（`EXAM_CONFIGS` / `EXAM_DOMAINS` / `DOMAIN_WEIGHTS`） | `EXAM_TYPES` |
 | `/services/[name]` | `src/data/awsServiceCatalog.ts` + `GET /daily-service?serviceId=` | `CATALOG` |
-| `/encyclopedia` | `awsServiceCatalog.ts` | — |
+| `/encyclopedia`（`PublicEncyclopedia.tsx`、ログイン後の `/aws/encyclopedia` とは別物） | `awsServiceCatalog.ts` | — |
 
-**ビルド時に本番APIを叩く**ため、API が落ちているとビルドが失敗する/内容が欠ける。
+あわせて `app/layout.tsx` の AdSense スクリプト読み込み（`AD_CONTENT_PREFIXES` / `showAds` /
+adsbygoogle.js）と `src/components/ui/AdPlaceholder.tsx`（未使用）も削除した。
 
-> 方針メモ: 「アプリ導線のない独立SEOページは作らない」（2026-07-22 に `/compare` を撤去した際の教訓）。
-> 上記のページはすべてアプリ内から辿れる導線を持つこと。
+**撤去理由**:
+1. アプリ内から辿れる導線を持たない孤立SEOページだった
+   （方針: 「アプリ導線のない独立SEOページは作らない」。2026-07-22 の `/compare` 撤去と同じ理由）
+2. `/questions` は試験×問題数で静的ページが4,000件超に膨れ、Cloudflare Pages のビルドが
+   タイムアウトする一因になっていた（実際にビルド失敗が発生・リトライでようやく成功した）
+3. サイトの実態（AWS認定演習アプリ）と乖離した閲覧専用コンテンツだった
+
+**存続したもの**: `/about`（プライバシーポリシー・利用規約）と `/architecture`（サイト構成図）は
+アプリ内から実際にリンクされ機能しているため、ページ自体は残し AdSense 広告読み込みのみ削除。
+Android/iOS アプリ版の Google AdMob（`app/privacy-policy/page.tsx` 参照）は別施策で影響なし。
 
 ---
 

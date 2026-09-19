@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg, IconExternalLink } from '../components/Icons';
+import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg, IconExternalLink, IconSearch } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
 import { API_ENDPOINT } from '../constants';
 import PageLayout from '../components/ui/PageLayout';
@@ -79,6 +79,7 @@ export default function ServiceEncyclopedia() {
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
   const [selectedLoading, setSelectedLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('unlocked');
+  const [search, setSearch] = useState('');
   // サービス図鑑の母数・グリッドは DailyServices 実データから動的算出する（対象変更に追従）。
   // 取得失敗時は静的 CATALOG にフォールバックして従来表示を維持。
   const [liveServices, setLiveServices] = useState<EncyclopediaService[] | null>(null);
@@ -208,6 +209,13 @@ export default function ServiceEncyclopedia() {
   const unlockedCount = allServices.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
   const unlockRate = totalServices > 0 ? Math.round((unlockedCount / totalServices) * 100) : 0;
 
+  // 検索時はタブ（解放済み/一覧）を無視して全カテゴリ横断で検索する（チートシート検索と同じ方式）
+  const q = search.trim().toLowerCase();
+  const totalHits = useMemo(() => {
+    if (!q) return 0;
+    return allServices.filter(s => s.name.toLowerCase().includes(q)).length;
+  }, [q, allServices]);
+
   const calIcon = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
       <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
@@ -304,6 +312,40 @@ export default function ServiceEncyclopedia() {
         )}
       </div>
 
+      {/* 検索バー */}
+      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
+          <IconSearch />
+        </div>
+        <input
+          type="search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={ja ? 'サービス名で検索' : 'Search by service name'}
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '8px 12px 8px 34px',
+            borderRadius: 'var(--border-radius-md)',
+            border: '1.5px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            color: 'var(--color-text-main)',
+            fontSize: 'var(--font-size-sm)',
+            outline: 'none',
+          }}
+        />
+      </div>
+      {q && (
+        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
+          {ja ? `「${search}」: ${totalHits} 件` : `"${search}": ${totalHits} results`}
+        </p>
+      )}
+      {q && totalHits === 0 && (
+        <p style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+          {ja ? '該当するサービスが見つかりませんでした' : 'No matching services found'}
+        </p>
+      )}
+
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '2px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', margin: 'var(--spacing-md) 0' }}>
         {(['unlocked', 'all'] as const).map(t => {
@@ -313,7 +355,7 @@ export default function ServiceEncyclopedia() {
             <button
               key={t}
               data-kbnav="tab"
-              onClick={() => setActiveTab(t)}
+              onClick={() => { setActiveTab(t); setSearch(''); }}
               style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, transition: 'color 0.15s, border-color 0.15s' }}
             >
               {label}
@@ -323,11 +365,13 @@ export default function ServiceEncyclopedia() {
         })}
       </div>
 
-      {/* カテゴリ別サービス一覧 */}
+      {/* カテゴリ別サービス一覧（検索時はタブを無視して全カテゴリ横断） */}
       {displayCatalog.map(cat => {
-        const displayServices = activeTab === 'unlocked'
-          ? cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices))
-          : cat.services;
+        const displayServices = q
+          ? cat.services.filter(s => s.name.toLowerCase().includes(q))
+          : activeTab === 'unlocked'
+            ? cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices))
+            : cat.services;
         if (displayServices.length === 0) return null;
         const catUnlocked = cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
         return (

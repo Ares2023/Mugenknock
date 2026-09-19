@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'プライバシーポリシー | 無限ノック',
-  description: '無限ノックのプライバシーポリシー。個人情報の取り扱い、広告（Google AdSense）、Cookie、アクセス解析について定めます。',
+  description: '無限ノックのプライバシーポリシー。個人情報の取り扱い、広告（Google AdMob）、Cookie、アクセス解析について定めます。',
 };
 
 function H3({ children }: { children: React.ReactNode }) {
@@ -53,17 +53,13 @@ export default function PrivacyPolicyPage() {
 
       <H3>2. 広告について</H3>
       <P>
-        本サービスは、Google LLC が提供する広告配信サービスを利用しています。
+        本サービスの Android / iOS アプリ版は、Google LLC が提供する広告配信サービス「Google AdMob」を利用しています。
+        デバイスの広告識別子（IDFA / GAID）を使用してパーソナライズ広告を配信します。
+        Webブラウザ版では広告を配信していません。
       </P>
-      <Ul items={[
-        'Webブラウザ版：Google AdSense を利用。Cookie および広告識別子を使用してパーソナライズ広告を配信します。',
-        'Android / iOS アプリ版：Google AdMob を利用。デバイスの広告識別子（IDFA / GAID）を使用してパーソナライズ広告を配信します。',
-      ]} />
       <P>
-        Google によるデータ収集・利用を希望しない場合は、
-        <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#0047A3' }}>Google 広告設定</a>
-        からオプトアウトできます。
-        また、スマートフォンの設定からデバイスの「広告トラッキングを制限」または「広告 ID をリセット」することでも制限できます。
+        Google によるデータ収集・利用を希望しない場合は、スマートフォンの設定からデバイスの
+        「広告トラッキングを制限」または「広告 ID をリセット」することで制限できます。
       </P>
 
       <H3>3. アクセス解析（Google Analytics）</H3>
@@ -82,7 +78,7 @@ export default function PrivacyPolicyPage() {
       </P>
       <Ul items={[
         'ログイン状態の維持・設定の保存',
-        '広告配信の最適化（AdSense / AdMob）',
+        'アプリ版の広告配信の最適化（AdMob）',
         'アクセス解析',
       ]} />
       <P>

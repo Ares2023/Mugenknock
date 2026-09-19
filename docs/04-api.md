@@ -46,6 +46,7 @@
 | `withAnswers` | `'true'` で `correctAnswers` / `explanation` を含める。省略時は伏せる |
 | `bookmarkOnly` / `unansweredOnly` / `incorrectOnly` | `idsOnly` 時のみ有効な優先フィルタ |
 | `userId` | `idsOnly` 時。**フィルタ無しでも渡すとドメイン均等化が効く** |
+| `includeCompanion` | `'true'` で対応する前提知識(オリジナル資格)の問題を合流。**完全にオプトイン**（省略時は現行と同一挙動）。`domain` 指定時は無視される。対応表・詳細は [06-exercise-logic.md](06-exercise-logic.md) §6.1 |
 
 **レスポンス**
 
@@ -222,6 +223,10 @@ UI（色・アニメーション）だけ即時反映し、実際の `PUT/POST/D
 ```
 `examType` 指定時は**出題プールと同じ条件**（`poolOnly`）で絞る。
 母集団を `GET /questions` と揃えないと「未回答数 = total − answered」がズレる。
+
+`includeCompanion=true` を同時指定すると、対応する前提知識(オリジナル資格)の
+questionId も母集団に合流してから絞る（`GET /questions?includeCompanion=true` と
+対になるオプトインパラメータ。§4.2参照）。
 
 ### `GET /users/me/stats`
 
