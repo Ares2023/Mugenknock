@@ -35,7 +35,7 @@ const EXTRA_COPYABLE_TERMS = new Set([
   'シャード', 'ジオブロッキング', 'ジョブキュー', 'スケジュール',
   'スケールメリット', 'スコープダウンステートメント', 'スタック', 'ステートフル',
   'ステートフルルール', 'ステートマシン', 'ステートレス', 'ステートレスルール',
-  'ストリーミングレスポンス', 'ストレージ', 'スナップショット', 'スプリットトンネリング',
+  'ストリーミングレスポンス', 'スナップショット', 'スプリットトンネリング',
   'スポットインスタンス', 'スポットトレーニング', 'セキュリティ', 'セッションポリシー',
   'ソートキー', 'タスクノード', 'ターゲット追跡', 'テストレポート',
   'デフォルトイベントバス', 'デベロッパー', 'データイベント', 'データマッピング',
@@ -61,6 +61,9 @@ const EXTRA_COPYABLE_TERMS = new Set([
   '自動クォータリクエスト', '自動ローテーション', '複合アラーム', '説明可能性ドリフト',
   '起動テンプレート', '適切なモデルサイズの選択', '集中型アーキテクチャ',
   '6本柱', 'アクセス制御', 'イベント駆動', 'インシデント管理', 'インシデント調査', 'インメモリキャッシュ', 'ウェルノウンポート', 'オブジェクトストレージ', 'コスト可視化', 'コンテナレジストリ', 'コンテナ管理', 'ストリーム処理', 'セルフサービス', 'ソフト配布', 'ハッシュ関数', 'フルマネージド', 'ベストプラクティス', 'マルウェア', 'マルチアカウント', 'モデルレジストリ', 'モデル評価', 'リスクアセスメント', 'ルーティングテーブル', '一元管理', '予算アラート', '企業内検索', '冗長化', '分離レベル', '専用線', '検索拡張生成', '構成管理', '機密データ検出', '監査ログ', '脅威検出', '脆弱性管理', '設定管理', '認証基盤', '適正サイズ推奨',
+  // 昇格: 全記事監査（2026-09-20）で検索・コピー価値ありと判断した用語
+  'プロンプトインジェクション', '同時実行制限', '非同期推論', 'バッチ変換', 'マルチモデルエンドポイント',
+  'マネージドスポット学習', 'マネージドウォームプール', '分散スタイル', 'ウィンドウ関数', 'サブクエリ', 'データ拡張',
   // 昇格: 調べる価値のある難しい概念（日本語）をティール(コピー可)に
   'スタースキーマ', 'スノーフレークスキーマ', 'レンジパーティション', 'リストパーティション', 'ハッシュパーティション', 'カプセル化', 'ステートフルインスペクション', 'デッドロック', 'ダーティリード', 'ノンリピータブルリード', 'ファントムリード', 'ハイブリッド暗号', 'キーライフサイクル', 'フォレンジック', 'ソーシャルエンジニアリング', 'ハッシュインデックス', '複合インデックス', 'パーセプトロン', '活性化関数', '生成モデル', 'ラベルエンコーディング', 'ターゲットエンコーディング', 'ベイズ最適化', 'グリッドサーチ', 'ランダムサーチ', 'ハイパーパラメータ', '階層的クラスタリング', 'アンサンブル学習', '非正規化', 'サブネットマスク', 'デフォルトゲートウェイ', '静的ルーティング', '動的ルーティング', 'ブロードキャストドメイン', 'ユニキャスト', 'ブロードキャスト', 'マルチキャスト', 'マルチキャストアドレス', 'ジャンボフレーム', 'フラグメンテーション', 'トンネリング', 'デジタル署名', 'デジタル証明書', 'フェデレーション', 'フィッシング', 'ランサムウェア', 'トロイの木馬', 'スパイウェア', 'パッチ管理', '集約関数', '主成分分析',
 ]);
@@ -453,7 +456,7 @@ const CHEAT_DATA: CheatData = {
       title: 'データストア',
       items: [
         { name: 'Amazon S3（データレイク）', desc: 'Amazon S3（データレイク）は、あらゆる形式のデータを生のまま保存する**データレイク**の基盤として最も多く使われる。\nパーティション設計：データをyear=xxx/month=xxx/day=xxx等のフォルダ構造で分割しAthena・Sparkのフィルタ高速化に活用\n推奨フォーマット：Parquet（列指向・高圧縮）/ ORC（Hive向け列指向）/ Avro（スキーマ進化に強い）\nS3（Simple Storage Service） Select：S3オブジェクト内の一部データのみをSQLで取得してネットワーク転送量を削減\nObject Lock（WORM）：書き込み後の変更・削除を防ぐコンプライアンス要件向けの機能', tags: ['パーティション', 'Parquet/ORC', 'データレイク'] },
-        { name: 'Amazon Redshift', desc: '**列指向ストレージ**のDWH（データウェアハウス）。\n分散スタイル（各ノードへのデータ配置方式）：\n- KEY：特定カラムの値が同じ行を同じノードに配置（JOINでの結合高速化）\n- ALL：全行を全ノードにコピー（小テーブル向け）\n- EVEN：ラウンドロビンで均等分散\n- AUTO：Redshiftが最適な方式を自動選択\nソートキー：よく使うWHERE条件カラムに設定してゾーンマップ（各ブロックの最小値/最大値を記録し不要ブロックの読込を回避する仕組み）によるスキャン削減\nメンテナンス処理：\n- VACUUM：削除マーク行の物理削除＋ソートキー順に再整列（recluster＝再クラスタ化）してスキャン効率を回復\n- VACUUM REINDEX：インターリーブソートキーの再インデックス（分布が偏ったら実行）\n- ANALYZE：テーブルの統計情報を更新し、クエリプランナが最適な実行計画を選べるようにする（VACUUMとは別物）\n※ 新しめのRedshiftは自動VACUUM/自動ANALYZE/自動テーブル最適化(ATO)で多くが自動化\nRedshift Spectrum：S3上のデータを直接クエリ（ロード不要）', tags: ['分散スタイル', 'VACUUM/ANALYZE', 'Spectrum'] },
+        { name: 'Amazon Redshift', desc: '**列指向ストレージ**のDWH（データウェアハウス）。\n分散スタイル：各ノードへのデータ配置方式\n- KEY：特定カラムの値が同じ行を同じノードに配置（JOINでの結合高速化）\n- ALL：全行を全ノードにコピー（小テーブル向け）\n- EVEN：ラウンドロビンで均等分散\n- AUTO：Redshiftが最適な方式を自動選択\nソートキー：よく使うWHERE条件カラムに設定してゾーンマップ（各ブロックの最小値/最大値を記録し不要ブロックの読込を回避する仕組み）によるスキャン削減\nメンテナンス処理：\n- VACUUM：削除マーク行の物理削除＋ソートキー順に再整列（recluster＝再クラスタ化）してスキャン効率を回復\n- VACUUM REINDEX：インターリーブソートキーの再インデックス（分布が偏ったら実行）\n- ANALYZE：テーブルの統計情報を更新し、クエリプランナが最適な実行計画を選べるようにする（VACUUMとは別物）\n※ 新しめのRedshiftは自動VACUUM/自動ANALYZE/自動テーブル最適化(ATO)で多くが自動化\nRedshift Spectrum：S3上のデータを直接クエリ（ロード不要）', tags: ['分散スタイル', 'VACUUM/ANALYZE', 'Spectrum'] },
         { name: 'AWS Lake Formation', desc: '**データレイクの構築**・管理・セキュリティを一元管理するサービス。\n列・行レベルのきめ細かいアクセス制御：Athena・GlueからS3のデータへのアクセスをカラム・行単位で制限できる\nBlueprint（ブループリント）：S3やRDBのデータを定期的にGlueワークフローでデータレイクに取り込むパイプラインを自動生成する機能', tags: ['列/行レベル', 'Blueprint', 'アクセス制御'] },
         { name: 'Amazon Athena', desc: '**S3上のデータ**をサーバーレスSQLでクエリするサービス。\nワークグループ：チーム・プロジェクト別にクエリを分離してコスト制御・アクセス制御を行う仕組み\nクエリフェデレーション：Lambda Connectorを使ってS3以外のRDS・CloudWatch・DynamoDBのデータも横断的にクエリ可能\nIcebergテーブル：SCHEMAの変更やタイムトラベル（過去の状態をクエリ）・UPDATEをサポートするテーブル形式', tags: ['ワークグループ', 'クエリフェデレーション', 'Iceberg'] },
         { name: 'Amazon DynamoDB（DEA観点）', desc: 'Amazon DynamoDB（DEA観点）は、大規模なリアルタイムアクセスに適したKV（**キーバリュー**）ストア。\nパーティションキー設計：ホットパーティション（特定キーへのアクセス集中）を避けるため書き込みシャーディング（サフィックス追加）等を使用\nDAX（DynamoDB Accelerator）：マイクロ秒レイテンシのインメモリキャッシュ。API互換でアプリ変更が最小限\nTTL（Time to Live）：有効期限付きアイテムを自動削除してストレージコストを削減', tags: ['KVストア', 'DAX', 'TTL'] },
@@ -787,7 +790,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'SELECT文の基本', desc: 'SELECT文は、**SELECT 列** FROM テーブル WHERE 条件 の順でデータを問い合わせるSQLの基本構文。\nWHERE：行を絞り込む条件（=, <>, LIKE, IN, BETWEEN, IS NULL）\nORDER BY：並べ替え（ASC昇順 / DESC降順）\nDISTINCT：重複行を除去\nLIMIT / OFFSET：取得件数と開始位置の制御（ページング）', keyword: 'SELECT WHERE ORDER BY DISTINCT LIMIT SQL 問い合わせ', tags: ['SELECT / WHERE', 'ORDER BY', 'DISTINCT / LIMIT'] },
         { name: 'JOIN（テーブル結合）', desc: 'JOINは、複数テーブルを**関連キー**で結合してひとつの結果に統合するSQL操作。\n内部結合（INNER JOIN）：両テーブルで条件が一致する行のみ\n左外部結合（LEFT OUTER JOIN）：左テーブルは全行、右は一致分のみ（無ければNULL）\n右外部結合（RIGHT OUTER JOIN）：右テーブルは全行、左は一致分のみ（無ければNULL）\n完全外部結合（FULL OUTER JOIN）：両テーブルの全行を結合し一致しない側はNULL\nクロス結合（CROSS JOIN）：総当たり（直積）', keyword: 'JOIN 内部結合 外部結合 INNER JOIN LEFT JOIN テーブル結合', tags: ['内部結合 / INNER JOIN', '外部結合 / OUTER JOIN', 'CROSS JOIN'] },
         { name: '集約とグループ化', desc: 'GROUP BYで行をグループ化し、COUNTやSUMなどの集約関数でまとめて集計するのがSQLの集約処理。\n主な要素：\n- 集約関数：**COUNT**（件数）・SUM（合計）・AVG（平均）・MAX・MIN\n- GROUP BY：指定列ごとにグループ化して集約する\n- HAVING：集約結果に対する絞り込み（WHEREは集約前、HAVINGは集約後）\n- 実行順序：FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY', keyword: 'GROUP BY 集約関数 COUNT SUM AVG HAVING 実行順序', tags: ['集約関数 / COUNT・SUM', 'GROUP BY', 'HAVING'] },
-        { name: 'SQLの構成要素', desc: 'SQLは、機能によってDDL（定義）・DML（操作）・DCL（権限）・TCL（トランザクション）に分類される。\n主な要素：\n- サブクエリ（副問い合わせ）：**SQL文の中**に入れ子にした別のSELECT文\n- ビュー（View）：問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\n- DML（データ操作言語）：SELECT・INSERT・UPDATE・DELETE\n- DDL（データ定義言語）：CREATE・ALTER・DROP・TRUNCATE\n- DCL（データ制御言語）：GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
+        { name: 'SQLの構成要素', desc: 'SQLは、機能によってDDL（定義）・DML（操作）・DCL（権限）・TCL（トランザクション）に分類される。\n主な要素：\n- サブクエリ：副問い合わせとして**SQL文の中**に入れ子にした別のSELECT文\n- ビュー（View）：問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\n- DML（データ操作言語）：SELECT・INSERT・UPDATE・DELETE\n- DDL（データ定義言語）：CREATE・ALTER・DROP・TRUNCATE\n- DCL（データ制御言語）：GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
         { name: '分析向けの応用SQL', desc: '分析クエリでは、ウィンドウ関数・CTE（共通テーブル式）・サブクエリといった応用的なSQLがよく使われる。\nウィンドウ関数（Window Function）：行をグループに畳まず、各行の隣に集計・順位を付ける。OVER(PARTITION BY … ORDER BY …) で範囲を指定\n例：ROW_NUMBER・RANK・DENSE_RANK (順位)・LAG / LEAD (前後行参照)・累計や移動平均 (SUM() OVER)\nCTE（共通テーブル式 / WITH句）：クエリ内に一時的な名前付き結果を定義して可読性を上げる。再帰CTEで階層データも扱える', keyword: 'ウィンドウ関数 Window Function OVER PARTITION BY ROW_NUMBER RANK LAG LEAD CTE WITH句 共通テーブル式 再帰', tags: ['ウィンドウ関数 / OVER', 'ROW_NUMBER / RANK', 'CTE / WITH句'] },
       ],
     },
@@ -824,7 +827,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'ネットワーク階層モデル', desc: 'ネットワーク通信は、役割ごとに階層に分けて整理される。代表がOSI参照モデル（7層）とTCP/IPモデル（4層）。\nOSI参照モデル（7層）：物理→データリンク→ネットワーク→トランスポート→セッション→プレゼンテーション→アプリケーション\nTCP（Transmission Control Protocol）/IPモデル（4層）：ネットワークインターフェース→インターネット→トランスポート→アプリケーション\nカプセル化：各層でヘッダーを付けてデータを包む処理', keyword: 'OSI参照モデル TCP/IP 7層 プロトコル カプセル化 レイヤー', tags: ['OSI 7層', 'TCP/IP 4層', 'カプセル化'] },
         { name: 'トランスポート層プロトコル', desc: 'トランスポート層では、信頼性重視のTCPと、速度重視のUDPという2つの代表的なプロトコルを使い分ける。\nTCP（Transmission Control Protocol）：コネクション型。3ウェイハンドシェイクで接続を確立し、再送・順序保証で信頼性が高い（Web・メール・ファイル転送）\nUDP（User Datagram Protocol）：コネクションレス型。確認なしで高速・低遅延だが到達保証なし（動画配信・音声通話・DNS・ゲーム）', keyword: 'TCP UDP 3ウェイハンドシェイク コネクション型 信頼性 トランスポート層', tags: ['TCP / 信頼性', 'UDP / 低遅延', '3ウェイハンドシェイク'] },
-        { name: 'ポート番号', desc: 'ポート番号は、同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。\n**3つの範囲**（用途別）\n- ウェルノウンポート（0-1023）：HTTP=80・HTTPS=443・SSH=22・DNS=53・SMTP=25\n- 登録済みポート（1024-49151）：ソフトに登録された用途\n- 動的ポート（49152-65535）：通信時に一時的に割り当て\nソケット = IPアドレス + ポート番号 で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
+        { name: 'ポート番号', desc: 'ポート番号は、同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。\n**3つの範囲**（用途別）\n- ウェルノウンポート：0-1023番。HTTP=80・HTTPS=443・SSH=22・DNS=53・SMTP=25\n- 登録済みポート（1024-49151）：ソフトに登録された用途\n- 動的ポート（49152-65535）：通信時に一時的に割り当て\nソケット = IPアドレス + ポート番号 で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
       ],
     },
     {
@@ -1557,7 +1560,7 @@ function isTopTermLine(lines: string[], i: number): boolean {
   const ci = topLevelColonIndex(l);
   if (ci <= 0) return false;
   const t = l.slice(0, ci).replace(/\*\*/g, '');
-  const isIT = !/。/.test(t) && !SIMPLE_TERMS.has(t) && (/[A-Za-z]/.test(t) || EXTRA_COPYABLE_TERMS.has(t));
+  const isIT = !/。/.test(t) && !isIntroLabel(t) && !SIMPLE_TERMS.has(t) && (/[A-Za-z]/.test(t) || EXTRA_COPYABLE_TERMS.has(t));
   const isBold = !isIT && isCleanTermLabel(t);
   return isIT || isBold;
 }
@@ -1750,7 +1753,7 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
           const term = colonIdx > 0 ? body.slice(0, colonIdx).replace(/\*\*/g, '') : '';
           // ASCII英字を含む、またはEXTRA_COPYABLE_TERMSに含まれる場合にIT用語として強調
           // 用語部に「。」を含む＝文中コロン(文＋見出し)なので用語扱いしない
-          const isITTerm = colonIdx > 0 && !/。/.test(term) && !SIMPLE_TERMS.has(term) && (
+          const isITTerm = colonIdx > 0 && !/。/.test(term) && !isIntroLabel(term) && !SIMPLE_TERMS.has(term) && (
             /[A-Za-z]/.test(term) ||
             EXTRA_COPYABLE_TERMS.has(term)
           );
