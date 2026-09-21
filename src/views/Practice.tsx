@@ -570,6 +570,11 @@ export default function Practice() {
           {/* フィルタ（展開） */}
           {user && (
             <div style={{ marginBottom: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {!!examType && COMPANION_EXAM[examType] && includeCompanion && (
+                <div style={{ textAlign: 'right', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>
+                  {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                </div>
+              )}
               {([
                 ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
                 ['incorrectOnly',  ja ? '不正解を優先' : 'Incorrect First'],
@@ -590,7 +595,7 @@ export default function Practice() {
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                     <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
                       {label}
-                      {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}問${companionCnt ? `・基礎知識${companionCnt}問` : ''}）` : ` (${cnt}${companionCnt ? ` +${companionCnt} prereq.` : ''})`}</span>}
+                      {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}${companionCnt ? `・${companionCnt}` : ''}問）` : ` (${cnt}${companionCnt ? `, ${companionCnt}` : ''})`}</span>}
                     </span>
                   </label>
                 );

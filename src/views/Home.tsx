@@ -1379,16 +1379,18 @@ export default function Home() {
   } | null>(null);
   // サクッと演習ドメインフィルタ用: 各ドメインに用意された問題数（ドメイン名→問数）
   const [quickDomainCounts, setQuickDomainCounts] = useState<Record<string, number> | null>(null);
+  // 開いているモーダル（サクッと演習 or しっかり対策）の「基礎知識を含める」チェック状態。
+  // これがOFFのときは件数表示から基礎知識分を差し引く（含めても意味が無くなるため）。
+  const statusCountsUseCompanion = showQuickModal ? includeCompanionPref(draftPrefs) : includeCompanionPref(draftFocusedPrefs);
   useEffect(() => {
     if ((!showFocusedModal && !showQuickModal) || !user || !targetExam) { setStatusCounts(null); return; }
     let cancelled = false;
     const uid2 = user.userId;
     (async () => {
       try {
-        // 前提知識(オリジナル資格)混在は既定ONのため、件数表示も既定込みで揃える
-        // （出題プール側と母集団をズレさせないため。docs/06-exercise-logic.md §6.1）。
         const hasCompanion = !!COMPANION_EXAM[targetExam];
-        const companionParam = hasCompanion ? '&includeCompanion=true' : '';
+        const useCompanion = hasCompanion && statusCountsUseCompanion;
+        const companionParam = useCompanion ? '&includeCompanion=true' : '';
         const [idsRes, statusRes, companionRes, targetOnlyIdsRes, targetOnlyStatusRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
           fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}${companionParam}`).then(r => r.json()).catch(() => null),
@@ -1396,11 +1398,12 @@ export default function Home() {
           hasCompanion
             ? fetch(`${API_ENDPOINT}/questions?examType=${COMPANION_EXAM[targetExam]}&metaOnly=true`).then(r => r.json()).catch(() => null)
             : Promise.resolve(null),
-          // 内訳表示用: 基礎知識抜き（目標資格単独）の同じ集計を並行取得し、差分をcompanion分とする（specs/004）
-          hasCompanion
+          // 内訳表示用: 基礎知識抜き（目標資格単独）の同じ集計を並行取得し、差分をcompanion分とする（specs/004）。
+          // 「含める」がONの時だけ必要（OFFなら上のidsRes/statusRes自体が既に目標資格単独）。
+          useCompanion
             ? fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null)
             : Promise.resolve(null),
-          hasCompanion
+          useCompanion
             ? fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null)
             : Promise.resolve(null),
         ]);
@@ -1418,11 +1421,11 @@ export default function Home() {
         const bookmarked = (statusRes?.bookmarked ?? []).length;
         const companionTotal = companionRes?.count ?? undefined;
 
-        // 内訳（基礎知識分） = 合算値 − 目標資格単独値
+        // 内訳（基礎知識分） = 合算値 − 目標資格単独値。「含める」がOFFなら内訳自体不要。
         let companionNone: number | undefined, companionUnanswered: number | undefined,
           companionIncorrect: number | undefined, companionBookmarked: number | undefined,
           companionNotcorrect: number | undefined;
-        if (hasCompanion && targetOnlyIdsRes) {
+        if (useCompanion && targetOnlyIdsRes) {
           const targetOnlyTotal = (targetOnlyIdsRes?.questionIds ?? []).length;
           const targetOnlyAnswered = (targetOnlyStatusRes?.answered ?? []).length;
           const targetOnlyIncorrect = Object.keys(targetOnlyStatusRes?.incorrect ?? {}).length;
@@ -1441,7 +1444,7 @@ export default function Home() {
       } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
-  }, [showFocusedModal, showQuickModal, user, targetExam]);
+  }, [showFocusedModal, showQuickModal, user, targetExam, statusCountsUseCompanion]);
 
   // サクッと演習ドメインフィルタの各ドメイン問数を集計（ログイン不問・問題メタから算出）
   useEffect(() => {
@@ -3052,7 +3055,7 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}{!!statusCounts.companionBookmarked && (ja ? `（基礎知識${statusCounts.companionBookmarked}問）` : ` (+${statusCounts.companionBookmarked} prereq.)`)}</span>}
+                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}{!!statusCounts.companionBookmarked && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>}
                     </span>
                   </label>
                 </div>
@@ -3068,8 +3071,15 @@ export default function Home() {
                 )}
                 {/* 回答状況フィルタ（排他・しっかり対策と同一） */}
                 <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                      {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                    </span>
+                    {!!targetExam && COMPANION_EXAM[targetExam] && includeCompanionPref(draftPrefs) && (
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                        {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                      </span>
+                    )}
                   </div>
                   {(() => {
                     const curQ = resolveQuickPriority(draftPrefs);
@@ -3094,7 +3104,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && (ja ? `（基礎知識${companionCnt}問）` : ` (+${companionCnt} prereq.)`)}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
@@ -3333,7 +3343,7 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusBookmarkOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}{!!statusCounts.companionBookmarked && (ja ? `（基礎知識${statusCounts.companionBookmarked}問）` : ` (+${statusCounts.companionBookmarked} prereq.)`)}</span>}
+                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}{!!statusCounts.companionBookmarked && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>}
                     </span>
                   </label>
                 </div>
@@ -3349,8 +3359,15 @@ export default function Home() {
                 )}
                 {/* 回答状況フィルタ（排他） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                      {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                    </span>
+                    {!!targetExam && COMPANION_EXAM[targetExam] && includeCompanionPref(draftFocusedPrefs) && (
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                        {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                      </span>
+                    )}
                   </div>
                   {(() => {
                     const curPriority = resolveFocusPriority(draftFocusedPrefs);
@@ -3375,7 +3392,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && (ja ? `（基礎知識${companionCnt}問）` : ` (+${companionCnt} prereq.)`)}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
