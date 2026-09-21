@@ -1210,6 +1210,10 @@ function quickBookmark(p: Record<string, any>): boolean {
 function includeCompanionPref(p: Record<string, any>): boolean {
   return p?.includeCompanion !== false;
 }
+// 回答状況フィルタの選択肢キー → statusCounts上の「基礎知識(companion)分の内訳」フィールド名（specs/004）。
+const COMPANION_COUNT_KEY: Record<string, string> = {
+  none: 'companionNone', unanswered: 'companionUnanswered', incorrect: 'companionIncorrect', notcorrect: 'companionNotcorrect',
+};
 // サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は未正解を優先）。
 // FocusPriority は Home 本体で型定義（'none'|'unanswered'|'incorrect'|'notcorrect'）。
 function resolveQuickPriority(p: Record<string, any>): 'none' | 'unanswered' | 'incorrect' | 'notcorrect' {
@@ -1368,7 +1372,11 @@ export default function Home() {
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
-  const [statusCounts, setStatusCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number; companionTotal?: number } | null>(null);
+  const [statusCounts, setStatusCounts] = useState<{
+    none?: number; bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number;
+    below50?: number; below66?: number; below75?: number; companionTotal?: number;
+    companionNone?: number; companionBookmarked?: number; companionUnanswered?: number; companionIncorrect?: number; companionNotcorrect?: number;
+  } | null>(null);
   // サクッと演習ドメインフィルタ用: 各ドメインに用意された問題数（ドメイン名→問数）
   const [quickDomainCounts, setQuickDomainCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
@@ -1379,13 +1387,21 @@ export default function Home() {
       try {
         // 前提知識(オリジナル資格)混在は既定ONのため、件数表示も既定込みで揃える
         // （出題プール側と母集団をズレさせないため。docs/06-exercise-logic.md §6.1）。
-        const companionParam = COMPANION_EXAM[targetExam] ? '&includeCompanion=true' : '';
-        const [idsRes, statusRes, companionRes] = await Promise.all([
+        const hasCompanion = !!COMPANION_EXAM[targetExam];
+        const companionParam = hasCompanion ? '&includeCompanion=true' : '';
+        const [idsRes, statusRes, companionRes, targetOnlyIdsRes, targetOnlyStatusRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
           fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}${companionParam}`).then(r => r.json()).catch(() => null),
           // 基礎知識チェックボックスの問題数表示用: companion資格自体の母数（未回答等とは独立）
-          COMPANION_EXAM[targetExam]
+          hasCompanion
             ? fetch(`${API_ENDPOINT}/questions?examType=${COMPANION_EXAM[targetExam]}&metaOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
+          // 内訳表示用: 基礎知識抜き（目標資格単独）の同じ集計を並行取得し、差分をcompanion分とする（specs/004）
+          hasCompanion
+            ? fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
+          hasCompanion
+            ? fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null)
             : Promise.resolve(null),
         ]);
         if (cancelled) return;
@@ -1401,7 +1417,27 @@ export default function Home() {
         const below75 = accVals.length > 0 ? accVals.filter(v => v < 0.75).length : (statusRes?.weak ?? []).length;
         const bookmarked = (statusRes?.bookmarked ?? []).length;
         const companionTotal = companionRes?.count ?? undefined;
-        setStatusCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75, companionTotal });
+
+        // 内訳（基礎知識分） = 合算値 − 目標資格単独値
+        let companionNone: number | undefined, companionUnanswered: number | undefined,
+          companionIncorrect: number | undefined, companionBookmarked: number | undefined,
+          companionNotcorrect: number | undefined;
+        if (hasCompanion && targetOnlyIdsRes) {
+          const targetOnlyTotal = (targetOnlyIdsRes?.questionIds ?? []).length;
+          const targetOnlyAnswered = (targetOnlyStatusRes?.answered ?? []).length;
+          const targetOnlyIncorrect = Object.keys(targetOnlyStatusRes?.incorrect ?? {}).length;
+          const targetOnlyUnanswered = Math.max(0, targetOnlyTotal - targetOnlyAnswered);
+          const targetOnlyBookmarked = (targetOnlyStatusRes?.bookmarked ?? []).length;
+          companionNone = Math.max(0, total - targetOnlyTotal);
+          companionUnanswered = Math.max(0, unanswered - targetOnlyUnanswered);
+          companionIncorrect = Math.max(0, incorrect - targetOnlyIncorrect);
+          companionBookmarked = Math.max(0, bookmarked - targetOnlyBookmarked);
+          companionNotcorrect = companionUnanswered + companionIncorrect;
+        }
+        setStatusCounts({
+          none: total, bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75, companionTotal,
+          companionNone, companionUnanswered, companionIncorrect, companionBookmarked, companionNotcorrect,
+        });
       } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
@@ -2059,7 +2095,7 @@ export default function Home() {
       const W_PRIORITY = 8, W_WEAK = 8, W_INCORRECT = 4, W_DOMAIN = 6, W_BOOKMARK = 8, BASE = 1;
       const count = fPrefs.questionCount ?? 5;
       const pool = Array.from(new Map(allItems.map((q: any) => [q.questionId, q])).values());
-      const items = weightedSampleWithoutReplacement(pool, (q: any) => {
+      const focusWeightFn = (q: any) => {
         const qid = q.questionId;
         const isUnanswered = !answeredSet.has(qid);
         const isIncorrect = (incorrectCounts[qid] ?? 0) > 0;
@@ -2080,7 +2116,23 @@ export default function Home() {
         // （domainAcc に無いドメイン名で誤って「未演習=最優先」扱いになるのを防ぐ）。
         if (q.examType === targetExam) w += domainDeficit(qDomainName(q)) * W_DOMAIN;
         return w;
-      }, count);
+      };
+      // フィルタ（回答状況 or ブックマーク）が有効なときは、対象資格(targetExam)の問題を
+      // 抽出し尽くしてから、不足分だけ前提知識(companion)の問題で補う（specs/004）。
+      // フィルタ無しの通常抽出は従来通り target/companion を均等に混ぜる
+      // （specs/003-original-exam-blendの「基礎知識を含める」本来の目的を維持）。
+      const hasActiveFilter = focusPriority !== 'none' || focusBookmark;
+      let items: any[];
+      if (hasActiveFilter && COMPANION_EXAM[targetExam]) {
+        const targetPool = pool.filter((q: any) => q.examType === targetExam);
+        const companionPool = pool.filter((q: any) => q.examType !== targetExam);
+        items = weightedSampleWithoutReplacement(targetPool, focusWeightFn, count);
+        if (items.length < count && companionPool.length > 0) {
+          items = items.concat(weightedSampleWithoutReplacement(companionPool, focusWeightFn, count - items.length));
+        }
+      } else {
+        items = weightedSampleWithoutReplacement(pool, focusWeightFn, count);
+      }
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       setFocusedLoadPct(90);
       const questionIds = items.map((q: any) => q.questionId);
@@ -3000,7 +3052,7 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}</span>}
+                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}{!!statusCounts.companionBookmarked && (ja ? `（基礎知識${statusCounts.companionBookmarked}問）` : ` (+${statusCounts.companionBookmarked} prereq.)`)}</span>}
                     </span>
                   </label>
                 </div>
@@ -3029,6 +3081,7 @@ export default function Home() {
                     ] as ['none' | 'unanswered' | 'incorrect' | 'notcorrect', string, string][]).map(([val, label, desc]) => {
                       const selected = curQ === val;
                       const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
+                      const companionCnt = statusCounts ? (statusCounts as any)[COMPANION_COUNT_KEY[val]] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -3041,7 +3094,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && (ja ? `（基礎知識${companionCnt}問）` : ` (+${companionCnt} prereq.)`)}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
@@ -3280,7 +3333,7 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusBookmarkOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}</span>}
+                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}{!!statusCounts.companionBookmarked && (ja ? `（基礎知識${statusCounts.companionBookmarked}問）` : ` (+${statusCounts.companionBookmarked} prereq.)`)}</span>}
                     </span>
                   </label>
                 </div>
@@ -3309,6 +3362,7 @@ export default function Home() {
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
                       const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
+                      const companionCnt = statusCounts ? (statusCounts as any)[COMPANION_COUNT_KEY[val]] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -3321,7 +3375,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && (ja ? `（基礎知識${companionCnt}問）` : ` (+${companionCnt} prereq.)`)}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
