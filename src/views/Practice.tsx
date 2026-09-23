@@ -96,7 +96,11 @@ export default function Practice() {
   const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   // 各フィルタ（未回答/不正解/ブックマーク）の対象問数（試験全体・ログイン専用）
-  const [statusCounts, setStatusCounts] = useState<{ unanswered?: number; incorrect?: number; bookmarked?: number; companionTotal?: number } | null>(null);
+  const [statusCounts, setStatusCounts] = useState<{
+    unanswered?: number; incorrect?: number; bookmarked?: number; companionTotal?: number;
+    targetOnlyUnanswered?: number; targetOnlyIncorrect?: number; targetOnlyBookmarked?: number;
+    companionUnanswered?: number; companionIncorrect?: number; companionBookmarked?: number;
+  } | null>(null);
   // ドメイン別の用意問数（ドメイン名→問数・ログイン不問）
   const [domainCounts, setDomainCounts] = useState<Record<string, number> | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
@@ -199,32 +203,57 @@ export default function Practice() {
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, includeCompanion]);
 
   // 各フィルタの対象問数（試験全体）。演習・模試タブ共通で使う。ゲストは対象外。
+  // 基礎知識込み・目標資格単独の両方を常に取得しておき、「基礎知識を含める」チェックボックスの
+  // 切り替えは再フェッチ無しでクライアント側の参照切り替えのみで即座に反映する（specs/004）。
   useEffect(() => {
     if (!user || !examType) { setStatusCounts(null); return; }
     let cancelled = false;
     (async () => {
       try {
-        const companionParam = (includeCompanion && COMPANION_EXAM[examType]) ? '&includeCompanion=true' : '';
-        const [idsRes, statusRes, companionRes] = await Promise.all([
+        const hasCompanion = !!COMPANION_EXAM[examType];
+        const companionParam = hasCompanion ? '&includeCompanion=true' : '';
+        const [idsRes, statusRes, companionRes, targetOnlyIdsRes, targetOnlyStatusRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?examType=${examType}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
           fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}${companionParam}`).then(r => r.json()).catch(() => null),
-          COMPANION_EXAM[examType]
+          hasCompanion
             ? fetch(`${API_ENDPOINT}/questions?examType=${COMPANION_EXAM[examType]}&metaOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
+          // 目標資格単独（基礎知識抜き）の同じ集計を並行取得（specs/004）
+          hasCompanion
+            ? fetch(`${API_ENDPOINT}/questions?examType=${examType}&idsOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
+          hasCompanion
+            ? fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}`).then(r => r.json()).catch(() => null)
             : Promise.resolve(null),
         ]);
         if (cancelled) return;
         const total = (idsRes?.questionIds ?? []).length;
         const answered = (statusRes?.answered ?? []).length;
+        const unanswered = Math.max(0, total - answered);
+        const incorrect = Object.keys(statusRes?.incorrect ?? {}).length;
+        const bookmarked = (statusRes?.bookmarked ?? []).length;
+        let targetOnlyUnanswered: number | undefined, targetOnlyIncorrect: number | undefined, targetOnlyBookmarked: number | undefined;
+        let companionUnanswered: number | undefined, companionIncorrect: number | undefined, companionBookmarked: number | undefined;
+        if (hasCompanion && targetOnlyIdsRes) {
+          const targetOnlyTotal = (targetOnlyIdsRes?.questionIds ?? []).length;
+          const targetOnlyAnswered = (targetOnlyStatusRes?.answered ?? []).length;
+          targetOnlyUnanswered = Math.max(0, targetOnlyTotal - targetOnlyAnswered);
+          targetOnlyIncorrect = Object.keys(targetOnlyStatusRes?.incorrect ?? {}).length;
+          targetOnlyBookmarked = (targetOnlyStatusRes?.bookmarked ?? []).length;
+          companionUnanswered = Math.max(0, unanswered - targetOnlyUnanswered);
+          companionIncorrect = Math.max(0, incorrect - targetOnlyIncorrect);
+          companionBookmarked = Math.max(0, bookmarked - (targetOnlyBookmarked ?? 0));
+        }
         setStatusCounts({
-          unanswered: Math.max(0, total - answered),
-          incorrect: Object.keys(statusRes?.incorrect ?? {}).length,
-          bookmarked: (statusRes?.bookmarked ?? []).length,
+          unanswered, incorrect, bookmarked,
           companionTotal: companionRes?.count ?? undefined,
+          targetOnlyUnanswered, targetOnlyIncorrect, targetOnlyBookmarked,
+          companionUnanswered, companionIncorrect, companionBookmarked,
         });
       } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
-  }, [examType, user, includeCompanion]);
+  }, [examType, user]);
 
   // ドメイン別の用意問数を集計（問題メタから・ログイン不問）
   useEffect(() => {
@@ -546,6 +575,11 @@ export default function Practice() {
           {/* フィルタ（展開） */}
           {user && (
             <div style={{ marginBottom: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {!!examType && COMPANION_EXAM[examType] && includeCompanion && (
+                <div style={{ textAlign: 'right', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>
+                  {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                </div>
+              )}
               {([
                 ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
                 ['incorrectOnly',  ja ? '不正解を優先' : 'Incorrect First'],
@@ -558,14 +592,19 @@ export default function Practice() {
                   bookmarkOnly:   setBookmarkOnly,
                 };
                 const on = stateMap[key];
-                const cnt = statusCounts ? (key === 'unansweredOnly' ? statusCounts.unanswered : key === 'incorrectOnly' ? statusCounts.incorrect : statusCounts.bookmarked) : undefined;
+                const cnt = statusCounts
+                  ? (includeCompanion
+                      ? (key === 'unansweredOnly' ? statusCounts.unanswered : key === 'incorrectOnly' ? statusCounts.incorrect : statusCounts.bookmarked)
+                      : (key === 'unansweredOnly' ? statusCounts.targetOnlyUnanswered : key === 'incorrectOnly' ? statusCounts.targetOnlyIncorrect : statusCounts.targetOnlyBookmarked))
+                  : undefined;
+                const companionCnt = includeCompanion && statusCounts ? (key === 'unansweredOnly' ? statusCounts.companionUnanswered : key === 'incorrectOnly' ? statusCounts.companionIncorrect : statusCounts.companionBookmarked) : undefined;
                 return (
                   <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                     <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
                       {label}
-                      {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}問）` : ` (${cnt})`}</span>}
+                      {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}${companionCnt ? `・${companionCnt}` : ''}問）` : ` (${cnt}${companionCnt ? `, ${companionCnt}` : ''})`}</span>}
                     </span>
                   </label>
                 );

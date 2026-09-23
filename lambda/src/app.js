@@ -304,7 +304,13 @@ function domainBalancedOrder(items, answeredPerDomain) {
 
 // フィルタ優先（matching を先頭）を保ちつつ、各スコア階層の中でドメイン均等化する。
 // scoreFn が無ければ純粋にドメイン均等化。
-function selectionOrder(items, answeredPerDomain, scoreFn) {
+//
+// targetExam が渡され、かつ scoreFn がある（＝フィルタが有効な）場合は、各スコア階層の中を
+// さらに「対象資格(targetExam)の問題」→「前提知識(companion)の問題」の2段に分けて、
+// 対象資格側を出題し尽くしてから companion 側で不足分を埋める（specs/004）。
+// フィルタが無い（無条件の通常演習）場合は対象外＝従来通り両者を均等に混ぜる
+// （specs/003-original-exam-blend の「基礎知識を含める」本来の目的を維持するため）。
+function selectionOrder(items, answeredPerDomain, scoreFn, targetExam) {
   if (!scoreFn) return domainBalancedOrder(items, answeredPerDomain);
   const tiers = new Map();
   for (const q of items) {
@@ -314,9 +320,24 @@ function selectionOrder(items, answeredPerDomain, scoreFn) {
   }
   const out = [];
   for (const s of [...tiers.keys()].sort((a, b) => b - a)) {
-    out.push(...domainBalancedOrder(tiers.get(s), answeredPerDomain));
+    out.push(...domainBalancedOrderWithCompanionPriority(tiers.get(s), answeredPerDomain, targetExam));
   }
   return out;
+}
+
+// domainBalancedOrder のラッパー: targetExam が指定されていれば、対象資格の問題を
+// 先に domainBalancedOrder した結果 → companion(前提知識)の問題を domainBalancedOrder した
+// 結果、の順で連結する。companion 側の問題が0件（混在なし）なら従来と同じ単発呼び出しに
+// 短絡し、挙動は変わらない。
+function domainBalancedOrderWithCompanionPriority(items, answeredPerDomain, targetExam) {
+  if (!targetExam) return domainBalancedOrder(items, answeredPerDomain);
+  const targetItems = items.filter(q => q.examType === targetExam);
+  const companionItems = items.filter(q => q.examType !== targetExam);
+  if (companionItems.length === 0) return domainBalancedOrder(targetItems, answeredPerDomain);
+  return [
+    ...domainBalancedOrder(targetItems, answeredPerDomain),
+    ...domainBalancedOrder(companionItems, answeredPerDomain),
+  ];
 }
 
 async function scanAll(docClient, params) {
@@ -642,7 +663,7 @@ app.get('/questions', async (req, res) => {
         }
       }
       // フィルタで不可能でない限り、回答数の少ないドメインを優先してドメイン偏りを是正
-      const ordered = selectionOrder(items, answeredPerDomain, scoreFn);
+      const ordered = selectionOrder(items, answeredPerDomain, scoreFn, examType);
       return res.json({ questionIds: ordered.map(q => q.questionId), total: ordered.length });
     }
 

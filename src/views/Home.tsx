@@ -1210,6 +1210,15 @@ function quickBookmark(p: Record<string, any>): boolean {
 function includeCompanionPref(p: Record<string, any>): boolean {
   return p?.includeCompanion !== false;
 }
+// 回答状況フィルタの選択肢キー → statusCounts上の「基礎知識(companion)分の内訳」フィールド名（specs/004）。
+const COMPANION_COUNT_KEY: Record<string, string> = {
+  none: 'companionNone', unanswered: 'companionUnanswered', incorrect: 'companionIncorrect', notcorrect: 'companionNotcorrect',
+};
+// 同・「目標資格単独」フィールド名。「基礎知識を含める」OFF時はこちらを表示する
+// （事前に両方取得済みのため、チェックボックス切り替えは再フェッチ無しで即座に反映する）。
+const TARGET_ONLY_COUNT_KEY: Record<string, string> = {
+  none: 'targetOnlyNone', unanswered: 'targetOnlyUnanswered', incorrect: 'targetOnlyIncorrect', notcorrect: 'targetOnlyNotcorrect',
+};
 // サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は未正解を優先）。
 // FocusPriority は Home 本体で型定義（'none'|'unanswered'|'incorrect'|'notcorrect'）。
 function resolveQuickPriority(p: Record<string, any>): 'none' | 'unanswered' | 'incorrect' | 'notcorrect' {
@@ -1368,7 +1377,15 @@ export default function Home() {
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
-  const [statusCounts, setStatusCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number; companionTotal?: number } | null>(null);
+  // 基礎知識込み(with)・目標資格単独(targetOnly)の両方を常に取得しておき、
+  // 「基礎知識を含める」チェックボックスの切り替えはクライアント側の参照切り替えのみで
+  // 即座に反映する（再フェッチのラグを無くすため。specs/004）。
+  const [statusCounts, setStatusCounts] = useState<{
+    none?: number; bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number;
+    below50?: number; below66?: number; below75?: number; companionTotal?: number;
+    targetOnlyNone?: number; targetOnlyBookmarked?: number; targetOnlyUnanswered?: number; targetOnlyIncorrect?: number; targetOnlyNotcorrect?: number;
+    companionNone?: number; companionBookmarked?: number; companionUnanswered?: number; companionIncorrect?: number; companionNotcorrect?: number;
+  } | null>(null);
   // サクッと演習ドメインフィルタ用: 各ドメインに用意された問題数（ドメイン名→問数）
   const [quickDomainCounts, setQuickDomainCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
@@ -1377,15 +1394,22 @@ export default function Home() {
     const uid2 = user.userId;
     (async () => {
       try {
-        // 前提知識(オリジナル資格)混在は既定ONのため、件数表示も既定込みで揃える
-        // （出題プール側と母集団をズレさせないため。docs/06-exercise-logic.md §6.1）。
-        const companionParam = COMPANION_EXAM[targetExam] ? '&includeCompanion=true' : '';
-        const [idsRes, statusRes, companionRes] = await Promise.all([
+        const hasCompanion = !!COMPANION_EXAM[targetExam];
+        const companionParam = hasCompanion ? '&includeCompanion=true' : '';
+        const [idsRes, statusRes, companionRes, targetOnlyIdsRes, targetOnlyStatusRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
           fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}${companionParam}`).then(r => r.json()).catch(() => null),
           // 基礎知識チェックボックスの問題数表示用: companion資格自体の母数（未回答等とは独立）
-          COMPANION_EXAM[targetExam]
+          hasCompanion
             ? fetch(`${API_ENDPOINT}/questions?examType=${COMPANION_EXAM[targetExam]}&metaOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
+          // 目標資格単独（基礎知識抜き）の同じ集計を並行取得。チェックボックスON/OFF
+          // どちらの表示もこの1回の取得で即座に出せるようにする（specs/004）。
+          hasCompanion
+            ? fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
+          hasCompanion
+            ? fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null)
             : Promise.resolve(null),
         ]);
         if (cancelled) return;
@@ -1401,7 +1425,32 @@ export default function Home() {
         const below75 = accVals.length > 0 ? accVals.filter(v => v < 0.75).length : (statusRes?.weak ?? []).length;
         const bookmarked = (statusRes?.bookmarked ?? []).length;
         const companionTotal = companionRes?.count ?? undefined;
-        setStatusCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75, companionTotal });
+
+        // 目標資格単独の値、および内訳（基礎知識分 = 合算値 − 目標資格単独値）
+        let targetOnlyNone: number | undefined, targetOnlyUnanswered: number | undefined,
+          targetOnlyIncorrect: number | undefined, targetOnlyBookmarked: number | undefined, targetOnlyNotcorrect: number | undefined;
+        let companionNone: number | undefined, companionUnanswered: number | undefined,
+          companionIncorrect: number | undefined, companionBookmarked: number | undefined,
+          companionNotcorrect: number | undefined;
+        if (hasCompanion && targetOnlyIdsRes) {
+          const targetOnlyTotal = (targetOnlyIdsRes?.questionIds ?? []).length;
+          const targetOnlyAnswered = (targetOnlyStatusRes?.answered ?? []).length;
+          targetOnlyIncorrect = Object.keys(targetOnlyStatusRes?.incorrect ?? {}).length;
+          targetOnlyUnanswered = Math.max(0, targetOnlyTotal - targetOnlyAnswered);
+          targetOnlyBookmarked = (targetOnlyStatusRes?.bookmarked ?? []).length;
+          targetOnlyNone = targetOnlyTotal;
+          targetOnlyNotcorrect = targetOnlyUnanswered + targetOnlyIncorrect;
+          companionNone = Math.max(0, total - targetOnlyTotal);
+          companionUnanswered = Math.max(0, unanswered - targetOnlyUnanswered);
+          companionIncorrect = Math.max(0, incorrect - targetOnlyIncorrect);
+          companionBookmarked = Math.max(0, bookmarked - (targetOnlyBookmarked ?? 0));
+          companionNotcorrect = companionUnanswered + companionIncorrect;
+        }
+        setStatusCounts({
+          none: total, bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75, companionTotal,
+          targetOnlyNone, targetOnlyUnanswered, targetOnlyIncorrect, targetOnlyBookmarked, targetOnlyNotcorrect,
+          companionNone, companionUnanswered, companionIncorrect, companionBookmarked, companionNotcorrect,
+        });
       } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
@@ -2059,7 +2108,7 @@ export default function Home() {
       const W_PRIORITY = 8, W_WEAK = 8, W_INCORRECT = 4, W_DOMAIN = 6, W_BOOKMARK = 8, BASE = 1;
       const count = fPrefs.questionCount ?? 5;
       const pool = Array.from(new Map(allItems.map((q: any) => [q.questionId, q])).values());
-      const items = weightedSampleWithoutReplacement(pool, (q: any) => {
+      const focusWeightFn = (q: any) => {
         const qid = q.questionId;
         const isUnanswered = !answeredSet.has(qid);
         const isIncorrect = (incorrectCounts[qid] ?? 0) > 0;
@@ -2080,7 +2129,23 @@ export default function Home() {
         // （domainAcc に無いドメイン名で誤って「未演習=最優先」扱いになるのを防ぐ）。
         if (q.examType === targetExam) w += domainDeficit(qDomainName(q)) * W_DOMAIN;
         return w;
-      }, count);
+      };
+      // フィルタ（回答状況 or ブックマーク）が有効なときは、対象資格(targetExam)の問題を
+      // 抽出し尽くしてから、不足分だけ前提知識(companion)の問題で補う（specs/004）。
+      // フィルタ無しの通常抽出は従来通り target/companion を均等に混ぜる
+      // （specs/003-original-exam-blendの「基礎知識を含める」本来の目的を維持）。
+      const hasActiveFilter = focusPriority !== 'none' || focusBookmark;
+      let items: any[];
+      if (hasActiveFilter && COMPANION_EXAM[targetExam]) {
+        const targetPool = pool.filter((q: any) => q.examType === targetExam);
+        const companionPool = pool.filter((q: any) => q.examType !== targetExam);
+        items = weightedSampleWithoutReplacement(targetPool, focusWeightFn, count);
+        if (items.length < count && companionPool.length > 0) {
+          items = items.concat(weightedSampleWithoutReplacement(companionPool, focusWeightFn, count - items.length));
+        }
+      } else {
+        items = weightedSampleWithoutReplacement(pool, focusWeightFn, count);
+      }
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       setFocusedLoadPct(90);
       const questionIds = items.map((q: any) => q.questionId);
@@ -3000,7 +3065,11 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}</span>}
+                      {(() => {
+                        const useC = includeCompanionPref(draftPrefs);
+                        const bcnt = statusCounts ? (useC ? statusCounts.bookmarked : statusCounts.targetOnlyBookmarked) : undefined;
+                        return bcnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{bcnt}{ja ? '問' : ''}{useC && !!statusCounts?.companionBookmarked && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>;
+                      })()}
                     </span>
                   </label>
                 </div>
@@ -3016,8 +3085,15 @@ export default function Home() {
                 )}
                 {/* 回答状況フィルタ（排他・しっかり対策と同一） */}
                 <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                      {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                    </span>
+                    {!!targetExam && COMPANION_EXAM[targetExam] && includeCompanionPref(draftPrefs) && (
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                        {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                      </span>
+                    )}
                   </div>
                   {(() => {
                     const curQ = resolveQuickPriority(draftPrefs);
@@ -3028,7 +3104,9 @@ export default function Home() {
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
                     ] as ['none' | 'unanswered' | 'incorrect' | 'notcorrect', string, string][]).map(([val, label, desc]) => {
                       const selected = curQ === val;
-                      const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
+                      const quickUseCompanion = includeCompanionPref(draftPrefs);
+                      const cnt = statusCounts ? (statusCounts as any)[quickUseCompanion ? val : TARGET_ONLY_COUNT_KEY[val]] as number | undefined : undefined;
+                      const companionCnt = quickUseCompanion && statusCounts ? (statusCounts as any)[COMPANION_COUNT_KEY[val]] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -3041,7 +3119,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
@@ -3280,7 +3358,11 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusBookmarkOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}</span>}
+                      {(() => {
+                        const useC = includeCompanionPref(draftFocusedPrefs);
+                        const bcnt = statusCounts ? (useC ? statusCounts.bookmarked : statusCounts.targetOnlyBookmarked) : undefined;
+                        return bcnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{bcnt}{ja ? '問' : ''}{useC && !!statusCounts?.companionBookmarked && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>;
+                      })()}
                     </span>
                   </label>
                 </div>
@@ -3296,8 +3378,15 @@ export default function Home() {
                 )}
                 {/* 回答状況フィルタ（排他） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                      {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                    </span>
+                    {!!targetExam && COMPANION_EXAM[targetExam] && includeCompanionPref(draftFocusedPrefs) && (
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                        {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                      </span>
+                    )}
                   </div>
                   {(() => {
                     const curPriority = resolveFocusPriority(draftFocusedPrefs);
@@ -3308,7 +3397,9 @@ export default function Home() {
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
-                      const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
+                      const focusedUseCompanion = includeCompanionPref(draftFocusedPrefs);
+                      const cnt = statusCounts ? (statusCounts as any)[focusedUseCompanion ? val : TARGET_ONLY_COUNT_KEY[val]] as number | undefined : undefined;
+                      const companionCnt = focusedUseCompanion && statusCounts ? (statusCounts as any)[COMPANION_COUNT_KEY[val]] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -3321,7 +3412,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
