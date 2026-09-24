@@ -129,7 +129,6 @@ export default function ArchitecturePage() {
             fontSize: isMobile ? 'var(--font-size-h2)' : 'var(--font-size-xxl)',
             fontWeight: 800, color: 'var(--color-text-main)',
             margin: '0 0 var(--spacing-lg)', letterSpacing: '-0.3px',
-            borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
           }}>
             {ja ? 'Webサイトの構成図' : 'Site Architecture'}
           </h1>

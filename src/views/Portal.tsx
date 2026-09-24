@@ -283,7 +283,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
                 margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px',
-                borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
               }}>
                 {ja ? 'AWS認定資格を取得するメリット' : 'Why Get AWS Certified?'}
               </h2>
@@ -319,7 +318,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
                 margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px',
-                borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
               }}>
                 {ja ? '無限ノックでできること' : 'What You Can Do'}
               </h2>
@@ -353,7 +351,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
                 margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px',
-                borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
               }}>
                 {ja ? '本サイトのポリシー' : 'Our Policy'}
               </h2>
@@ -361,7 +358,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
             <Reveal {...rv} style={{
               background: 'var(--color-bg-white)',
               border: '1px solid var(--color-border)',
-              borderLeft: '4px solid var(--color-accent)',
               borderRadius: 'var(--border-radius-lg)',
               boxShadow: 'var(--box-shadow-sm)',
               padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)',
@@ -383,12 +379,11 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
                   : 'Fed up with all of that, I thought, "If it doesn\'t exist, I\'ll just build it!" So I built this website intending to answer every one of those frustrations, one by one.'}
               </p>
 
-              {/* 比較行 — スタッガーReveal */}
+              {/* メリットリスト */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', margin: '0 0 var(--spacing-md)' }}>
                 {COMPARE_ROWS.map((row, i) => (
-                  <Reveal key={i} {...rv} delay={i * 70} offset={12} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>{ja ? row.p[0] : row.p[1]}</span>
-                    <span style={{ color: 'var(--color-accent)', fontWeight: 800, flexShrink: 0 }}>→</span>
+                  <Reveal key={i} {...rv} delay={i * 70} offset={12} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)' }}>
+                    <span style={{ color: 'var(--color-accent)', fontWeight: 800, flexShrink: 0, lineHeight: 1.6 }}>✓</span>
                     <span style={{ fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>{ja ? row.s[0] : row.s[1]}</span>
                   </Reveal>
                 ))}
@@ -412,7 +407,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
                 margin: '0 0 var(--spacing-lg)', letterSpacing: '-0.3px',
-                borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
                 display: 'flex', alignItems: 'center', gap: 10,
               }}>
                 <IconNetwork size={isMobile ? 22 : 26} />
