@@ -3068,7 +3068,7 @@ export default function Home() {
                       {(() => {
                         const useC = includeCompanionPref(draftPrefs);
                         const bcnt = statusCounts ? (useC ? statusCounts.bookmarked : statusCounts.targetOnlyBookmarked) : undefined;
-                        return bcnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{bcnt}{ja ? '問' : ''}{useC && !!statusCounts?.companionBookmarked && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>;
+                        return bcnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{bcnt}{ja ? '問' : ''}{useC && statusCounts?.companionBookmarked != null && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>;
                       })()}
                     </span>
                   </label>
@@ -3119,7 +3119,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{companionCnt != null && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
@@ -3361,7 +3361,7 @@ export default function Home() {
                       {(() => {
                         const useC = includeCompanionPref(draftFocusedPrefs);
                         const bcnt = statusCounts ? (useC ? statusCounts.bookmarked : statusCounts.targetOnlyBookmarked) : undefined;
-                        return bcnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{bcnt}{ja ? '問' : ''}{useC && !!statusCounts?.companionBookmarked && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>;
+                        return bcnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{bcnt}{ja ? '問' : ''}{useC && statusCounts?.companionBookmarked != null && `（${statusCounts.companionBookmarked}${ja ? '問' : ''}）`}</span>;
                       })()}
                     </span>
                   </label>
@@ -3412,7 +3412,7 @@ export default function Home() {
                           <span style={{ flex: 1 }}>
                             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
                               <span>{label}</span>
-                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{!!companionCnt && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}{companionCnt != null && `（${companionCnt}${ja ? '問' : ''}）`}</span>}
                             </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
