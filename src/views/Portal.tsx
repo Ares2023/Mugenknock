@@ -369,8 +369,8 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
             }}>
               <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)' }}>
                 {ja
-                  ? '本サイト「無限ノック」は、管理者である大森が AWS 資格 全12種の全冠を目指して作成した資格演習サイトです。'
-                  : 'Mugenknock is a certification practice site that I — Omori, the site\'s owner — built to conquer all 12 AWS certifications.'}
+                  ? '本サイト「無限ノック」は、管理者である西園寺ニアが AWS 資格 全12種の全冠を目指して作成した資格演習サイトです。'
+                  : 'Mugenknock is a certification practice site that I — Saionji Nia, the site\'s owner — built to conquer all 12 AWS certifications.'}
               </p>
               <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
                 {ja
