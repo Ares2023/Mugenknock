@@ -412,9 +412,21 @@ export default function Practice() {
   const examCfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
   const examQuestions = examCfg ? (examMode === 'mini' ? Math.ceil(examCfg.totalQuestions / 5) : examCfg.totalQuestions) : 0;
   const examTimeMin = examCfg ? (examMode === 'mini' ? Math.ceil(examCfg.timeLimitMin / 5) : examCfg.timeLimitMin) : 0;
+  const examAnyFilter = examUnansweredOnly || examIncorrectOnly || examBookmarkOnly;
+  const examEffectiveUnanswered = !examAnyFilter || examUnansweredOnly;
+  const examPriorityLabelsJa = [
+    examEffectiveUnanswered ? '未回答' : null,
+    examIncorrectOnly ? '不正解' : null,
+    examBookmarkOnly ? 'ブックマーク' : null,
+  ].filter(Boolean) as string[];
+  const examPriorityLabelsEn = [
+    examEffectiveUnanswered ? 'unanswered' : null,
+    examIncorrectOnly ? 'incorrect' : null,
+    examBookmarkOnly ? 'bookmarked' : null,
+  ].filter(Boolean) as string[];
   const examRules = ja
-    ? ['タイマーは開始後にカウントダウン', '正誤は全問終了後に確認', '途中で一時停止・再開が可能', 'AI確認済み問題を対象・未回答問題を優先出題']
-    : ['Timer counts down after start', 'Results shown after finishing all questions', 'You can pause and resume', 'AI-verified questions; unanswered ones prioritized'];
+    ? ['タイマーは開始後にカウントダウン', '正誤は全問終了後に確認', '途中で一時停止・再開が可能', `${examPriorityLabelsJa.join('・')}問題を優先出題`]
+    : ['Timer counts down after start', 'Results shown after finishing all questions', 'You can pause and resume', `${examPriorityLabelsEn.join(', ')} questions prioritized`];
 
   const resumeExam = () => {
     if (!examDraft) return;
