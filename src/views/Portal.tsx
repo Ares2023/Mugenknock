@@ -400,7 +400,7 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
                   : 'The certifications I currently hold are CLF, AIF, SAA, SOA, DVA, SAP, and DOP — seven so far. At least until I earn them all, I\'ll keep improving this site. If you\'re working toward AWS certifications like me, please give it a try. I\'d be grateful for any feedback via the report or message features.'}
               </p>
               <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {ja ? '開発者　たいらみなと' : '— Minato Taira, Developer'}
+                {ja ? '開発者　西園寺ニア' : '— Saionji Nia, Developer'}
               </p>
             </Reveal>
           </section>
