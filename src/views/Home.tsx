@@ -3053,8 +3053,15 @@ export default function Home() {
                 )}
                 {/* ブックマークフィルタ（独立トグル・上乗せ） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? 'ブックマークフィルタ' : 'Bookmark Filter'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                      {ja ? 'ブックマークフィルタ' : 'Bookmark Filter'}
+                    </span>
+                    {!!targetExam && COMPANION_EXAM[targetExam] && includeCompanionPref(draftPrefs) && (
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                        {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                      </span>
+                    )}
                   </div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                     <input
@@ -3346,8 +3353,15 @@ export default function Home() {
                 )}
                 {/* ブックマークフィルタ（独立トグル・上乗せ） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? 'ブックマークフィルタ' : 'Bookmark Filter'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                      {ja ? 'ブックマークフィルタ' : 'Bookmark Filter'}
+                    </span>
+                    {!!targetExam && COMPANION_EXAM[targetExam] && includeCompanionPref(draftFocusedPrefs) && (
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                        {ja ? '全体数（基礎知識問題数）' : 'Total (prerequisite count)'}
+                      </span>
+                    )}
                   </div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                     <input
