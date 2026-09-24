@@ -80,7 +80,7 @@ export default function About() {
 
 function H3({ children }: { children: React.ReactNode }) {
   return (
-    <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', margin: '2em 0 0.5em', borderLeft: '4px solid var(--color-primary)', paddingLeft: 12 }}>
+    <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', margin: '2em 0 0.5em' }}>
       {children}
     </h3>
   );
