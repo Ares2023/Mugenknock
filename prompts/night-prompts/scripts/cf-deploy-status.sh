@@ -94,41 +94,88 @@ if result:
 "
 }
 
+# 指定コミットのデプロイ状態を返す。まだ登録されていなければ 'notfound'。
+# wait で「最新デプロイ」を見てしまうと、push直後はまだ前回のビルドが最新なので
+# 「すでに success」と誤判定して即座に返る（2026-09-30 に実際に踏んだ）。
+get_status_for_commit() {
+  local resp="$1"
+  local sha="$2"
+  echo "$resp" | SHA="$sha" python3 -c "
+import json, os, sys
+sha = os.environ['SHA']
+data = json.load(sys.stdin)
+for d in data.get('result', []):
+    meta = d.get('deployment_trigger', {}).get('metadata', {}) or {}
+    ch = meta.get('commit_hash', '') or ''
+    if not ch:
+        continue
+    # 片方が短縮SHAでも一致させる（APIはフルSHA・引数は7桁のことが多い）
+    n = min(len(ch), len(sha))
+    if n >= 7 and ch[:n] == sha[:n]:
+        print(d.get('latest_stage', {}).get('status', '') or 'unknown')
+        break
+else:
+    print('notfound')
+"
+}
+
 # ── wait モード: 最新ビルドが完了するまでポーリング ──
 if [ "$FILTER" = "wait" ]; then
-  echo "⏳ 最新ビルドの完了を待機中..."
-  MAX=30   # 最大5分（10秒×30回）
+  # 待つ対象のコミットを決める。引数で明示できる（既定はローカルの HEAD）。
+  # 「最新デプロイ」ではなく「このコミットのデプロイ」を待つのが要点。
+  TARGET_SHA="${2:-$(git rev-parse --short=7 HEAD 2>/dev/null)}"
+  if [ -z "$TARGET_SHA" ]; then
+    echo "❌ 待機対象のコミットを特定できません（git 管理外なら第2引数でSHAを指定）"
+    exit 1
+  fi
+  # ページ数が4000件超あり、ビルドは実測8分以上かかる。20分まで待つ。
+  MAX=${CF_WAIT_MAX:-80}   # 最大20分（15秒×80回）
+  INTERVAL=${CF_WAIT_INTERVAL:-15}
   COUNT=0
+  SEEN=0
+  echo "⏳ #${TARGET_SHA} のビルド完了を待機中（最大 $((MAX * INTERVAL / 60))分）..."
   while [ $COUNT -lt $MAX ]; do
     RESP=$(fetch_deployments)
-    STATUS=$(get_latest_status "$RESP")
+    STATUS=$(get_status_for_commit "$RESP" "$TARGET_SHA")
     case "$STATUS" in
       success|failure|canceled)
         echo ""
         print_deployments "$RESP" ""
         if [ "$STATUS" = "success" ]; then
-          echo "✅ ビルド成功"
+          echo "✅ ビルド成功（#${TARGET_SHA}）"
           exit 0
         else
-          echo "❌ ビルド失敗（status: $STATUS）"
+          echo "❌ ビルド失敗（#${TARGET_SHA} status: $STATUS）"
           exit 1
         fi
         ;;
-      active|queued)
+      notfound)
+        # push 直後はまだ Cloudflare 側に登録されていない。登録を待つ。
+        printf "_"
+        sleep "$INTERVAL"
+        COUNT=$((COUNT + 1))
+        ;;
+      active|queued|idle)
+        SEEN=1
         printf "."
-        sleep 10
+        sleep "$INTERVAL"
         COUNT=$((COUNT + 1))
         ;;
       *)
         echo ""
-        echo "⚠️  不明なステータス: $STATUS"
+        echo "⚠️  不明なステータス: $STATUS（#${TARGET_SHA}）"
         print_deployments "$RESP" ""
         exit 1
         ;;
     esac
   done
   echo ""
-  echo "⏰ タイムアウト（5分経過）"
+  if [ $SEEN -eq 0 ]; then
+    echo "⏰ タイムアウト: #${TARGET_SHA} のデプロイが登録されませんでした"
+    echo "   push できているか・Cloudflare の連携が生きているか確認してください"
+  else
+    echo "⏰ タイムアウト: #${TARGET_SHA} のビルドが $((MAX * INTERVAL / 60))分で終わりませんでした"
+  fi
   print_deployments "$(fetch_deployments)" ""
   exit 1
 fi

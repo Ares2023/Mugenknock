@@ -234,7 +234,7 @@ Claude に渡す**（`jev-triage.py`）。2026-09-30 導入。
 | スクリプト | 用途 |
 |---|---|
 | `scripts/deploy-lambda.sh [dev\|prod]` | Lambda デプロイ（引数なしはブランチから判定） |
-| `prompts/night-prompts/scripts/cf-deploy-status.sh [prod\|staging\|wait]` | Cloudflare Pages のビルド状況。`wait` で完了待ち |
+| `prompts/night-prompts/scripts/cf-deploy-status.sh [prod\|staging\|wait [SHA]]` | Cloudflare Pages のビルド状況。`wait` は **HEAD（または指定SHA）のビルド**の完了を最大20分待つ。push 直後で未登録の間は待ち続け、登録されないままなら別のエラーとして報告する（旧実装は「最新デプロイ」を見て、push直前の成功ビルドを見て即座に成功と誤報した） |
 | `prompts/night-prompts/scripts/cf-usage.sh` | Cloudflare の使用量 |
 | `prompts/night-prompts/scripts/backend-health-check.sh` | API の疎通確認 |
 | `scripts/backup-devenv.sh` | 開発環境のバックアップ |
