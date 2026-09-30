@@ -1,0 +1,1243 @@
+[
+  {
+    "stored": 0,
+    "truth": 1,
+    "group": "fixed",
+    "pred": 2,
+    "confidence": 0.15,
+    "probs": {
+      "0": 0.01,
+      "1": 0.32,
+      "2": 0.36,
+      "3": 0.31
+    },
+    "n_domains": 4,
+    "qid": "aib-fd0b336b",
+    "exam": "AIB"
+  },
+  {
+    "stored": 3,
+    "truth": 0,
+    "group": "fixed",
+    "pred": 0,
+    "confidence": 0.95,
+    "probs": {
+      "0": 0.96,
+      "1": 0,
+      "2": 0.04,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "ml-e81673e6",
+    "exam": "ML"
+  },
+  {
+    "stored": 1,
+    "truth": 3,
+    "group": "fixed",
+    "pred": 3,
+    "confidence": 0.32,
+    "probs": {
+      "0": 0.25,
+      "1": 0,
+      "2": 0.31,
+      "3": 0.44,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "ml-5b2587e3",
+    "exam": "ML"
+  },
+  {
+    "stored": 3,
+    "truth": 5,
+    "group": "fixed",
+    "pred": 5,
+    "confidence": 0.97,
+    "probs": {
+      "0": 0,
+      "1": 0.02,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0.98
+    },
+    "n_domains": 6,
+    "qid": "ml-e3fa1832",
+    "exam": "ML"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0.99,
+      "1": 0.01,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "saa-1d9714dc",
+    "exam": "SAA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.8,
+    "probs": {
+      "0": 0,
+      "1": 0.01,
+      "2": 0.86,
+      "3": 0.13
+    },
+    "n_domains": 4,
+    "qid": "aib-198ba50e",
+    "exam": "AIB"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "pred": 5,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 1
+    },
+    "n_domains": 6,
+    "qid": "ml-c4185dda",
+    "exam": "ML"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "pred": 5,
+    "confidence": 0.45,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0.14,
+      "4": 0.31,
+      "5": 0.55
+    },
+    "n_domains": 6,
+    "qid": "db-24d2f5fd",
+    "exam": "DB"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "scs-96cff29a",
+    "exam": "SCS"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.44,
+    "probs": {
+      "0": 0.01,
+      "1": 0.33,
+      "2": 0.58,
+      "3": 0.08
+    },
+    "n_domains": 4,
+    "qid": "saa-d0ecf277",
+    "exam": "SAA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.43,
+    "probs": {
+      "0": 0.41,
+      "1": 0.57,
+      "2": 0.02,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "ans-337c0611",
+    "exam": "ANS"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.76,
+    "probs": {
+      "0": 0.17,
+      "1": 0.83,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dva-782ac17e",
+    "exam": "DVA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.85,
+    "probs": {
+      "0": 0.13,
+      "1": 0.87,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "nw-26625af7",
+    "exam": "NW"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1
+    },
+    "n_domains": 4,
+    "qid": "dea-719cc7d1",
+    "exam": "DEA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.98,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0.98,
+      "3": 0.02,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "sec-d4a777f8",
+    "exam": "SEC"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "scs-f6a193a8",
+    "exam": "SCS"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.96,
+    "probs": {
+      "0": 0.97,
+      "1": 0,
+      "2": 0.03,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "mla-ea47b777",
+    "exam": "MLA"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.73,
+    "probs": {
+      "0": 0.78,
+      "1": 0.05,
+      "2": 0,
+      "3": 0.17,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "sec-cae8e2b1",
+    "exam": "SEC"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 1,
+    "probs": {
+      "0": 1,
+      "1": 0,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dva-806c6d3d",
+    "exam": "DVA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0.99,
+      "2": 0.01,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "mla-e8d20bb9",
+    "exam": "MLA"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0.01,
+      "4": 0.99,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "sec-bacbd51f",
+    "exam": "SEC"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.47,
+    "probs": {
+      "0": 0,
+      "1": 0.39,
+      "2": 0,
+      "3": 0.61
+    },
+    "n_domains": 4,
+    "qid": "aib-f359da7c",
+    "exam": "AIB"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.96,
+    "probs": {
+      "0": 0.03,
+      "1": 0.97,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "sap-bfc0e48b",
+    "exam": "SAP"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0.01,
+      "1": 0,
+      "2": 0.99,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dva-ba1d1ac4",
+    "exam": "DVA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "nw-677e05b1",
+    "exam": "NW"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.89,
+    "probs": {
+      "0": 0.08,
+      "1": 0.92,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "sap-ccc36c2f",
+    "exam": "SAP"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.32,
+    "probs": {
+      "0": 0,
+      "1": 0.37,
+      "2": 0.14,
+      "3": 0.49
+    },
+    "n_domains": 4,
+    "qid": "aib-b3d0be5e",
+    "exam": "AIB"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.8,
+    "probs": {
+      "0": 0.03,
+      "1": 0.84,
+      "2": 0.02,
+      "3": 0.1,
+      "4": 0.01
+    },
+    "n_domains": 5,
+    "qid": "soa-62011fb7",
+    "exam": "SOA"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 1,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "sec-0365b789",
+    "exam": "SEC"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "nw-699da84e",
+    "exam": "NW"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "saa-73a243fa",
+    "exam": "SAA"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "nw-8c349b5e",
+    "exam": "NW"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.91,
+    "probs": {
+      "0": 0.02,
+      "1": 0.04,
+      "2": 0.94,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "sap-95ca7ae3",
+    "exam": "SAP"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.75,
+    "probs": {
+      "0": 0.8200000000000001,
+      "1": 0.18,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "ans-5233f400",
+    "exam": "ANS"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1
+    },
+    "n_domains": 4,
+    "qid": "saa-3bfaa7be",
+    "exam": "SAA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0.01,
+      "1": 0.99,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dva-71565605",
+    "exam": "DVA"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.93,
+    "probs": {
+      "0": 0,
+      "1": 0.03,
+      "2": 0.02,
+      "3": 0.95
+    },
+    "n_domains": 4,
+    "qid": "mla-2a628db0",
+    "exam": "MLA"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.92,
+    "probs": {
+      "0": 0,
+      "1": 0.93,
+      "2": 0,
+      "3": 0.06,
+      "4": 0,
+      "5": 0.01
+    },
+    "n_domains": 6,
+    "qid": "sec-8f58ace8",
+    "exam": "SEC"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "pred": 5,
+    "confidence": 0.86,
+    "probs": {
+      "0": 0.02,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0.1,
+      "5": 0.88
+    },
+    "n_domains": 6,
+    "qid": "nw-bdfc5757",
+    "exam": "NW"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 0.52,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0.19,
+      "3": 0.04,
+      "4": 0.59,
+      "5": 0.18
+    },
+    "n_domains": 6,
+    "qid": "scs-5e47b4bb",
+    "exam": "SCS"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "nw-2403c6e9",
+    "exam": "NW"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.85,
+    "probs": {
+      "0": 0,
+      "1": 0.07,
+      "2": 0.04,
+      "3": 0.89
+    },
+    "n_domains": 4,
+    "qid": "aib-a52d0d16",
+    "exam": "AIB"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1
+    },
+    "n_domains": 4,
+    "qid": "saa-ff4a1751",
+    "exam": "SAA"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.96,
+    "probs": {
+      "0": 0.03,
+      "1": 0.97,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "scs-863ae802",
+    "exam": "SCS"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.94,
+    "probs": {
+      "0": 0.01,
+      "1": 0.03,
+      "2": 0.96,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "ans-d8600deb",
+    "exam": "ANS"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 1,
+    "probs": {
+      "0": 1,
+      "1": 0,
+      "2": 0,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dea-67a793c7",
+    "exam": "DEA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.48,
+    "probs": {
+      "0": 0.01,
+      "1": 0.59,
+      "2": 0.14,
+      "3": 0.26,
+      "4": 0
+    },
+    "n_domains": 5,
+    "qid": "soa-93cb47e1",
+    "exam": "SOA"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 1,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "sec-6b6aaab4",
+    "exam": "SEC"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "pred": 5,
+    "confidence": 0.4,
+    "probs": {
+      "0": 0.27,
+      "1": 0,
+      "2": 0.01,
+      "3": 0.22,
+      "4": 0,
+      "5": 0.5
+    },
+    "n_domains": 6,
+    "qid": "scs-a04b5832",
+    "exam": "SCS"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0.01,
+      "3": 0.99
+    },
+    "n_domains": 4,
+    "qid": "clf-105a1119",
+    "exam": "CLF"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.26,
+    "probs": {
+      "0": 0,
+      "1": 0.44,
+      "2": 0.37,
+      "3": 0.19
+    },
+    "n_domains": 4,
+    "qid": "aib-8ffdd23f",
+    "exam": "AIB"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.7,
+    "probs": {
+      "0": 0.77,
+      "1": 0.22,
+      "2": 0.01,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "ans-805c61fc",
+    "exam": "ANS"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.56,
+    "probs": {
+      "0": 0.68,
+      "1": 0,
+      "2": 0.32,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dea-a7187d32",
+    "exam": "DEA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.68,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0.75,
+      "3": 0.25,
+      "4": 0
+    },
+    "n_domains": 5,
+    "qid": "soa-68f4b070",
+    "exam": "SOA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.96,
+    "probs": {
+      "0": 0.01,
+      "1": 0.97,
+      "2": 0.02,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dea-c9200bbe",
+    "exam": "DEA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.64,
+    "probs": {
+      "0": 0.06,
+      "1": 0,
+      "2": 0.22,
+      "3": 0.72,
+      "4": 0
+    },
+    "n_domains": 5,
+    "qid": "soa-d0cff1f0",
+    "exam": "SOA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.18,
+    "probs": {
+      "0": 0.38,
+      "1": 0.37,
+      "2": 0.22,
+      "3": 0.03
+    },
+    "n_domains": 4,
+    "qid": "ans-7b72fbe5",
+    "exam": "ANS"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0,
+      "1": 0.99,
+      "2": 0,
+      "3": 0,
+      "4": 0.01
+    },
+    "n_domains": 5,
+    "qid": "soa-4cd46d4a",
+    "exam": "SOA"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1
+    },
+    "n_domains": 4,
+    "qid": "sap-50c61b44",
+    "exam": "SAP"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.46,
+    "probs": {
+      "0": 0.04,
+      "1": 0.59,
+      "2": 0.02,
+      "3": 0.35
+    },
+    "n_domains": 4,
+    "qid": "dea-e4f3d5c1",
+    "exam": "DEA"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 1,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "sec-3c9903ae",
+    "exam": "SEC"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1
+    },
+    "n_domains": 4,
+    "qid": "saa-bc0f642c",
+    "exam": "SAA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.61,
+    "probs": {
+      "0": 0.27,
+      "1": 0.7,
+      "2": 0.03,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "dea-5d1610c7",
+    "exam": "DEA"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "pred": 0,
+    "confidence": 0.65,
+    "probs": {
+      "0": 0.72,
+      "1": 0,
+      "2": 0,
+      "3": 0.28,
+      "4": 0
+    },
+    "n_domains": 5,
+    "qid": "soa-46380971",
+    "exam": "SOA"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.98,
+    "probs": {
+      "0": 0.01,
+      "1": 0,
+      "2": 0,
+      "3": 0.99
+    },
+    "n_domains": 4,
+    "qid": "dva-d25a19ff",
+    "exam": "DVA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 0
+    },
+    "n_domains": 4,
+    "qid": "mla-cd65cd12",
+    "exam": "MLA"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.92,
+    "probs": {
+      "0": 0,
+      "1": 0.01,
+      "2": 0.05,
+      "3": 0.94
+    },
+    "n_domains": 4,
+    "qid": "ans-e0445c9a",
+    "exam": "ANS"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 0.38,
+    "probs": {
+      "0": 0.05,
+      "1": 0.19,
+      "2": 0,
+      "3": 0.25,
+      "4": 0.51
+    },
+    "n_domains": 5,
+    "qid": "gai-cb93e1f8",
+    "exam": "AIP"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0.01,
+      "1": 0,
+      "2": 0,
+      "3": 0.99
+    },
+    "n_domains": 4,
+    "qid": "dva-24e6999a",
+    "exam": "DVA"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 2,
+    "confidence": 0.91,
+    "probs": {
+      "0": 0.03,
+      "1": 0.02,
+      "2": 0.93,
+      "3": 0.02,
+      "4": 0
+    },
+    "n_domains": 5,
+    "qid": "gai-14a471e1",
+    "exam": "AIP"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "pred": 3,
+    "confidence": 1,
+    "probs": {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 1
+    },
+    "n_domains": 4,
+    "qid": "mla-0ea20e1d",
+    "exam": "MLA"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "pred": 4,
+    "confidence": 0.75,
+    "probs": {
+      "0": 0.21,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0.79,
+      "5": 0
+    },
+    "n_domains": 6,
+    "qid": "nw-8a295fa4",
+    "exam": "NW"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.99,
+    "probs": {
+      "0": 0.01,
+      "1": 0.99,
+      "2": 0,
+      "3": 0,
+      "4": 0
+    },
+    "n_domains": 5,
+    "qid": "soa-f39ad0cd",
+    "exam": "SOA"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "pred": 1,
+    "confidence": 0.86,
+    "probs": {
+      "0": 0,
+      "1": 0.9,
+      "2": 0,
+      "3": 0.1
+    },
+    "n_domains": 4,
+    "qid": "aib-a023fb6c",
+    "exam": "AIB"
+  }
+]

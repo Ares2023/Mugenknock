@@ -1,0 +1,727 @@
+{
+  "mode": "hint",
+  "n": 45,
+  "cost": 0.023847,
+  "details": [
+    {
+      "qid": "aib-a314b313",
+      "label": 1,
+      "reason": "選択肢[1]に「（Web Application Firewall）」の略語展開が混入しているため削除し、choiceExplanations[1]にWAF・LLMのフルスペルを補う。またタグが未設定のため「AIガバナン",
+      "probs": {
+        "hint_leak": 0.92
+      }
+    },
+    {
+      "qid": "soa-c354fd8c",
+      "label": 1,
+      "reason": "全choicesに英語正式名称の括弧補足（Geoproximity/Geolocation/Weighted/Latency-based）が混入しているため除去し、correctAnswersを一致させる",
+      "probs": {
+        "hint_leak": 0.77
+      }
+    },
+    {
+      "qid": "sap-q-024",
+      "label": 1,
+      "reason": "正解選択肢のみ「（S3保存）」「（リアルタイム分析）」の意味括弧補足が混入し他選択肢にない過剰説明で不均衡なヒントになっているため削除。意味はchoiceExplanations側で担保済み。",
+      "probs": {
+        "hint_leak": 0.95
+      }
+    },
+    {
+      "qid": "dva-4716f0fc",
+      "label": 1,
+      "reason": "choices[0]に「（SigV4）」という略語の括弧補足が含まれており、選択肢は用語のみにすべきため削除。choiceExplanations[0]側に「SigV4（署名バージョン 4）」と展開済みのため解説側は変更",
+      "probs": {
+        "hint_leak": 0.83
+      }
+    },
+    {
+      "qid": "gai-d12429b9",
+      "label": 1,
+      "reason": "choices[0]に略語IFTの括弧展開（指示ファインチューニング）が混入。選択肢は用語のみにすべきため除去。IFTの英語展開はchoiceExplanations[0]に既存のため解説側は変更不要。",
+      "probs": {
+        "hint_leak": 0.78
+      }
+    },
+    {
+      "qid": "gai-00146ab0",
+      "label": 1,
+      "reason": "全選択肢に定義文・略語フルスペル展開が含まれるため用語のみに修正。correctAnswersを短縮後の表記に変更。choiceExplanations[0][1][2]でROUGE-L/BLEU/BERTのフルスペルを",
+      "probs": {
+        "hint_leak": 0.95
+      }
+    },
+    {
+      "qid": "soa-b9f0d937",
+      "label": 1,
+      "reason": "全選択肢が「ポリシー名（日本語読み）：定義文」の用語＋定義文構成。定義はchoiceExplanationsに既出のため選択肢はポリシー名のみに削除。correctAnswersも更新。",
+      "probs": {
+        "hint_leak": 0.96
+      }
+    },
+    {
+      "qid": "dop-11641860",
+      "label": 1,
+      "reason": "choices[1]正解肢に「（Deployment Circuit Breaker）」「（Rollback on failure）」という英語名括弧補足が入りヒントになる。削除しchoiceExplanations側に",
+      "probs": {
+        "hint_leak": 0.68
+      }
+    },
+    {
+      "qid": "ml-f4ec2aa1",
+      "label": 1,
+      "reason": "全選択肢に「：」以降の定義文が含まれており選択肢は用語のみにすべき。choiceExplanationsで内容は担保済み。correctAnswersも新テキストに合わせて更新。",
+      "probs": {
+        "hint_leak": 0.93
+      }
+    },
+    {
+      "qid": "soa-2f1f688e",
+      "label": 1,
+      "reason": "choices[3]に略語の括弧展開「（CRR）」が含まれており選択肢は用語のみにする必要がある。explanationでは既に日本語フルネームを使用のため追加不要。",
+      "probs": {
+        "hint_leak": 0.55
+      }
+    },
+    {
+      "qid": "clf-7ba561cb",
+      "label": 1,
+      "reason": "選択肢4件すべてにサービス定義文が括弧補足で含まれており必須fix。用語のみに削り correctAnswers も短縮後表記に更新。",
+      "probs": {
+        "hint_leak": 0.98
+      }
+    },
+    {
+      "qid": "sap-892747c8",
+      "label": 1,
+      "reason": "選択肢[3]に略語展開「OIDC（OpenID Connect）」が混入。choicesから括弧展開を削除し、explanation・choiceExplanations[3]の初出にOIDC（OpenID Connec",
+      "probs": {
+        "hint_leak": 0.95
+      }
+    },
+    {
+      "qid": "scs-7ebaefc3",
+      "label": 1,
+      "reason": "choices[2]末尾の「最もコスト効率が高い方法である」は選択肢に不要な評価文（過剰説明）。選択肢はアーキテクチャ記述のみにすべき。",
+      "probs": {
+        "hint_leak": 0.81
+      }
+    },
+    {
+      "qid": "gai-7fb3fc5f",
+      "label": 1,
+      "reason": "選択肢0に「（指数関数的待機時間増加）」、選択肢1に「（optimized integration：AWS SDKを使ったサービス直接統合）」、選択肢2に「（DLQ）」の略語展開が含まれるため除去。correctAnsw",
+      "probs": {
+        "hint_leak": 0.97
+      }
+    },
+    {
+      "qid": "aif-7be6bfe3",
+      "label": 1,
+      "reason": "choices[1]に「（Pre-training Bias Analysis）」という正式名称の括弧補足が混入。正解肢のみ長くなるため削除しchoiceExplanations[1]に英語正式名を移動。",
+      "probs": {
+        "hint_leak": 0.92
+      }
+    },
+    {
+      "qid": "ans-a13d8f89",
+      "label": 1,
+      "reason": "選択肢[2]に「（全 AWS アカウントでデフォルト有効）」という機能説明の括弧補足が入りヒント漏れになるため削除",
+      "probs": {
+        "hint_leak": 0.94
+      }
+    },
+    {
+      "qid": "dop-b1c0a29e",
+      "label": 1,
+      "reason": "choices[1]に「SSM（AWS Systems Manager）」「（Remediation Action）」、choices[2]に「ACL（アクセス制御リスト）」の括弧補足が混入。除去しcorrectAnsw",
+      "probs": {
+        "hint_leak": 0.93
+      }
+    },
+    {
+      "qid": "sap-cc839d3a",
+      "label": 1,
+      "reason": "選択肢[0]に「Transit VIF（トランジット仮想インターフェース）」「検査VPC（Inspection VPC）」、[1]に「LAG：複数の物理回線を束ねて帯域を増やす技術」、[3]に「（RAM）」の括弧補足が含",
+      "probs": {
+        "hint_leak": 0.96
+      }
+    },
+    {
+      "qid": "scs-301b4e99",
+      "label": 1,
+      "reason": "選択肢A「カスタマー管理キー（CMK）」に略語の括弧補足、選択肢D「AWS Private Certificate Authority（AWS Private CA）」に正式名称と略称の括弧補足が入っており、選択肢は用語",
+      "probs": {
+        "hint_leak": 0.88
+      }
+    },
+    {
+      "qid": "ml-98b38560",
+      "label": 1,
+      "reason": "選択肢が「用語：定義文」形式になっているため定義文を削り用語名のみに修正。correctAnswersも合わせて更新。",
+      "probs": {
+        "hint_leak": 0.91
+      }
+    },
+    {
+      "qid": "clf-47485502",
+      "label": 1,
+      "reason": "全選択肢が「用語 — 定義文」形式で、選択肢に説明文が含まれている。選択肢は用語のみとし、定義は既存の choiceExplanations 側で担保する。",
+      "probs": {
+        "hint_leak": 0.53
+      }
+    },
+    {
+      "qid": "aif-05866a5d",
+      "label": 1,
+      "reason": "選択肢2に「サービスコントロールポリシー（SCP）」と括弧展開が含まれている（必須fix）。choicesから展開を除去し、explanation・choiceExplanations[2]にSCP(Service Co",
+      "probs": {
+        "hint_leak": 0.85
+      }
+    },
+    {
+      "qid": "aif-8a3eea40",
+      "label": 1,
+      "reason": "全選択肢に英語対訳と説明文が混入（必須fix：選択肢は用語のみに）。choiceExplanations[0]と[2]が同一文。explanationでPII未展開。",
+      "probs": {
+        "hint_leak": 0.96
+      }
+    },
+    {
+      "qid": "nw-7a36144a",
+      "label": 1,
+      "reason": "質問は「ネガティブキャッシュする時間」のみを問うが各選択肢に括弧で理由説明が付いており過剰説明。選択肢を時間値のみに簡略化しchoiceExplanationsで理由を担保する形に修正。",
+      "probs": {
+        "hint_leak": 0.91
+      }
+    },
+    {
+      "qid": "dva-83a16251",
+      "label": 1,
+      "reason": "choices[0]に「（Trust Policy）」括弧補足が混入（用語のみにすべき【必須fix】）。choiceExplanations[2]が「危険」のみで、IAMポリシープリンシパルにアクセスキーIDを記述するこ",
+      "probs": {
+        "hint_leak": 0.65
+      }
+    },
+    {
+      "qid": "ans-9aa67cc6",
+      "label": 1,
+      "reason": "choices[3]に「SNMP：Simple Network Management Protocol、ネットワーク機器の監視プロトコル」という略語展開（括弧補足）が入っており必須fix。選択肢から削除しchoiceEx",
+      "probs": {
+        "hint_leak": 0.96
+      }
+    },
+    {
+      "qid": "saa-c7912c9c",
+      "label": 1,
+      "reason": "全選択肢に略語の括弧補足（SSE-C/SSE-S3/SSE-KMSの日本語説明、choice[2]に「AWS Key Management Service (AWS KMS)」のフルスペル展開）が混入。特に正解のchoi",
+      "probs": {
+        "hint_leak": 0.91
+      }
+    },
+    {
+      "qid": "clf-ac5c3a4f",
+      "label": 1,
+      "reason": "choices[0]に「（ACM）」・choices[1]に「（KMS）」の略語括弧補足が混入。除去しcorrectAnswers更新、choiceExplanations[1]でKMSの英語フルスペル展開を補完",
+      "probs": {
+        "hint_leak": 0.67
+      }
+    },
+    {
+      "qid": "dea-9475138a",
+      "label": 1,
+      "reason": "正解選択肢のみに「CDC（Change Data Capture）」の括弧展開が入っており正解肢が長くなるヒント漏れ。選択肢からは削除しCDCの展開を解説側へ移す。",
+      "probs": {
+        "hint_leak": 0.95
+      }
+    },
+    {
+      "qid": "clf-e35a1be5",
+      "label": 1,
+      "reason": "全4選択肢にサービス定義文が括弧補足で混入【必須fix】。選択肢は用語のみにすべき。choiceExplanationsに詳細説明が担保済みのため削除後も内容は維持される。",
+      "probs": {
+        "hint_leak": 0.97
+      }
+    },
+    {
+      "qid": "aib-bfa6245c",
+      "label": 1,
+      "reason": "タグ未設定。選択肢[0]に括弧補足「(Area Under the ROC Curve)」、選択肢[1]に「(Latency)」が混入しており必須fix対象。correctAnswersも更新。",
+      "probs": {
+        "hint_leak": 0.87
+      }
+    },
+    {
+      "qid": "saa-ab6c7344",
+      "label": 1,
+      "reason": "choices[1]末尾に「ACU：Aurora Capacity Unit、データベース処理能力の単位」という略語展開の括弧補足が含まれており不要なヒントになるため削除。correctAnswersも一致させる。",
+      "probs": {
+        "hint_leak": 0.94
+      }
+    },
+    {
+      "qid": "sap-566b2107",
+      "label": 1,
+      "reason": "choices[0]にDASH・SPEKEのフルスペル展開、choices[1]にSRTの展開、choices[3]にSCTE-35の展開が混入。各choiceExplanationsに移動し、correctAnswer",
+      "probs": {
+        "hint_leak": 0.98
+      }
+    },
+    {
+      "qid": "soa-2915f33c",
+      "label": 1,
+      "reason": "正解選択肢のみ2文構成（他3肢は1文）で長さから正解が推測できるため、技術的内容を保ちつつ1文に統合する。",
+      "probs": {
+        "hint_leak": 0.06
+      }
+    },
+    {
+      "qid": "scs-0b1870d3",
+      "label": 1,
+      "reason": "「SNS Contacts」はAWSの正式サービス名ではなく、Incident Managerのオンコール連絡管理機能の正式名称はSSM Contacts（AWS Systems Manager Contacts）。ch",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "sap-1998b703",
+      "label": 1,
+      "reason": "choices[0]に「Index State Management（ISM）」略語括弧展開あり。除去してcorrectAnswersも一致させる",
+      "probs": {
+        "hint_leak": 0.74
+      }
+    },
+    {
+      "qid": "aif-b4e82b8f",
+      "label": 1,
+      "reason": "全選択肢に定義文が含まれ用語のみに修正。選択肢BのChain-of-Thought展開を削除。correctAnswersを修正後表記に変更。choiceExplanations[1]でCoT(Chain-of-Thou",
+      "probs": {
+        "hint_leak": 0.93
+      }
+    },
+    {
+      "qid": "saa-aa188e57",
+      "label": 1,
+      "reason": "正解Bが他の最長選択肢比1.5倍超かつ2文構成で長さから正解が推測できる。技術的内容を保ったまま短縮。",
+      "probs": {
+        "hint_leak": 0.07
+      }
+    },
+    {
+      "qid": "clf-0b0da1a9",
+      "label": 1,
+      "reason": "選択肢に英語対訳の括弧補足（High Availability等）が入っており【必須fix】対象。解説側での英語表記は維持する。",
+      "probs": {
+        "hint_leak": 0.8
+      }
+    },
+    {
+      "qid": "saa-55c6832f",
+      "label": 1,
+      "reason": "choices[0]に「（ウェブアプリケーションファイアウォール）」、choices[2]に「DDoSレスポンスチーム（DRT）」の括弧補足あり。選択肢は用語のみにし、DRTの展開はchoiceExplanations[",
+      "probs": {
+        "hint_leak": 0.95
+      }
+    },
+    {
+      "qid": "gai-ab714e3b",
+      "label": 1,
+      "reason": "choices[4]にPIIの括弧展開（過剰説明）あり→削除。choiceExplanations[0][2]が完全同一文で各肢固有の理由なし→各肢固有の解説に修正。choiceExplanations[4]にPIIフル",
+      "probs": {
+        "hint_leak": 0.97
+      }
+    },
+    {
+      "qid": "dva-1cdaafa6",
+      "label": 1,
+      "reason": "選択肢Aに括弧補足「（変更セット）」が混入しており選択肢は用語のみに修正。correctAnswersも完全一致させる。",
+      "probs": {
+        "hint_leak": 0.91
+      }
+    },
+    {
+      "qid": "dva-78972c54",
+      "label": 1,
+      "reason": "選択肢0に「（Visibility Timeout）」という括弧補足（日英対訳）が含まれている（必須fix：選択肢は用語のみ）。展開を除去。",
+      "probs": {
+        "hint_leak": 0.76
+      }
+    },
+    {
+      "qid": "dea-8877aa48",
+      "label": 1,
+      "reason": "choices[1]に「（RLS）」の略語展開が混入。選択肢から削除しcorrectAnswersを更新。解説のRLS初出に英語フルスペルRow-Level Securityを追加。",
+      "probs": {
+        "hint_leak": 0.63
+      }
+    },
+    {
+      "qid": "soa-ca3e4d08",
+      "label": 1,
+      "reason": "choices[2]にDMS略語の括弧展開「（Database Migration Service）」が含まれているため除去し、explanation初出にDMS(Database Migration Service)展",
+      "probs": {
+        "hint_leak": 0.42
+      }
+    },
+    {
+      "qid": "gai-d6130452",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.07
+      }
+    },
+    {
+      "qid": "nw-8bd4f6d6",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.09
+      }
+    },
+    {
+      "qid": "aib-d854ab36",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.04
+      }
+    },
+    {
+      "qid": "ml-f5879edd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.04
+      }
+    },
+    {
+      "qid": "nw-bdfc5757",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.25
+      }
+    },
+    {
+      "qid": "ans-a6504d9c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.91
+      }
+    },
+    {
+      "qid": "saa-aa211a83",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.75
+      }
+    },
+    {
+      "qid": "db-9110fb1f",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.15
+      }
+    },
+    {
+      "qid": "saa-4d9f4bbe",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "mla-78702ad3",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.04
+      }
+    },
+    {
+      "qid": "aib-ffa2f103",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.04
+      }
+    },
+    {
+      "qid": "aib-ae1e2b59",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.03
+      }
+    },
+    {
+      "qid": "scs-74f7320a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.86
+      }
+    },
+    {
+      "qid": "clf-15fcaaee",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.61
+      }
+    },
+    {
+      "qid": "ans-87ce2adf",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "db-24d2f5fd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.22
+      }
+    },
+    {
+      "qid": "dea-80f0ea94",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.07
+      }
+    },
+    {
+      "qid": "saa-9880a66a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.06
+      }
+    },
+    {
+      "qid": "saa-5af9e9a1",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.06
+      }
+    },
+    {
+      "qid": "saa-aa8e8b85",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.07
+      }
+    },
+    {
+      "qid": "sap-5b4f179c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.71
+      }
+    },
+    {
+      "qid": "clf-090e422c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.04
+      }
+    },
+    {
+      "qid": "nw-6e263f7b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.2
+      }
+    },
+    {
+      "qid": "scs-49972f00",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.88
+      }
+    },
+    {
+      "qid": "dop-a87cf810",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "saa-4f6c71c0",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.13
+      }
+    },
+    {
+      "qid": "saa-5f58519d",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "nw-44ec3566",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.66
+      }
+    },
+    {
+      "qid": "nw-51348b71",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "clf-b6a31e4b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.11
+      }
+    },
+    {
+      "qid": "mla-aea5c63a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.1
+      }
+    },
+    {
+      "qid": "nw-c0bd7ba5",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.84
+      }
+    },
+    {
+      "qid": "ans-064cfc78",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.9
+      }
+    },
+    {
+      "qid": "mla-df55271c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.86
+      }
+    },
+    {
+      "qid": "soa-5995a9db",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "dea-0485d0fd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.52
+      }
+    },
+    {
+      "qid": "aif-4d8b3c15",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "saa-40935a2a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.55
+      }
+    },
+    {
+      "qid": "dea-719cc7d1",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.65
+      }
+    },
+    {
+      "qid": "nw-d02fc555",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.12
+      }
+    },
+    {
+      "qid": "dva-a89f3a06",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.03
+      }
+    },
+    {
+      "qid": "ml-eeb0684a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.88
+      }
+    },
+    {
+      "qid": "db-6c531ad6",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.24
+      }
+    },
+    {
+      "qid": "mla-c885de76",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.05
+      }
+    },
+    {
+      "qid": "saa-de0fe948",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.04
+      }
+    }
+  ]
+}

@@ -1,0 +1,727 @@
+{
+  "mode": "ce",
+  "n": 45,
+  "cost": 0.045439,
+  "details": [
+    {
+      "qid": "mla-d7ae3e38",
+      "label": 1,
+      "reason": "全4選択肢が「サービス名：定義文」形式の過剰説明。用語のみに削り定義はchoiceExplanationsへ移す。DAG（Directed Acyclic Graph）の英語フルスペルをchoiceExplanation",
+      "probs": {
+        "ce_misaligned": 0.15
+      }
+    },
+    {
+      "qid": "saa-c05e902f",
+      "label": 1,
+      "reason": "choices[0]に「(Origin Access Control)」という略語展開が混入しており【必須fix】。選択肢は用語のみにし、OAC/OAI のフルスペルを解説側に移す。",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "sec-b33b35ef",
+      "label": 1,
+      "reason": "KEK（Key Encrypting Key）はexplanationで展開済みだがセットで使われるDEKがchoiceExplanations[1]に初出で未展開。DEK（Data Encryption Key）を補完",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "dop-dd2d1f0b",
+      "label": 1,
+      "reason": "選択肢B・Eに略語展開（CMK・SCP）が含まれており除去が必要。choiceExplanations[1]と[2]が同一テキストで各肢固有の根拠になっていない。除去したSCP展開を解説側に追加。",
+      "probs": {
+        "ce_misaligned": 0.39
+      }
+    },
+    {
+      "qid": "aif-05866a5d",
+      "label": 1,
+      "reason": "選択肢2に「サービスコントロールポリシー（SCP）」と括弧展開が含まれている（必須fix）。choicesから展開を除去し、explanation・choiceExplanations[2]にSCP(Service Co",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "sap-d4c0bfaf",
+      "label": 1,
+      "reason": "Step Functions標準ワークフローのExactly-once保証はワークフロー実行単位の保証であり、Fargateタスクが途中クラッシュ→リトライした際の二重支払いを防がない（追加確認観点[fix]該当）。選択",
+      "probs": {
+        "ce_misaligned": 0.15
+      }
+    },
+    {
+      "qid": "sap-749e8fc6",
+      "label": 1,
+      "reason": "選択肢[2]・正解・解説に旧名称「Kinesis Data Firehose」が残っているため現行名「Amazon Data Firehose」に修正",
+      "probs": {
+        "ce_misaligned": 0.2
+      }
+    },
+    {
+      "qid": "gai-c3e2a9d3",
+      "label": 1,
+      "reason": "選択肢0に「（JSON Lines）」、選択肢3に「（CMK）」の略語展開が含まれるため除去。correctAnswers・explanation・choiceExplanationsを更新してJSONL（JSON Li",
+      "probs": {
+        "ce_misaligned": 0.34
+      }
+    },
+    {
+      "qid": "sap-634ce943",
+      "label": 1,
+      "reason": "choices[0][1]のML・choices[2]のOPC-UA・choices[4]のMQTT/OTAの略語括弧展開を除去し選択肢を用語のみに。choiceExplanations[0][2][4]に対応フルスペル",
+      "probs": {
+        "ce_misaligned": 0.17
+      }
+    },
+    {
+      "qid": "sap-7f4bcdf4",
+      "label": 1,
+      "reason": "選択肢[0]に「SCP（サービスコントロールポリシー）」、選択肢[1]に「IAM Identity Center（旧AWS SSO）」「IdP（Identity Provider：…）」、選択肢[2]に「AWS Reso",
+      "probs": {
+        "ce_misaligned": 0.3
+      }
+    },
+    {
+      "qid": "ans-25727136",
+      "label": 1,
+      "reason": "選択肢D本文にSCP（サービスコントロールポリシー）という略語展開が含まれている。選択肢は用語のみにし、展開はchoiceExplanations[3]側で補う。",
+      "probs": {
+        "ce_misaligned": 0.13
+      }
+    },
+    {
+      "qid": "ans-4ba8a754",
+      "label": 1,
+      "reason": "choices[0]に「（ALB）」という略語展開が含まれているため除去。explanationでGENEVEのフルスペル展開、choiceExplanations[3]でECMPのフルスペル展開を追加",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "soa-9fd4857d",
+      "label": 1,
+      "reason": "choices[1]に「（HashiCorp社製のAMI自動作成ツール）」という説明補足が混入。削除してchoiceExplanations[1]側に移動。",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "db-59943b35",
+      "label": 1,
+      "reason": "choiceExplanations[2]でBRINの略語展開（英語フルスペル）が未実施",
+      "probs": {
+        "ce_misaligned": 0.34
+      }
+    },
+    {
+      "qid": "aib-2153b768",
+      "label": 1,
+      "reason": "タグ欠落。choiceExplanations[2]のRAG・[3]のROUGEとBLEUに英語フルスペル展開が未記載。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "aib-a314b313",
+      "label": 1,
+      "reason": "選択肢[1]に「（Web Application Firewall）」の略語展開が混入しているため削除し、choiceExplanations[1]にWAF・LLMのフルスペルを補う。またタグが未設定のため「AIガバナン",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "dea-4d67a2c3",
+      "label": 1,
+      "reason": "choices[1]に「データイベント（Data Events）」「ログファイル検証（Log File Validation）」の括弧補足あり。選択肢から除去し、英語名をchoiceExplanations[1]に移す。",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "db-be487921",
+      "label": 1,
+      "reason": "choiceExplanations[0]の解説側でCDCが初出だがChange Data Captureの英語フルスペルが未展開。db-22bba226では展開済みのため一貫性上も補完が必要。",
+      "probs": {
+        "ce_misaligned": 0.16
+      }
+    },
+    {
+      "qid": "nw-01d07a04",
+      "label": 1,
+      "reason": "explanation内でROVが未展開、choiceExplanations[0]でRPKI・ROVが未展開、choiceExplanations[2]でCIDRが未展開（いずれも重要略語）。",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "scs-e59589a1",
+      "label": 1,
+      "reason": "choices[0]に「(ACM)」、choices[1]に「(AWS Private CA)」、choices[3]に「CRL（Certificate Revocation List）」の略語展開が混入。選択肢から除去",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "dea-03d903a3",
+      "label": 1,
+      "reason": "explanationとchoiceExplanations[2]の事実誤認：同一キーでKEY+KEY分散した場合は同一customer_idが同一スライスに配置されるため再配布は発生しない。不正解の理由を正しく訂正。",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "soa-43170462",
+      "label": 1,
+      "reason": "説明が『複合アラームがALARM時に子アラームのSNSアクションを自動的に抑制する』と誤記。ActionsSuppressor はメンテナンス時に複合アラーム自身のアクションを抑制する機能であり、子アラームのSNSアクシ",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "dop-b1c0a29e",
+      "label": 1,
+      "reason": "choices[1]に「SSM（AWS Systems Manager）」「（Remediation Action）」、choices[2]に「ACL（アクセス制御リスト）」の括弧補足が混入。除去しcorrectAnsw",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "mla-53d2312d",
+      "label": 1,
+      "reason": "choiceExplanations[0][2]が同一文でClarifyの両機能を列挙しており各肢固有の根拠になっていない→各肢の機能に特化した内容に修正。isMultiple=true追加。",
+      "probs": {
+        "ce_misaligned": 0.9
+      }
+    },
+    {
+      "qid": "ans-c0908b06",
+      "label": 1,
+      "reason": "選択肢[0]の「（Suricata）」（正式名称補足）、選択肢[1]の「（TLS Inspection Configuration）」を除去。correctAnswers更新。解説とchoiceExplanations[",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "mla-20cc8dd3",
+      "label": 1,
+      "reason": "choiceExplanations[0]と[3]がAD組み合わせ説明の同一テキストで各肢固有の正誤理由になっていない。各選択肢に即した固有の解説へ書き換える。",
+      "probs": {
+        "ce_misaligned": 0.83
+      }
+    },
+    {
+      "qid": "scs-af316c95",
+      "label": 1,
+      "reason": "CloudTrail Lakeは有効化後の将来イベントのみ収集。過去2年遡及にはS3ログのインポートが別途必要なため、選択肢・correctAnswers・解説にインポート手順を明示し正確性を担保。",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "sap-4d666da7",
+      "label": 1,
+      "reason": "choices[0]に「（Managed Streaming for Apache Kafka）」の略語展開が混入。選択肢はAmazon MSKのみにし、explanation・choiceExplanations[0]",
+      "probs": {
+        "ce_misaligned": 0.18
+      }
+    },
+    {
+      "qid": "db-e57dc89b",
+      "label": 1,
+      "reason": "検証(02)が2026-09-02に誤情報を追記した回帰を修正。PostgreSQL 17でMERGEのWHEN NOT MATCHED BY SOURCEはサポート済みのため『非対応で実行エラー』は誤り。回帰前の正しい",
+      "probs": {
+        "ce_misaligned": 0.95
+      }
+    },
+    {
+      "qid": "gai-0a671f08",
+      "label": 1,
+      "reason": "全4選択肢に略語展開または定義説明文が含まれており必須fix。選択肢を用語のみに短縮しcorrectAnswers更新。explanationとchoiceExplanations[0]にROUGEのフルスペルを追加。",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "scs-97890ee4",
+      "label": 1,
+      "reason": "choiceExplanations[1][2]および解説のB・C説明が各選択肢の不正解理由を正しく述べていない（意味不明・誤誘導）。SCPsとConfigルール単独の限界を正確に記述するよう修正。",
+      "probs": {
+        "ce_misaligned": 0.73
+      }
+    },
+    {
+      "qid": "dva-8393f471",
+      "label": 1,
+      "reason": "choiceExplanations[2]と[3]が一字一句同一文で各肢固有の理由になっていない。それぞれのクエリ内容に即した説明に修正。",
+      "probs": {
+        "ce_misaligned": 0.12
+      }
+    },
+    {
+      "qid": "ans-7308c801",
+      "label": 1,
+      "reason": "choices[1]（正解）に「Proactive Engagement（事前関与）」「DRT（DDoS Response Team: …）」「Health-based detection（ヘルスベース検出）」、choi",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "clf-ac5c3a4f",
+      "label": 1,
+      "reason": "choices[0]に「（ACM）」・choices[1]に「（KMS）」の略語括弧補足が混入。除去しcorrectAnswers更新、choiceExplanations[1]でKMSの英語フルスペル展開を補完",
+      "probs": {
+        "ce_misaligned": 0.05
+      }
+    },
+    {
+      "qid": "sap-8784c5e6",
+      "label": 1,
+      "reason": "choices[0]内の略語展開「（AFT）」「GitOps定義」「Pull Request（PR）の（PR）」を削除。削除した定義をchoiceExplanations[0]側で担保。",
+      "probs": {
+        "ce_misaligned": 0.14
+      }
+    },
+    {
+      "qid": "aif-2ce4aa2f",
+      "label": 1,
+      "reason": "choices[0]に「（Fine-tuning：追加学習）」という意味の括弧補足が含まれており用語のみにすべき。削った内容をchoiceExplanations[0]側へ移す。",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "sap-fec0b3e5",
+      "label": 1,
+      "reason": "choices[0]〜[3]全肢にAFT/Manual Approval Action/Conformance Pack/SES/Ansible/Jira/Slackの括弧補足・定義説明が含まれる。削除しAFT・SESの",
+      "probs": {
+        "ce_misaligned": 0.14
+      }
+    },
+    {
+      "qid": "gai-6c0d702a",
+      "label": 1,
+      "reason": "選択肢[0]に「指示ファインチューニング（IFT）」括弧展開と理由説明文、[1]に「継続事前学習（CPT: Continued Pre-training）」括弧展開と目的説明文、[3]に理由説明文が混入。解説でCPT・I",
+      "probs": {
+        "ce_misaligned": 0.2
+      }
+    },
+    {
+      "qid": "scs-10eca45e",
+      "label": 1,
+      "reason": "選択肢B・CにOrganization Conformance Packへの虚偽説明文（過剰説明）が埋め込まれており除去。choiceExplanations・explanationも整合に更新。",
+      "probs": {
+        "ce_misaligned": 0.12
+      }
+    },
+    {
+      "qid": "sap-566b2107",
+      "label": 1,
+      "reason": "choices[0]にDASH・SPEKEのフルスペル展開、choices[1]にSRTの展開、choices[3]にSCTE-35の展開が混入。各choiceExplanationsに移動し、correctAnswer",
+      "probs": {
+        "ce_misaligned": 0.24
+      }
+    },
+    {
+      "qid": "ans-8d30c904",
+      "label": 1,
+      "reason": "choices[0]に略語の括弧展開「（RAM）」が含まれている。correctAnswers・explanation・choiceExplanations[0]を整合修正し、explanationとchoiceExpl",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "sap-9bfbfff0",
+      "label": 1,
+      "reason": "choiceExplanations[0]と[1]が完全に同一テキスト（両正解肢の説明を混在）。各肢固有の根拠に分割する。",
+      "probs": {
+        "ce_misaligned": 0.91
+      }
+    },
+    {
+      "qid": "saa-eed6a38c",
+      "label": 1,
+      "reason": "choiceExplanations[0][1]が同一文で各肢固有の根拠になっていない。CloudWatchアラームとAuto Scalingグループそれぞれの役割を個別に説明する内容に修正。",
+      "probs": {
+        "ce_misaligned": 0.77
+      }
+    },
+    {
+      "qid": "gai-8e2cc304",
+      "label": 1,
+      "reason": "「指示ファインチューニング（IFT）」と記載しているが、prompt/completionフォーマットは非会話型モデル（Titan Text・Cohere Command等）向け。会話型モデル（Claude 3 Haik",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "dva-dfb25e04",
+      "label": 1,
+      "reason": "choices[2]に「（Time to Live）」の略語展開が混入。choiceExplanations[1]がAmazon EventBridgeをCloudWatchと誤記。TTL展開をchoiceExplana",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "aib-198ba50e",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "aib-9f348072",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "gai-9031c3f5",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.12
+      }
+    },
+    {
+      "qid": "mla-0c554f57",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "aib-bc2c711b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "nw-fd5591c6",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "dea-75892cdf",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.14
+      }
+    },
+    {
+      "qid": "scs-03a1611e",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "gai-d6130452",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "nw-8bd4f6d6",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "aib-d854ab36",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "ml-f5879edd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "nw-bdfc5757",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "ans-a6504d9c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "saa-aa211a83",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "db-9110fb1f",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "saa-4d9f4bbe",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "mla-78702ad3",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "aib-ffa2f103",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "aib-ae1e2b59",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "scs-74f7320a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.13
+      }
+    },
+    {
+      "qid": "clf-15fcaaee",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "ans-87ce2adf",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.13
+      }
+    },
+    {
+      "qid": "db-24d2f5fd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "dea-80f0ea94",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "saa-9880a66a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.13
+      }
+    },
+    {
+      "qid": "saa-5af9e9a1",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "saa-aa8e8b85",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "sap-5b4f179c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "clf-090e422c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.06
+      }
+    },
+    {
+      "qid": "nw-6e263f7b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "scs-49972f00",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.17
+      }
+    },
+    {
+      "qid": "dop-a87cf810",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.5
+      }
+    },
+    {
+      "qid": "saa-4f6c71c0",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "saa-5f58519d",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "nw-44ec3566",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.11
+      }
+    },
+    {
+      "qid": "nw-51348b71",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "clf-b6a31e4b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "mla-aea5c63a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    },
+    {
+      "qid": "nw-c0bd7ba5",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.1
+      }
+    },
+    {
+      "qid": "ans-064cfc78",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.13
+      }
+    },
+    {
+      "qid": "mla-df55271c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "soa-5995a9db",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.09
+      }
+    },
+    {
+      "qid": "dea-0485d0fd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.08
+      }
+    },
+    {
+      "qid": "aif-4d8b3c15",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "ce_misaligned": 0.07
+      }
+    }
+  ]
+}

@@ -1,0 +1,2167 @@
+{
+  "n_pos": 60,
+  "n_neg": 60,
+  "n_results": 120,
+  "errors": 0,
+  "cost_usd": 0.10932,
+  "input_tokens": 260155,
+  "output_tokens": 13200,
+  "credits_remaining": 9.849003,
+  "per_question": {
+    "hint_leak": {
+      "mean_pos": 0.6211666666666668,
+      "mean_neg": 0.35216666666666663,
+      "sep": 0.26900000000000013,
+      "best": {
+        "threshold": 0.35,
+        "tp": 49,
+        "fp": 23,
+        "tn": 37,
+        "fn": 11,
+        "precision": 0.6805555555555556,
+        "recall": 0.8166666666666667,
+        "f1": 0.7424242424242424
+      }
+    },
+    "answer_wrong": {
+      "mean_pos": 0.10450000000000001,
+      "mean_neg": 0.11133333333333333,
+      "sep": -0.006833333333333316,
+      "best": {
+        "threshold": 0.05,
+        "tp": 48,
+        "fp": 57,
+        "tn": 3,
+        "fn": 12,
+        "precision": 0.45714285714285713,
+        "recall": 0.8,
+        "f1": 0.5818181818181818
+      }
+    },
+    "factual_error": {
+      "mean_pos": 0.13833333333333334,
+      "mean_neg": 0.12016666666666667,
+      "sep": 0.018166666666666664,
+      "best": {
+        "threshold": 0.05,
+        "tp": 46,
+        "fp": 34,
+        "tn": 26,
+        "fn": 14,
+        "precision": 0.575,
+        "recall": 0.7666666666666667,
+        "f1": 0.6571428571428571
+      }
+    },
+    "ce_misaligned": {
+      "mean_pos": 0.06933333333333333,
+      "mean_neg": 0.051833333333333335,
+      "sep": 0.017499999999999995,
+      "best": {
+        "threshold": 0.05,
+        "tp": 28,
+        "fp": 35,
+        "tn": 25,
+        "fn": 32,
+        "precision": 0.4444444444444444,
+        "recall": 0.4666666666666667,
+        "f1": 0.45528455284552843
+      }
+    },
+    "domain_wrong": {
+      "mean_pos": 0.21183333333333335,
+      "mean_neg": 0.154,
+      "sep": 0.05783333333333335,
+      "best": {
+        "threshold": 0.05,
+        "tp": 60,
+        "fp": 60,
+        "tn": 0,
+        "fn": 0,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      }
+    },
+    "any_issue": {
+      "mean_pos": 0.3283333333333333,
+      "mean_neg": 0.35966666666666663,
+      "sep": -0.031333333333333324,
+      "best": {
+        "threshold": 0.05,
+        "tp": 60,
+        "fp": 60,
+        "tn": 0,
+        "fn": 0,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      }
+    }
+  },
+  "or_gate": [
+    {
+      "threshold": 0.3,
+      "tp": 57,
+      "fp": 31,
+      "tn": 29,
+      "fn": 3,
+      "precision": 0.6477272727272727,
+      "recall": 0.95,
+      "f1": 0.7702702702702702,
+      "sent_ratio": 0.7333333333333333
+    },
+    {
+      "threshold": 0.4,
+      "tp": 50,
+      "fp": 21,
+      "tn": 39,
+      "fn": 10,
+      "precision": 0.704225352112676,
+      "recall": 0.8333333333333334,
+      "f1": 0.7633587786259541,
+      "sent_ratio": 0.5916666666666667
+    },
+    {
+      "threshold": 0.5,
+      "tp": 44,
+      "fp": 16,
+      "tn": 44,
+      "fn": 16,
+      "precision": 0.7333333333333333,
+      "recall": 0.7333333333333333,
+      "f1": 0.7333333333333333,
+      "sent_ratio": 0.5
+    },
+    {
+      "threshold": 0.6,
+      "tp": 37,
+      "fp": 11,
+      "tn": 49,
+      "fn": 23,
+      "precision": 0.7708333333333334,
+      "recall": 0.6166666666666667,
+      "f1": 0.6851851851851851,
+      "sent_ratio": 0.4
+    },
+    {
+      "threshold": 0.7,
+      "tp": 31,
+      "fp": 9,
+      "tn": 51,
+      "fn": 29,
+      "precision": 0.775,
+      "recall": 0.5166666666666667,
+      "f1": 0.62,
+      "sent_ratio": 0.3333333333333333
+    },
+    {
+      "threshold": 0.8,
+      "tp": 23,
+      "fp": 5,
+      "tn": 55,
+      "fn": 37,
+      "precision": 0.8214285714285714,
+      "recall": 0.38333333333333336,
+      "f1": 0.5227272727272727,
+      "sent_ratio": 0.23333333333333334
+    },
+    {
+      "threshold": 0.9,
+      "tp": 16,
+      "fp": 2,
+      "tn": 58,
+      "fn": 44,
+      "precision": 0.8888888888888888,
+      "recall": 0.26666666666666666,
+      "f1": 0.41025641025641024,
+      "sent_ratio": 0.15
+    }
+  ],
+  "per_defect_kind": {
+    "choices": {
+      "n": 41,
+      "q": "hint_leak",
+      "mean": 0.7368292682926829,
+      "neg": 0.35216666666666663,
+      "any_mean": 0.25414634146341464
+    },
+    "choiceExplanations": {
+      "n": 28,
+      "q": "ce_misaligned",
+      "mean": 0.09392857142857143,
+      "neg": 0.051833333333333335,
+      "any_mean": 0.2871428571428572
+    },
+    "domain": {
+      "n": 9,
+      "q": "domain_wrong",
+      "mean": 0.5111111111111111,
+      "neg": 0.154,
+      "any_mean": 0.6522222222222223
+    },
+    "explanation": {
+      "n": 16,
+      "q": "factual_error",
+      "mean": 0.206875,
+      "neg": 0.12016666666666667,
+      "any_mean": 0.254375
+    }
+  },
+  "details": [
+    {
+      "qid": "sap-749e8fc6",
+      "exam": "SAP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "選択肢[2]・正解・解説に旧名称「Kinesis Data Firehose」が残っているため現行名「Amazon Data Firehose」に修正",
+      "probs": {
+        "hint_leak": 0.54,
+        "answer_wrong": 0.23,
+        "factual_error": 0.41,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.09,
+        "any_issue": 0.46
+      }
+    },
+    {
+      "qid": "dva-c13ce738",
+      "exam": "DVA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢[1]に（エンベロープ暗号化）、[2]に（SSE-S3）、[3]に（専用のハードウェアセキュリティモジュール）の括弧補足が含まれヒント漏れ防止のため削除。解説側で内容は担保済み。correctAnswersを新choices[1]に合",
+      "probs": {
+        "hint_leak": 0.93,
+        "answer_wrong": 0.03,
+        "factual_error": 0.1,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.09,
+        "any_issue": 0.16
+      }
+    },
+    {
+      "qid": "aib-342c0cf5",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "ドメインタグが未設定。AI開発支援ツールのリテラシーが主題のため正しいドメインを付与。",
+      "probs": {
+        "hint_leak": 0.43,
+        "answer_wrong": 0.06,
+        "factual_error": 0.1,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.68,
+        "any_issue": 0.28
+      }
+    },
+    {
+      "qid": "dea-568a69e4",
+      "exam": "DEA",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[3]に「ユーザー定義関数（UDF）」の括弧展開あり→UDFのみに変更。explanationのYARNが未展開のため追加。choiceExplanations[3]にUDF展開を追加。",
+      "probs": {
+        "hint_leak": 0.37,
+        "answer_wrong": 0.11,
+        "factual_error": 0.28,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.29,
+        "any_issue": 0.27
+      }
+    },
+    {
+      "qid": "aib-10147b5d",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "タグ未設定。継続的AIリスク監視・責任あるAI運用が主題のため「AIガバナンスと責任あるAIリーダーシップ」を付与。isMultiple未設定のためfalseを追加。",
+      "probs": {
+        "hint_leak": 0.03,
+        "answer_wrong": 0.04,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.45,
+        "any_issue": 0.69
+      }
+    },
+    {
+      "qid": "aib-2e678ba3",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "タグが未設定。過学習の概念とビジネスリーダーとしての理解はAIの基礎とリテラシードメインに該当する。",
+      "probs": {
+        "hint_leak": 0.57,
+        "answer_wrong": 0.03,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.55,
+        "any_issue": 0.72
+      }
+    },
+    {
+      "qid": "saa-c05e902f",
+      "exam": "SAA",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[0]に「(Origin Access Control)」という略語展開が混入しており【必須fix】。選択肢は用語のみにし、OAC/OAI のフルスペルを解説側に移す。",
+      "probs": {
+        "hint_leak": 0.68,
+        "answer_wrong": 0.03,
+        "factual_error": 0.08,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.23,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "dva-78972c54",
+      "exam": "DVA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢0に「（Visibility Timeout）」という括弧補足（日英対訳）が含まれている（必須fix：選択肢は用語のみ）。展開を除去。",
+      "probs": {
+        "hint_leak": 0.76,
+        "answer_wrong": 0.05,
+        "factual_error": 0.08,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.1,
+        "any_issue": 0.16
+      }
+    },
+    {
+      "qid": "dop-01fcb6e9",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[1]（正解）に「（Real User Monitoring：実ユーザーモニタリング）」の略語展開が混入。選択肢はAmazon CloudWatch RUMのみにし、explanation・choiceExplanations",
+      "probs": {
+        "hint_leak": 0.9,
+        "answer_wrong": 0.04,
+        "factual_error": 0.13,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.07,
+        "any_issue": 0.21
+      }
+    },
+    {
+      "qid": "db-be487921",
+      "exam": "DB",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[0]の解説側でCDCが初出だがChange Data Captureの英語フルスペルが未展開。db-22bba226では展開済みのため一貫性上も補完が必要。",
+      "probs": {
+        "hint_leak": 0.3,
+        "answer_wrong": 0.24,
+        "factual_error": 0.06,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.26,
+        "any_issue": 0.64
+      }
+    },
+    {
+      "qid": "sap-1ccfc9b3",
+      "exam": "SAP",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[2]（正解）が他の選択肢（約130〜140字）の約1.5倍超（約215字）で長さから正解が推測できる。技術内容を保ったまま短縮しcorrectAnswersも一致させる。",
+      "probs": {
+        "hint_leak": 0.91,
+        "answer_wrong": 0.15,
+        "factual_error": 0.32,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.16,
+        "any_issue": 0.32
+      }
+    },
+    {
+      "qid": "aib-bf78de86",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "タグが空。PoC優先順位付けフレームワークはAI戦略・ビジネス価値創出領域に該当。",
+      "probs": {
+        "hint_leak": 0.48,
+        "answer_wrong": 0.05,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.44,
+        "any_issue": 0.71
+      }
+    },
+    {
+      "qid": "saa-dc617c16",
+      "exam": "SAA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢C「ネットワークACL（NACL）」に英語略称の括弧補足が混入。選択肢は用語のみにする必須fix。",
+      "probs": {
+        "hint_leak": 0.52,
+        "answer_wrong": 0.04,
+        "factual_error": 0.12,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.08,
+        "any_issue": 0.22
+      }
+    },
+    {
+      "qid": "mla-c1f29f55",
+      "exam": "MLA",
+      "label": 1,
+      "kinds": [
+        "explanation"
+      ],
+      "reason": "explanationでSHAPが未展開。BLEU/RMSE等と同様の重要ML略語のため初出でフルスペルを補記する。",
+      "probs": {
+        "hint_leak": 0.1,
+        "answer_wrong": 0.13,
+        "factual_error": 0.23,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.12,
+        "any_issue": 0.27
+      }
+    },
+    {
+      "qid": "nw-8aca73c3",
+      "exam": "NW",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[0]の「（60〜120秒）」はTCP確立済みセッションのNATタイムアウトとして事実誤認。確立済みTCPセッションの標準タイムアウトは数時間〜24時間（Cisco IOS: 86400秒、Linux conntrack: 4",
+      "probs": {
+        "hint_leak": 0.78,
+        "answer_wrong": 0.16,
+        "factual_error": 0.03,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.7,
+        "any_issue": 0.79
+      }
+    },
+    {
+      "qid": "aif-1e62ef45",
+      "exam": "AIF",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "選択肢が「サービス名 — 定義文」形式の過剰な説明文を含む。choiceExplanations[1]も先頭に選択肢テキスト全文が重複している。用語のみに削り説明は解説側へ。",
+      "probs": {
+        "hint_leak": 0.36,
+        "answer_wrong": 0.05,
+        "factual_error": 0.08,
+        "ce_misaligned": 0.14,
+        "domain_wrong": 0.56,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "saa-be91389d",
+      "exam": "SAA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢Cに「Amazon SNS（Simple Notification Service：通知配信サービス）」という明確な略語展開（英語フルスペル＋日本語訳）が入っており必須fix。解説側（explanation・choiceExplana",
+      "probs": {
+        "hint_leak": 0.91,
+        "answer_wrong": 0.17,
+        "factual_error": 0.31,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.31,
+        "any_issue": 0.29
+      }
+    },
+    {
+      "qid": "dop-b1c0a29e",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "choices[1]に「SSM（AWS Systems Manager）」「（Remediation Action）」、choices[2]に「ACL（アクセス制御リスト）」の括弧補足が混入。除去しcorrectAnswers更新、choi",
+      "probs": {
+        "hint_leak": 0.92,
+        "answer_wrong": 0.08,
+        "factual_error": 0.24,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.1,
+        "any_issue": 0.21
+      }
+    },
+    {
+      "qid": "aib-be1686d1",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "タグが未設定。AI出力の検証ルール策定によるリスク管理はAIガバナンスと責任あるAIリーダーシップドメインに該当する。",
+      "probs": {
+        "hint_leak": 0.04,
+        "answer_wrong": 0.05,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.48,
+        "any_issue": 0.74
+      }
+    },
+    {
+      "qid": "gai-63ee5ecb",
+      "exam": "AIP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "choices[3]に「TTL（Time To Live）」の略語展開が含まれ必須fix。展開をchoiceExplanations[3]に移す。",
+      "probs": {
+        "hint_leak": 0.92,
+        "answer_wrong": 0.13,
+        "factual_error": 0.17,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.12,
+        "any_issue": 0.2
+      }
+    },
+    {
+      "qid": "gai-b198e84a",
+      "exam": "AIP",
+      "label": 1,
+      "kinds": [
+        "explanation"
+      ],
+      "reason": "解説でROUGEが英語フルスペル未展開のため補完。",
+      "probs": {
+        "hint_leak": 0.65,
+        "answer_wrong": 0.15,
+        "factual_error": 0.21,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.1,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "aif-d10764b8",
+      "exam": "AIF",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "全選択肢の括弧内に定義文・別名の括弧補足が含まれており、choices[0]の「Nucleus Sampling：核サンプリング」は問題文の説明と直接対応しヒント漏れになる。選択肢を用語のみにし、削除した定義をchoiceExplanati",
+      "probs": {
+        "hint_leak": 0.97,
+        "answer_wrong": 0.03,
+        "factual_error": 0.08,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.07,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "aif-5cd50d6e",
+      "exam": "AIF",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢1本文にRAGの英語フルスペル括弧補足が含まれており、選択肢は用語のみにすべきため削除。correctAnswersを合わせて更新。",
+      "probs": {
+        "hint_leak": 0.92,
+        "answer_wrong": 0.05,
+        "factual_error": 0.12,
+        "ce_misaligned": 0.17,
+        "domain_wrong": 0.08,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "ans-afcb0ad1",
+      "exam": "ANS",
+      "label": 1,
+      "kinds": [
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[0]に略語展開「ROA（Route Origin Authorization）」「自律システム番号（ASN）」が混入。解説にRPKI・RIR・ASNの英語フルスペル未整備。",
+      "probs": {
+        "hint_leak": 0.9,
+        "answer_wrong": 0.15,
+        "factual_error": 0.16,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.32,
+        "any_issue": 0.29
+      }
+    },
+    {
+      "qid": "saa-eed6a38c",
+      "exam": "SAA",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[0][1]が同一文で各肢固有の根拠になっていない。CloudWatchアラームとAuto Scalingグループそれぞれの役割を個別に説明する内容に修正。",
+      "probs": {
+        "hint_leak": 0.29,
+        "answer_wrong": 0.11,
+        "factual_error": 0.08,
+        "ce_misaligned": 0.22,
+        "domain_wrong": 0.07,
+        "any_issue": 0.27
+      }
+    },
+    {
+      "qid": "clf-844fca5c",
+      "exam": "CLF",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[1]「ネットワークACL (NACL)」の括弧補足 (NACL) は他3選択肢にない非対称な略語補足であり、正解肢のみ視覚的に目立つヒントになる。必須fix対象として除去し correctAnswers も一致させる。",
+      "probs": {
+        "hint_leak": 0.77,
+        "answer_wrong": 0.03,
+        "factual_error": 0.04,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.08,
+        "any_issue": 0.12
+      }
+    },
+    {
+      "qid": "mla-50680075",
+      "exam": "MLA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[0]の「（格子探索）」choices[1]の「（ベイズ）」は意味の括弧補足。選択肢は用語のみにし、意味はchoiceExplanationsに委ねる。",
+      "probs": {
+        "hint_leak": 0.88,
+        "answer_wrong": 0.13,
+        "factual_error": 0.12,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.09,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "dop-0fcb3973",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "選択肢[0]に「アップストリーム（上流リポジトリ）」、選択肢[2]に「CVE（共通脆弱性識別子: Common Vulnerabilities and Exposures）」、選択肢[4]に「AWS WAF（Web Application ",
+      "probs": {
+        "hint_leak": 0.93,
+        "answer_wrong": 0.16,
+        "factual_error": 0.21,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.23,
+        "any_issue": 0.3
+      }
+    },
+    {
+      "qid": "clf-6fc50f92",
+      "exam": "CLF",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "各選択肢に「を使い、...する」という機能説明文が含まれており、選択肢は用語のみにすべきルールに違反。サービス名のみに簡略化。",
+      "probs": {
+        "hint_leak": 0.35,
+        "answer_wrong": 0.04,
+        "factual_error": 0.06,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.11,
+        "any_issue": 0.13
+      }
+    },
+    {
+      "qid": "ans-8d30c904",
+      "exam": "ANS",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[0]に略語の括弧展開「（RAM）」が含まれている。correctAnswers・explanation・choiceExplanations[0]を整合修正し、explanationとchoiceExplanations[0",
+      "probs": {
+        "hint_leak": 0.48,
+        "answer_wrong": 0.17,
+        "factual_error": 0.18,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.14,
+        "any_issue": 0.22
+      }
+    },
+    {
+      "qid": "dop-be05ab71",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[1]に「DLC: Docker Layer Cache」、choices[3]に「Docker の拡張ビルドエンジン」という略語展開・意味補足が混入。解説・choiceExplanations[1]でDLCが未展開。",
+      "probs": {
+        "hint_leak": 0.88,
+        "answer_wrong": 0.15,
+        "factual_error": 0.24,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.13,
+        "any_issue": 0.24
+      }
+    },
+    {
+      "qid": "aib-0673673d",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "タグが欠落、isMultipleが未設定（単一正解）",
+      "probs": {
+        "hint_leak": 0.03,
+        "answer_wrong": 0.06,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.53,
+        "any_issue": 0.6
+      }
+    },
+    {
+      "qid": "dop-3f2d6590",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[0]が選択肢Aの欠点でなく正解Bの優位性として記述されており、choices[0]視点の固有失格理由になっていないため修正。",
+      "probs": {
+        "hint_leak": 0.64,
+        "answer_wrong": 0.26,
+        "factual_error": 0.27,
+        "ce_misaligned": 0.52,
+        "domain_wrong": 0.11,
+        "any_issue": 0.33
+      }
+    },
+    {
+      "qid": "ml-e81673e6",
+      "exam": "ML",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "ドメインが「モデル評価と指標」だが問題内容は決定木の特徴（基礎概念の説明）であり「AI/MLの基礎概念」が正しい。",
+      "probs": {
+        "hint_leak": 0.03,
+        "answer_wrong": 0.05,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.69,
+        "any_issue": 0.64
+      }
+    },
+    {
+      "qid": "mla-ebf79855",
+      "exam": "MLA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "各選択肢が「用語：定義文」形式で定義を読むだけで正解が特定できる過剰説明。定義部分を削除し用語のみにする。choiceExplanationsで内容は担保済み。",
+      "probs": {
+        "hint_leak": 0.89,
+        "answer_wrong": 0.11,
+        "factual_error": 0.09,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.09,
+        "any_issue": 0.24
+      }
+    },
+    {
+      "qid": "aib-4fcb1143",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "domain"
+      ],
+      "reason": "ドメインタグが未設定。チェンジマネジメント・AI変革リーダーシップの内容から正しいドメインを付与。",
+      "probs": {
+        "hint_leak": 0.03,
+        "answer_wrong": 0.04,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.44,
+        "any_issue": 0.8
+      }
+    },
+    {
+      "qid": "clf-7ba561cb",
+      "exam": "CLF",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢4件すべてにサービス定義文が括弧補足で含まれており必須fix。用語のみに削り correctAnswers も短縮後表記に更新。",
+      "probs": {
+        "hint_leak": 0.96,
+        "answer_wrong": 0.03,
+        "factual_error": 0.06,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.06,
+        "any_issue": 0.12
+      }
+    },
+    {
+      "qid": "dea-f5d06f16",
+      "exam": "DEA",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "choices[1]に「動的パーティショニング（Dynamic Partitioning）」、choices[2]に「MSK Connect（S3 Sink Connector）」「SMT（Single Message Transform）",
+      "probs": {
+        "hint_leak": 0.83,
+        "answer_wrong": 0.12,
+        "factual_error": 0.21,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.11,
+        "any_issue": 0.23
+      }
+    },
+    {
+      "qid": "ans-9d0191b1",
+      "exam": "ANS",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[1]に「（VPC IP Address Manager）」の括弧展開が混入しヒント漏れ。正解テキスト更新し、explanation/choiceExplanations[1]にIPAM英語フルスペルを補完。",
+      "probs": {
+        "hint_leak": 0.68,
+        "answer_wrong": 0.05,
+        "factual_error": 0.07,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.18,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "gai-29dc8f07",
+      "exam": "AIP",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "選択肢[1]に「Return of Control（制御の返却）」と日本語訳の括弧補足が含まれており、その選択肢だけ意味が読み取りやすくなる不要なヒントになる。括弧補足を除去し、correctAnswersも一致させる。",
+      "probs": {
+        "hint_leak": 0.9,
+        "answer_wrong": 0.12,
+        "factual_error": 0.2,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.09,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "nw-ff8e32ec",
+      "exam": "NW",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[3]が選択肢の前提と論理矛盾。選択肢は「送信元がFrag Neededを受信しつつ無視する」シナリオだが、説明は「届けばTCPスタックが更新できる」と述べており前提を否定していない。典型的PMTUDブラ",
+      "probs": {
+        "hint_leak": 0.75,
+        "answer_wrong": 0.12,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.08,
+        "domain_wrong": 0.32,
+        "any_issue": 0.51
+      }
+    },
+    {
+      "qid": "aib-18e46e55",
+      "exam": "AIB",
+      "label": 1,
+      "kinds": [
+        "choices",
+        "domain"
+      ],
+      "reason": "選択肢[0]に「（Human-in-the-loop）」の括弧補足が混入しており不要なヒントになる。choiceExplanations側では言及済みのため選択肢からは削除しcorrectAnswersも一致させる。タグ未設定・isMult",
+      "probs": {
+        "hint_leak": 0.78,
+        "answer_wrong": 0.06,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.34,
+        "any_issue": 0.69
+      }
+    },
+    {
+      "qid": "ans-7ec86681",
+      "exam": "ANS",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[3]に「SES（Simple Email Service）」の略語展開が混入。選択肢は用語のみにし展開を解説側へ移す。",
+      "probs": {
+        "hint_leak": 0.8,
+        "answer_wrong": 0.22,
+        "factual_error": 0.2,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.11,
+        "any_issue": 0.27
+      }
+    },
+    {
+      "qid": "ans-407438be",
+      "exam": "ANS",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[0]（選択肢A）とchoiceExplanations[2]（選択肢C）がほぼ同一文で、各肢固有の正誤理由になっていない。ターゲット設定とフィルター設定それぞれの固有の根拠へ書き換え。",
+      "probs": {
+        "hint_leak": 0.51,
+        "answer_wrong": 0.06,
+        "factual_error": 0.13,
+        "ce_misaligned": 0.09,
+        "domain_wrong": 0.12,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "dop-47dfaba0",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[2]の「Automation runbook（自動化ランブック）」が意味補足の括弧補足に該当するため除去。",
+      "probs": {
+        "hint_leak": 0.81,
+        "answer_wrong": 0.04,
+        "factual_error": 0.1,
+        "ce_misaligned": 0.11,
+        "domain_wrong": 0.06,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "db-d4998196",
+      "exam": "DB",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[3]でSSIが展開なし（同一問題セット内の他問ではSSI: Serializable Snapshot Isolationと展開済み）。統一のため展開を追加する。",
+      "probs": {
+        "hint_leak": 0.76,
+        "answer_wrong": 0.08,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.07,
+        "any_issue": 0.61
+      }
+    },
+    {
+      "qid": "gai-bbe4430a",
+      "exam": "AIP",
+      "label": 1,
+      "kinds": [
+        "explanation"
+      ],
+      "reason": "ROUGE-Lが解説の初出で英語フルスペル展開されていない。explanationのROUGE-L初出に(Recall-Oriented Understudy for Gisting Evaluation)を補記する。",
+      "probs": {
+        "hint_leak": 0.58,
+        "answer_wrong": 0.41,
+        "factual_error": 0.38,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.12,
+        "any_issue": 0.31
+      }
+    },
+    {
+      "qid": "scs-10eca45e",
+      "exam": "SCS",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "選択肢B・CにOrganization Conformance Packへの虚偽説明文（過剰説明）が埋め込まれており除去。choiceExplanations・explanationも整合に更新。",
+      "probs": {
+        "hint_leak": 0.28,
+        "answer_wrong": 0.06,
+        "factual_error": 0.15,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.13,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "aif-b81a3484",
+      "exam": "AIF",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "選択肢に「— 定義文」形式の過剰説明が含まれておりヒント漏れ。用語のみに修正しchoiceExplanationsへ内容を移動。また[1][3]が同一文で固有根拠になっていないため修正。",
+      "probs": {
+        "hint_leak": 0.84,
+        "answer_wrong": 0.07,
+        "factual_error": 0.07,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.27,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "sap-d7919e70",
+      "exam": "SAP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "choiceExplanations[2]が選択肢[0]の完全複製で、サンプリングルール設定・X-Ray Analytics固有の正誤根拠になっていない。",
+      "probs": {
+        "hint_leak": 0.47,
+        "answer_wrong": 0.08,
+        "factual_error": 0.16,
+        "ce_misaligned": 0.18,
+        "domain_wrong": 0.11,
+        "any_issue": 0.22
+      }
+    },
+    {
+      "qid": "nw-2a2d807c",
+      "exam": "NW",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[0]（正解）末尾の括弧補足「（NSが委任ゾーン内に存在するため循環依存防止に必須）」が正解理由をそのまま明記しており選択肢の過剰説明に該当。削除しchoiceExplanations[0]側に既に記述済みのため内容の移動は不",
+      "probs": {
+        "hint_leak": 0.94,
+        "answer_wrong": 0.14,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.06,
+        "any_issue": 0.48
+      }
+    },
+    {
+      "qid": "soa-ca3e4d08",
+      "exam": "SOA",
+      "label": 1,
+      "kinds": [
+        "choices",
+        "explanation"
+      ],
+      "reason": "choices[2]にDMS略語の括弧展開「（Database Migration Service）」が含まれているため除去し、explanation初出にDMS(Database Migration Service)展開を追加",
+      "probs": {
+        "hint_leak": 0.24,
+        "answer_wrong": 0.11,
+        "factual_error": 0.36,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.06,
+        "any_issue": 0.31
+      }
+    },
+    {
+      "qid": "dop-0e625f42",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "choices[3]に「EMF：CloudWatchへカスタムメトリクスを埋め込み出力する仕組み」の略語定義括弧展開が混入。用語のみにしEMFフルスペルをchoiceExplanations[3]に移す。",
+      "probs": {
+        "hint_leak": 0.95,
+        "answer_wrong": 0.14,
+        "factual_error": 0.22,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.17,
+        "any_issue": 0.23
+      }
+    },
+    {
+      "qid": "saa-e849038e",
+      "exam": "SAA",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "choices[2]に「NATインスタンス（EC2上に自前で構築したNAT機能）」と定義文が混入。用語のみに削りchoiceExplanations[2]へ移す。",
+      "probs": {
+        "hint_leak": 0.74,
+        "answer_wrong": 0.05,
+        "factual_error": 0.12,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.17,
+        "any_issue": 0.22
+      }
+    },
+    {
+      "qid": "soa-670d5095",
+      "exam": "SOA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choice[1]（正解）に「OAC（Origin Access Control）」という略語展開が含まれており、選択肢は用語のみにする必要がある。OACの展開は解説側にすでに存在するため移動先は担保済み。correctAnswersも一致",
+      "probs": {
+        "hint_leak": 0.39,
+        "answer_wrong": 0.12,
+        "factual_error": 0.21,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.24,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "sec-b33b35ef",
+      "exam": "SEC",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations"
+      ],
+      "reason": "KEK（Key Encrypting Key）はexplanationで展開済みだがセットで使われるDEKがchoiceExplanations[1]に初出で未展開。DEK（Data Encryption Key）を補完する。",
+      "probs": {
+        "hint_leak": 0.37,
+        "answer_wrong": 0.1,
+        "factual_error": 0.03,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.11,
+        "any_issue": 0.56
+      }
+    },
+    {
+      "qid": "dea-b600bded",
+      "exam": "DEA",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[1]の旧名称「Amazon CloudWatch Events」を現行名称「Amazon EventBridge」に修正。",
+      "probs": {
+        "hint_leak": 0.06,
+        "answer_wrong": 0.15,
+        "factual_error": 0.27,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.39,
+        "any_issue": 0.27
+      }
+    },
+    {
+      "qid": "gai-090f6ac5",
+      "exam": "AIP",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices"
+      ],
+      "reason": "選択肢1にSSEの略語展開「（Server-Sent Events：サーバーからクライアントへの一方向イベント送信）」が含まれるため除去。correctAnswers更新。choiceExplanations[1]の埋め込みヘッダー除去とS",
+      "probs": {
+        "hint_leak": 0.9,
+        "answer_wrong": 0.07,
+        "factual_error": 0.2,
+        "ce_misaligned": 0.35,
+        "domain_wrong": 0.12,
+        "any_issue": 0.2
+      }
+    },
+    {
+      "qid": "dop-9637374a",
+      "exam": "DOP",
+      "label": 1,
+      "kinds": [
+        "choices"
+      ],
+      "reason": "choices[1]の「Observability sink（集約先）」に意味の括弧補足あり。正解選択肢のみに付与されており不要なヒントになる。除去しcorrectAnswersも一致させる",
+      "probs": {
+        "hint_leak": 0.92,
+        "answer_wrong": 0.12,
+        "factual_error": 0.22,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.07,
+        "any_issue": 0.21
+      }
+    },
+    {
+      "qid": "aif-05866a5d",
+      "exam": "AIF",
+      "label": 1,
+      "kinds": [
+        "choiceExplanations",
+        "choices",
+        "explanation"
+      ],
+      "reason": "選択肢2に「サービスコントロールポリシー（SCP）」と括弧展開が含まれている（必須fix）。choicesから展開を除去し、explanation・choiceExplanations[2]にSCP(Service Control Poli",
+      "probs": {
+        "hint_leak": 0.72,
+        "answer_wrong": 0.19,
+        "factual_error": 0.16,
+        "ce_misaligned": 0.1,
+        "domain_wrong": 0.07,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "dop-eb52fb8a",
+      "exam": "DOP",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.27,
+        "answer_wrong": 0.18,
+        "factual_error": 0.22,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.16,
+        "any_issue": 0.3
+      }
+    },
+    {
+      "qid": "sap-c6b7db74",
+      "exam": "SAP",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.32,
+        "answer_wrong": 0.14,
+        "factual_error": 0.18,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.23,
+        "any_issue": 0.24
+      }
+    },
+    {
+      "qid": "nw-f47338fe",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.24,
+        "answer_wrong": 0.08,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.18,
+        "any_issue": 0.45
+      }
+    },
+    {
+      "qid": "db-9110fb1f",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.18,
+        "answer_wrong": 0.14,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.1,
+        "domain_wrong": 0.07,
+        "any_issue": 0.57
+      }
+    },
+    {
+      "qid": "saa-5af9e9a1",
+      "exam": "SAA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.08,
+        "answer_wrong": 0.07,
+        "factual_error": 0.34,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.15,
+        "any_issue": 0.26
+      }
+    },
+    {
+      "qid": "nw-c8c17ff2",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.51,
+        "answer_wrong": 0.14,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.12,
+        "any_issue": 0.44
+      }
+    },
+    {
+      "qid": "nw-3e3ee2c5",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.11,
+        "answer_wrong": 0.15,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.05,
+        "any_issue": 0.44
+      }
+    },
+    {
+      "qid": "db-0b5c5ef7",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.34,
+        "answer_wrong": 0.08,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.09,
+        "domain_wrong": 0.07,
+        "any_issue": 0.5
+      }
+    },
+    {
+      "qid": "nw-8a295fa4",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.3,
+        "answer_wrong": 0.11,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.11,
+        "any_issue": 0.44
+      }
+    },
+    {
+      "qid": "db-47db19c5",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.92,
+        "answer_wrong": 0.1,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.1,
+        "any_issue": 0.55
+      }
+    },
+    {
+      "qid": "scs-7f8647e4",
+      "exam": "SCS",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.28,
+        "answer_wrong": 0.05,
+        "factual_error": 0.08,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.07,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "dea-9b51edba",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.37,
+        "answer_wrong": 0.14,
+        "factual_error": 0.27,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.16,
+        "any_issue": 0.26
+      }
+    },
+    {
+      "qid": "nw-296898e2",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.03,
+        "answer_wrong": 0.03,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.12,
+        "any_issue": 0.41
+      }
+    },
+    {
+      "qid": "dea-c7a3442d",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.54,
+        "answer_wrong": 0.06,
+        "factual_error": 0.12,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.18,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "sec-24e2f72d",
+      "exam": "SEC",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.47,
+        "answer_wrong": 0.1,
+        "factual_error": 0.03,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.17,
+        "any_issue": 0.6
+      }
+    },
+    {
+      "qid": "soa-c94b66df",
+      "exam": "SOA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.78,
+        "answer_wrong": 0.08,
+        "factual_error": 0.13,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.08,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "mla-223c62d4",
+      "exam": "MLA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.48,
+        "answer_wrong": 0.08,
+        "factual_error": 0.17,
+        "ce_misaligned": 0.23,
+        "domain_wrong": 0.1,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "db-b98026af",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.39,
+        "answer_wrong": 0.07,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.05,
+        "any_issue": 0.38
+      }
+    },
+    {
+      "qid": "sec-3c9903ae",
+      "exam": "SEC",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.33,
+        "answer_wrong": 0.13,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.07,
+        "any_issue": 0.6
+      }
+    },
+    {
+      "qid": "saa-9880a66a",
+      "exam": "SAA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.06,
+        "answer_wrong": 0.22,
+        "factual_error": 0.22,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.24,
+        "any_issue": 0.29
+      }
+    },
+    {
+      "qid": "db-99a5b780",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.23,
+        "answer_wrong": 0.13,
+        "factual_error": 0.03,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.06,
+        "any_issue": 0.56
+      }
+    },
+    {
+      "qid": "ans-4facc2ea",
+      "exam": "ANS",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.26,
+        "answer_wrong": 0.14,
+        "factual_error": 0.16,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.18,
+        "any_issue": 0.22
+      }
+    },
+    {
+      "qid": "aib-0c450e2c",
+      "exam": "AIB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.02,
+        "answer_wrong": 0.05,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.07,
+        "any_issue": 0.64
+      }
+    },
+    {
+      "qid": "sec-d1e80cea",
+      "exam": "SEC",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.11,
+        "answer_wrong": 0.08,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.07,
+        "any_issue": 0.73
+      }
+    },
+    {
+      "qid": "scs-4b9e2b59",
+      "exam": "SCS",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.28,
+        "answer_wrong": 0.09,
+        "factual_error": 0.17,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.08,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "soa-080a20da",
+      "exam": "SOA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.6,
+        "answer_wrong": 0.06,
+        "factual_error": 0.1,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.06,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "ml-02161562",
+      "exam": "ML",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.03,
+        "answer_wrong": 0.04,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.19,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "nw-914b5f47",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.19,
+        "answer_wrong": 0.06,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.14,
+        "any_issue": 0.37
+      }
+    },
+    {
+      "qid": "db-2056cebb",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.44,
+        "answer_wrong": 0.07,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.05,
+        "any_issue": 0.49
+      }
+    },
+    {
+      "qid": "mla-e4fc30c5",
+      "exam": "MLA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.06,
+        "answer_wrong": 0.04,
+        "factual_error": 0.05,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.12,
+        "any_issue": 0.17
+      }
+    },
+    {
+      "qid": "nw-9ca8bd52",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.1,
+        "answer_wrong": 0.08,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.16,
+        "any_issue": 0.61
+      }
+    },
+    {
+      "qid": "nw-dda71db5",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.31,
+        "answer_wrong": 0.06,
+        "factual_error": 0.01,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.11,
+        "any_issue": 0.35
+      }
+    },
+    {
+      "qid": "dea-0485d0fd",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.26,
+        "answer_wrong": 0.15,
+        "factual_error": 0.2,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.29,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "sap-d38a87fb",
+      "exam": "SAP",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.68,
+        "answer_wrong": 0.35,
+        "factual_error": 0.48,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.13,
+        "any_issue": 0.44
+      }
+    },
+    {
+      "qid": "dea-4a5cc531",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.15,
+        "answer_wrong": 0.2,
+        "factual_error": 0.22,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.15,
+        "any_issue": 0.26
+      }
+    },
+    {
+      "qid": "ans-064cfc78",
+      "exam": "ANS",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.74,
+        "answer_wrong": 0.09,
+        "factual_error": 0.17,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.1,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "dea-046c3f0a",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.13,
+        "answer_wrong": 0.13,
+        "factual_error": 0.23,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.14,
+        "any_issue": 0.27
+      }
+    },
+    {
+      "qid": "gai-e398f946",
+      "exam": "AIP",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.41,
+        "answer_wrong": 0.45,
+        "factual_error": 0.49,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.15,
+        "any_issue": 0.41
+      }
+    },
+    {
+      "qid": "saa-fc3c3eec",
+      "exam": "SAA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.22,
+        "answer_wrong": 0.11,
+        "factual_error": 0.25,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.59,
+        "any_issue": 0.49
+      }
+    },
+    {
+      "qid": "db-cc4e3fb1",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.22,
+        "answer_wrong": 0.08,
+        "factual_error": 0.03,
+        "ce_misaligned": 0.08,
+        "domain_wrong": 0.21,
+        "any_issue": 0.66
+      }
+    },
+    {
+      "qid": "soa-c2c8f05f",
+      "exam": "SOA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.26,
+        "answer_wrong": 0.18,
+        "factual_error": 0.26,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.09,
+        "any_issue": 0.21
+      }
+    },
+    {
+      "qid": "dea-a7187d32",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.89,
+        "answer_wrong": 0.12,
+        "factual_error": 0.19,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.27,
+        "any_issue": 0.2
+      }
+    },
+    {
+      "qid": "ans-e97320e8",
+      "exam": "ANS",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.21,
+        "answer_wrong": 0.09,
+        "factual_error": 0.16,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.19,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "db-ae39c7bd",
+      "exam": "DB",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.26,
+        "answer_wrong": 0.06,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.06,
+        "domain_wrong": 0.05,
+        "any_issue": 0.43
+      }
+    },
+    {
+      "qid": "mla-4fc7bed1",
+      "exam": "MLA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.92,
+        "answer_wrong": 0.18,
+        "factual_error": 0.24,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.08,
+        "any_issue": 0.29
+      }
+    },
+    {
+      "qid": "gai-f916e215",
+      "exam": "AIP",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.08,
+        "answer_wrong": 0.2,
+        "factual_error": 0.31,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.21,
+        "any_issue": 0.29
+      }
+    },
+    {
+      "qid": "sec-94e4f8e2",
+      "exam": "SEC",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.19,
+        "answer_wrong": 0.05,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.19,
+        "any_issue": 0.66
+      }
+    },
+    {
+      "qid": "dea-ca41c0d5",
+      "exam": "DEA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.13,
+        "answer_wrong": 0.1,
+        "factual_error": 0.11,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.25,
+        "any_issue": 0.18
+      }
+    },
+    {
+      "qid": "saa-a546a55e",
+      "exam": "SAA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.81,
+        "answer_wrong": 0.05,
+        "factual_error": 0.1,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.13,
+        "any_issue": 0.16
+      }
+    },
+    {
+      "qid": "soa-ee1110f4",
+      "exam": "SOA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.38,
+        "answer_wrong": 0.07,
+        "factual_error": 0.14,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.3,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "nw-7c54f045",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.2,
+        "answer_wrong": 0.08,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.12,
+        "any_issue": 0.48
+      }
+    },
+    {
+      "qid": "sap-q-022",
+      "exam": "SAP",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.83,
+        "answer_wrong": 0.09,
+        "factual_error": 0.14,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.24,
+        "any_issue": 0.35
+      }
+    },
+    {
+      "qid": "mla-9eebfd03",
+      "exam": "MLA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.23,
+        "answer_wrong": 0.08,
+        "factual_error": 0.14,
+        "ce_misaligned": 0.07,
+        "domain_wrong": 0.17,
+        "any_issue": 0.23
+      }
+    },
+    {
+      "qid": "mla-6e3f3cbe",
+      "exam": "MLA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.72,
+        "answer_wrong": 0.12,
+        "factual_error": 0.29,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.1,
+        "any_issue": 0.25
+      }
+    },
+    {
+      "qid": "nw-73335e1e",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.54,
+        "answer_wrong": 0.1,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.24,
+        "any_issue": 0.45
+      }
+    },
+    {
+      "qid": "nw-222ef8b9",
+      "exam": "NW",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.29,
+        "answer_wrong": 0.12,
+        "factual_error": 0.02,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.05,
+        "any_issue": 0.39
+      }
+    },
+    {
+      "qid": "saa-b18a9b6b",
+      "exam": "SAA",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.53,
+        "answer_wrong": 0.09,
+        "factual_error": 0.2,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.52,
+        "any_issue": 0.5
+      }
+    },
+    {
+      "qid": "sec-86ea7fff",
+      "exam": "SEC",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.08,
+        "answer_wrong": 0.16,
+        "factual_error": 0.04,
+        "ce_misaligned": 0.05,
+        "domain_wrong": 0.14,
+        "any_issue": 0.55
+      }
+    },
+    {
+      "qid": "ml-02b0baf8",
+      "exam": "ML",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.72,
+        "answer_wrong": 0.06,
+        "factual_error": 0.09,
+        "ce_misaligned": 0.03,
+        "domain_wrong": 0.09,
+        "any_issue": 0.19
+      }
+    },
+    {
+      "qid": "ans-e0445c9a",
+      "exam": "ANS",
+      "label": 0,
+      "kinds": [],
+      "reason": "",
+      "probs": {
+        "hint_leak": 0.42,
+        "answer_wrong": 0.07,
+        "factual_error": 0.11,
+        "ce_misaligned": 0.04,
+        "domain_wrong": 0.28,
+        "any_issue": 0.19
+      }
+    }
+  ]
+}
