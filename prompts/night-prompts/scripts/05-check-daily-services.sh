@@ -220,6 +220,7 @@ for it in items:
         if cur_dep_at:
             subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'DailyServices',
                 '--key', json.dumps({'serviceId': {'S': sid}}),
+                '--condition-expression', 'attribute_exists(serviceId)',
                 '--update-expression', 'REMOVE deprecatedAt, deprecationNote, deprecationStatus SET updatedAt = :u',
                 '--expression-attribute-values', json.dumps({':u': {'S': now_iso}})], capture_output=True)
             cleared += 1
@@ -250,6 +251,7 @@ for it in items:
     note = base + f'。{del_on}頃にサービス図鑑から削除されます。'
     subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'DailyServices',
         '--key', json.dumps({'serviceId': {'S': sid}}),
+        '--condition-expression', 'attribute_exists(serviceId)',
         '--update-expression', 'SET deprecatedAt = :a, deprecationNote = :n, deprecationStatus = :s, updatedAt = :u',
         '--expression-attribute-values', json.dumps({
             ':a': {'S': today.isoformat()}, ':n': {'S': note},
@@ -560,6 +562,7 @@ for r in results:
             '/home/yuzuki/local/bin/aws', 'dynamodb', 'update-item',
             '--table-name', 'DailyServices',
             '--key', json.dumps({'serviceId': {'S': sid}}),
+            '--condition-expression', 'attribute_exists(serviceId)',
             '--update-expression', update_expr,
             '--expression-attribute-values', json.dumps(expr_values),
         ], capture_output=True)
@@ -572,6 +575,7 @@ for r in results:
             '/home/yuzuki/local/bin/aws', 'dynamodb', 'update-item',
             '--table-name', 'DailyServices',
             '--key', json.dumps({'serviceId': {'S': sid}}),
+            '--condition-expression', 'attribute_exists(serviceId)',
             '--update-expression', 'SET contentCheckedAt = :t',
             '--expression-attribute-values', json.dumps({':t': {'S': now}}),
         ], capture_output=True)

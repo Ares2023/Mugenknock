@@ -122,6 +122,7 @@ def apply_fix(qid, orig, res, audit_issues=()):
         if audit_issues:
             subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
                             '--key', json.dumps({'questionId': {'S': qid}}),
+                            '--condition-expression', 'attribute_exists(questionId)',
                             '--update-expression', 'SET auditNote = :n, auditFlaggedAt = :t',
                             '--expression-attribute-values', json.dumps({
                                 ':n': {'S': ' / '.join(audit_issues)[:900]},
@@ -188,6 +189,7 @@ def apply_fix(qid, orig, res, audit_issues=()):
     expr_values[':log'] = {'S': json.dumps({'action': 'fixed', 'checkedAt': now, 'reason': reason, 'source': 'audit-ng-fix', 'changes': list(changes.keys())}, ensure_ascii=False)}
     subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
                     '--key', json.dumps({'questionId': {'S': qid}}),
+                    '--condition-expression', 'attribute_exists(questionId)',
                     '--update-expression', f"SET {', '.join(update_parts)}{remove_expr}",
                     '--expression-attribute-values', json.dumps(expr_values, ensure_ascii=False)],
                    capture_output=True)
@@ -215,6 +217,7 @@ def main():
             # 修正案が得られない → 再検査に回す
             subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
                             '--key', json.dumps({'questionId': {'S': qid}}),
+                            '--condition-expression', 'attribute_exists(questionId)',
                             '--update-expression', 'REMOVE validityCheckedAt'], capture_output=True)
             print(f"    ⚠️ {qid}: 修正案なし → 再検査キューへ"); counts['recheck'] += 1; continue
         kind, msg = apply_fix(qid, q, res, r.get('issues', []))

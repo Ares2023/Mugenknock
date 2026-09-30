@@ -759,6 +759,7 @@ def apply_fix(qid, fix, orig):
         'aws', 'dynamodb', 'update-item',
         '--table-name', 'Questions',
         '--key', json.dumps({'questionId': {'S': qid}}),
+        '--condition-expression', 'attribute_exists(questionId)',
         '--update-expression', update_expr,
         '--expression-attribute-values', f'file://{ef}',
         '--output', 'json',

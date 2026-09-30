@@ -319,3 +319,39 @@ S3 `mugenknock-error-logs/canary-logs/` にアップロードする。
 | 管理画面の変更が出題に反映されない | Lambda のウォームキャッシュ（最大10分）。[02-architecture.md](02-architecture.md) 2.7 |
 | 本番だけ挙動が古い | `deploy-lambda.sh prod` を打ち忘れていないか |
 | ドメイン配分が偏る | prod Lambda に `domainBalancedOrder` が入っているか実機確認 |
+| 資格を指定しないキーワード検索が 500 | **中身のない「幽霊行」が混入していないか。** 下記「幽霊行」を参照 |
+
+### DynamoDB の幽霊行（update-item の upsert 事故）
+
+**DynamoDB の UpdateItem は upsert。** 存在しないキーを更新すると
+「キー＋更新した属性だけを持つ行」を新規作成する。そのため
+
+```
+他プロセスが問題を削除  →  その直後に別スクリプトが validityCheckedAt を書く
+                        →  {questionId, validityCheckedAt} だけの中身のない行が復活
+```
+
+という事故が起きる。scan で問題一覧を取ってから更新するまでの間に削除されると発生する
+（削除元は `check-scheduled-deletions.sh` の予約削除、`03-check-reports.sh` の通報削除など）。
+
+**実害（2026-09-30 発覚）**: `sap-6b967aa4` が `{questionId, validityCheckedAt}` だけの
+行として復活していた。`GET /questions` は examType 未指定だと全件スキャンになり、
+`keyword` フィルタが公開フィルタより**先**に走るため
+`q.questionText.toLowerCase()` が undefined を触って **本番で 500** を返していた。
+資格を指定した検索は GSI 経由（examType を持たない幽霊行は索引外）なので正常に見え、
+発見が遅れた。
+
+**対策（両方入れてある）**:
+
+1. **全スクリプトの `update-item` に `--condition-expression attribute_exists(<キー>)`**
+   を付けた（`Questions` は `questionId` / `DailyServices` は `serviceId`・計15箇所）。
+   削除済みなら `ConditionalCheckFailedException` で失敗し、行を復活させない。
+   **新しく `update-item` を書くときも必ず付ける。**
+2. **Lambda 側で属性欠落に耐える**ようにした。不正データ1件で検索全体が落ちない。
+
+**点検方法**（異常データが疑われるとき）:
+
+```bash
+/home/yuzuki/local/bin/aws dynamodb scan --table-name Questions --output json > /tmp/q.json
+# questionText を持たない行・examType が正規コード以外の行を洗い出す
+```
