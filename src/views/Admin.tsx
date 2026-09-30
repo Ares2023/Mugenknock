@@ -2269,6 +2269,7 @@ export default function Admin() {
               const hasIndices = Array.isArray(q.correctAnswerIndices) && q.correctAnswerIndices.length > 0;
               const hasAnswers = Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0;
               if (!hasIndices && !hasAnswers) throw new Error('correctAnswerIndices または correctAnswers が必要です');
+              if (!q.domain) throw new Error(`domain が未設定の問題があります（questionText: ${String(q.questionText ?? '').slice(0, 30)}…）`);
             }
             setImportParsed(parsed);
             const mismatched = [...new Set(
@@ -2367,7 +2368,8 @@ ${topic ? `【トピック / キーワード】${topic}` : '【トピック / �
 ・${nonAws ? '難易度・文体は上記「作成方針」に従うこと' : '本番試験と同等の難易度・文体で作成すること'}
 ・正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解だけが著しく長い・短いと文字数から正解が推測できてしまうため、正解の文字数を不正解の平均に近づけること）。ただし選択肢が単語・用語のみ（説明文でない）の場合はこの限りでなく、最長の用語が正解でもよい
 ・examType には "${importExamType}" を必ず設定すること
-・domain には以下のいずれかを文字列で設定すること（保存時に内部インデックスへ変換されます）: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
+・domain は必須フィールド。null・空文字・省略は不可。以下のいずれか1つを文字列でそのまま設定すること（保存時に内部インデックスへ変換されます）:
+  ${EXAM_DOMAINS[importExamType]?.map((d, i) => `${i === 0 ? '' : '  '}${d}`).join('\n  ')}
 ・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
 ・選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文・略語の展開を選択肢内に含めないこと（不要なヒントになるため。説明・比較・理由・略語の意味は choiceExplanations／explanation 側に書く）
 ・略語が何の略かは選択肢ではなく解説側で説明すること: explanation・choiceExplanations で重要な略語を初出で英語フルスペル併記して展開する（例 解説内で「BLEU(Bilingual Evaluation Understudy)」）。選択肢本文には展開を入れない
@@ -2376,7 +2378,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
 [
   {
     "examType": "${importExamType}",
-    "domain": "（上記ドメインのいずれか）",
+    "domain": "${EXAM_DOMAINS[importExamType]?.[0] ?? ''}",
     "questionText": "問題文（日本語）",
     "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
     "correctAnswerIndices": [0],
