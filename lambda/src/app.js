@@ -602,11 +602,14 @@ app.get('/questions', async (req, res) => {
     }
     if (keyword) {
       const keywords = keyword.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+      // 属性欠落で落とさない。examType 未指定時はここが全件スキャン結果を走るため、
+      // 不正データ1件で検索全体が 500 になる（2026-09-30 に questionText を持たない
+      // 行が混入して実際に発生）。値が無いフィールドは単に一致しない扱いにする。
       items = items.filter(q =>
         keywords.every(kw =>
-          q.questionText.toLowerCase().includes(kw) ||
-          (q.choices || []).some(c => c.toLowerCase().includes(kw)) ||
-          q.questionId.toLowerCase().includes(kw)
+          String(q.questionText || '').toLowerCase().includes(kw) ||
+          (q.choices || []).some(c => String(c ?? '').toLowerCase().includes(kw)) ||
+          String(q.questionId || '').toLowerCase().includes(kw)
         )
       );
     }

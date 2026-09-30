@@ -159,6 +159,7 @@ for q in data:
     r = subprocess.run([AWS_CMD, 'dynamodb', 'update-item',
         '--table-name', 'Questions',
         '--key', json.dumps({'questionId': {'S': q['questionId']}}),
+        '--condition-expression', 'attribute_exists(questionId)',
         '--update-expression', 'SET choices = :c, updatedAt = :u',
         '--expression-attribute-values', f'file://{af}',
         '--output', 'json'], capture_output=True, text=True)
@@ -371,6 +372,7 @@ for r in results:
             'aws', 'dynamodb', 'update-item',
             '--table-name', 'Questions',
             '--key', json.dumps({'questionId': {'S': qid}}),
+            '--condition-expression', 'attribute_exists(questionId)',
             '--update-expression', update_expr,
             '--expression-attribute-values', json.dumps(expr_values),
         ], capture_output=True)
@@ -383,6 +385,7 @@ for r in results:
             'aws', 'dynamodb', 'update-item',
             '--table-name', 'Questions',
             '--key', json.dumps({'questionId': {'S': qid}}),
+            '--condition-expression', 'attribute_exists(questionId)',
             '--update-expression', update_expr,
             '--expression-attribute-values', json.dumps(expr_values),
         ], capture_output=True)

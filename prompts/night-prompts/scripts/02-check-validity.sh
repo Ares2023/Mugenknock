@@ -47,21 +47,41 @@ LOG_FILE="$LOG_DIR/validity_${DATE}.log"
 
 show_help() {
   cat << 'EOF'
-usage: check-validity.sh [-n N] [-D HH:MM] [-q FILE] [-h]
+usage: check-validity.sh [-n N] [-D HH:MM] [-q FILE] [-T N|--no-triage] [-h]
 
   -n N       チェック問題数 (default: 30)
   -D HH:MM   処理終了時刻 (JST)。この時刻を過ぎたチャンクはスキップ
   -q FILE    問題IDを指定してチェック（1行1ID、#開始行は無視）。
              指定時はソート順を無視しこのリストの問題だけを対象にする
              （既知パターンの一括修正など、対象を特定できる場合に使う）
+  -T N       Jevトリアージのプール倍率 (default: 3、1で無効)
+  --no-triage  Jevトリアージを無効化（-T 1 と同じ）
   -h         このヘルプを表示
 
 挙動:
-  -q 未指定時: 未チェック（validityCheckedAt なし）を優先、全問チェック済みなら確認日付が古い順
-  -q 指定時  : 指定ID群のみを対象（順不同・存在しないIDは無視）
+  -q 指定時  : 指定ID群のみを対象（順不同・存在しないIDは無視・トリアージ無効）
   action=ok  → validityCheckedAt のみ更新
   action=fix → 問題内容を上書き・validityEditLog を記録・updatedAt 更新
   action=delete → DynamoDB から削除
+
+選定の優先順位（-q 未指定時）:
+  ① 未確認（validityCheckedAt なし）を常に最優先・古い順。
+     未確認はアプリ非公開なので、公開までの時間を最短にすることを最優先する。
+     未確認だけでバッチが埋まる場合は Jev を呼ばない（費用ゼロ）。
+  ② 残り枠は確認済みから。Jev で「誤っている可能性」をスコア化し、
+     スコアのバンド（既定0.25刻み＝5段階）降順 → 同バンド内は確認日の古い順。
+     連続値のままだと 0.94 と 0.93 の差で順序が決まり日付が効かないため丸める。
+
+Jevトリアージ:
+  古い順の上位 残り枠×倍率 をプールにしてスコア化する。トークン律速で全問回せない
+  ため、限られた Claude 枠を欠陥密度の高い問題へ寄せる（実測 約1.6〜1.7倍）。
+  費用は 1問 $0.0008・実際に検証する1問あたり $0.0024（倍率3のとき）。
+  ゲートではないのでスコアが低い問題も後日のバッチで必ず処理される。
+  Jev が使えない場合は自動的に従来どおり古い順で処理する（検証は止めない）。
+
+環境変数:
+  JEV_TRIAGE_POOL  プール倍率（既定 3・1で無効）
+  JEV_TRIAGE_BAND  スコアのバンド幅（既定 0.25＝5段階）
 EOF
 }
 
@@ -69,16 +89,24 @@ BATCH_SIZE=30
 CHUNK_SIZE=5
 DEADLINE=""
 QID_FILE=""
+# Jevトリアージのプール倍率。1 で無効。環境変数でも上書き可。
+TRIAGE_POOL="${JEV_TRIAGE_POOL:-3}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -n) BATCH_SIZE="${2:?-n requires N}"; shift 2 ;;
     -D) DEADLINE="${2:?-D requires HH:MM}"; shift 2 ;;
     -q) QID_FILE="${2:?-q requires FILE}"; shift 2 ;;
+    -T) TRIAGE_POOL="${2:?-T requires N}"; shift 2 ;;
+    --no-triage) TRIAGE_POOL=1; shift ;;
     -h|--help) show_help; exit 0 ;;
     *) echo "不明なオプション: $1" >&2; show_help >&2; exit 1 ;;
   esac
 done
+
+# Jevトリアージのスクリプト位置と設定を python ブロックへ渡す
+export JEV_TRIAGE_SCRIPT="$_d/jev-triage.py"
+export JEV_TRIAGE_POOL="$TRIAGE_POOL"
 
 # 終了時刻をepoch秒に変換（JST）
 DEADLINE_EPOCH=0
@@ -229,6 +257,80 @@ def load_claims(path):
 
 session_lock_path = os.environ.get('SESSION_LOCK', '')
 session_claimed_path = os.environ.get('SESSION_CLAIMED', '')
+
+# ── 選定の優先順位 ────────────────────────────────────────────────
+#   ① 未確認（validityCheckedAt なし）を常に最優先・古い順。トリアージにかけない。
+#      未確認問題はアプリ非公開なので、公開までの時間を最短にすることが最優先。
+#      未確認だけでバッチが埋まる場合は Jev を一切呼ばない（費用も発生しない）。
+#   ② 残りは Jev でスコアリングし、「誤っている可能性が高いバンド」内で古い順。
+#      スコアをバンドに丸めるのは、連続値のままだと 0.94 と 0.93 の差で順序が決まり
+#      日付が効かなくなるため。同程度に疑わしいものの中では古いものから処理する。
+#
+# ②のプールを「古い順の上位 batch×倍率」に限定するのが要点。全体をスコア順にすると
+# 低スコアの問題が永久に選ばれない飢餓が起きるが、プールを古い順で切れば
+# 全問が必ず順番にプールへ上がってくるので、取り逃しても後日必ず処理される。
+#
+# ロックは取らずに実行する。ネットワークI/O中に flock を保持すると並列runを
+# 数十秒〜数分ブロックするため。クレームの権威的な除外はこの後のロック内で行い、
+# ここでは待ち時間を無駄にしないための事前除外にだけ claimed.json を読む。
+_triage_pool_mult = int(os.environ.get('JEV_TRIAGE_POOL', '3') or 3)
+_triage_script = os.environ.get('JEV_TRIAGE_SCRIPT', '')
+# バンド幅 0.25 = 疑わしさを5段階に区切る。Jev のスコアは非決定的（2回実行の差は
+# 中央値0.010・最大0.110）なので、細かく刻むほどノイズで順序が入れ替わるだけで
+# 日付が効かなくなる。実測でバンドが揺れる率は 0.1→17% / 0.2→12% / 0.25→4%。
+_triage_band = float(os.environ.get('JEV_TRIAGE_BAND', '0.25') or 0.25)
+
+# ① 未確認を常に先頭へ（candidates は既に古い順なので順序は保たれる）
+_unverified = [(sk, q) for sk, q in candidates if not q.get('validityCheckedAt')]
+_verified   = [(sk, q) for sk, q in candidates if q.get('validityCheckedAt')]
+candidates = _unverified + _verified
+
+_pre_claims = load_claims(session_claimed_path) if session_claimed_path else {}
+_pre_claims = {k: t for k, t in _pre_claims.items() if now_ts - t < CLAIM_TTL_SEC}
+_unclaimed_unverified = sum(1 for _, q in _unverified if q.get('questionId') not in _pre_claims)
+if _unverified:
+    sys.stderr.write(f"未確認を優先: {len(_unverified)}問（うち未クレーム {_unclaimed_unverified}問）\n")
+
+# ② 未確認でバッチが埋まらない分だけ、確認済みを Jev で並べ替える
+_slots = batch - _unclaimed_unverified
+if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
+        and _slots > 0 and len(_verified) > _slots):
+    import subprocess
+    _pool = [(sk, q) for sk, q in _verified
+             if q.get('questionId') not in _pre_claims][:_slots * _triage_pool_mult]
+    if len(_pool) > _slots:
+        try:
+            _pr = subprocess.run(
+                [sys.executable, _triage_script],
+                input=json.dumps([q for _, q in _pool]),
+                capture_output=True, text=True, timeout=240)
+            sys.stderr.write(_pr.stderr)
+            _scores = json.loads(_pr.stdout) if _pr.stdout.strip() else {}
+        except Exception as e:
+            sys.stderr.write(f"⚠️  Jevトリアージ失敗（古い順で続行）: {e}\n")
+            _scores = {}
+        if _scores:
+            # スコアを得られなかった問題は 1.0 とし、Jev の失敗で不利にならないようにする
+            # （＝「分からないものは従来どおり処理する」側に倒す）
+            _pool_ids = {q.get('questionId') for _, q in _pool}
+            _in  = [(sk, q) for sk, q in _verified if q.get('questionId') in _pool_ids]
+            _out = [(sk, q) for sk, q in _verified if q.get('questionId') not in _pool_ids]
+            # スコアをバンドに丸めて降順、同一バンド内は確認日の古い順。
+            # +1e-9 は浮動小数点対策（0.70/0.1 が 6.999… になりバンドが1つ下にずれる）。
+            def _triage_key(t):
+                sk, q = t
+                s = _scores.get(q.get('questionId'), 1.0)
+                return (-int(s / _triage_band + 1e-9), sk)
+            _in.sort(key=_triage_key)
+            candidates = _unverified + _in + _out
+            _sel = [(_scores.get(q.get('questionId'), 1.0), sk) for sk, q in _in[:_slots]]
+            sys.stderr.write(
+                f"Jevトリアージ: 確認済み{len(_pool)}問をスコア化 → 上位{min(_slots, len(_in))}問を選定"
+                f"（スコア {max(s for s, _ in _sel):.2f}〜{min(s for s, _ in _sel):.2f}"
+                f"・バンド幅{_triage_band}・同バンド内は古い順）\n")
+elif _slots <= 0:
+    sys.stderr.write("未確認だけでバッチが埋まるため Jev トリアージはスキップ（費用ゼロ）\n")
+
 if session_lock_path and session_claimed_path:
     lock_fd = open(session_lock_path, 'w')
     fcntl.flock(lock_fd, fcntl.LOCK_EX)
@@ -306,6 +408,7 @@ for q in data:
     r = subprocess.run([AWS_CMD, 'dynamodb', 'update-item',
         '--table-name', 'Questions',
         '--key', json.dumps({'questionId': {'S': q['questionId']}}),
+        '--condition-expression', 'attribute_exists(questionId)',
         '--update-expression', 'SET choices = :c, updatedAt = :u',
         '--expression-attribute-values', f'file://{af}',
         '--output', 'json'], capture_output=True, text=True)
@@ -740,6 +843,7 @@ for r in results:
         cmd = ['aws', 'dynamodb', 'update-item',
             '--table-name', 'Questions',
             '--key', json.dumps({'questionId': {'S': qid}}),
+            '--condition-expression', 'attribute_exists(questionId)',
             '--update-expression', update_expr,
             '--expression-attribute-values', json.dumps(expr_values),
         ]
@@ -761,6 +865,7 @@ for r in results:
             'aws', 'dynamodb', 'update-item',
             '--table-name', 'Questions',
             '--key', json.dumps({'questionId': {'S': qid}}),
+            '--condition-expression', 'attribute_exists(questionId)',
             '--update-expression', update_expr,
             '--expression-attribute-values', json.dumps(expr_values),
         ], capture_output=True)
