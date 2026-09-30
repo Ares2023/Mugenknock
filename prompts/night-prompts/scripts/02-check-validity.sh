@@ -74,8 +74,8 @@ usage: check-validity.sh [-n N] [-D HH:MM] [-q FILE] [-T N|--no-triage] [-h]
 
 Jevトリアージ:
   古い順の上位 残り枠×倍率 をプールにしてスコア化する。トークン律速で全問回せない
-  ため、限られた Claude 枠を欠陥密度の高い問題へ寄せる（実測 約1.6〜1.7倍）。
-  費用は 1問 $0.0008・実際に検証する1問あたり $0.0024（倍率3のとき）。
+  ため、限られた Claude 枠を欠陥密度の高い問題へ寄せる（実測 約1.7〜1.8倍）。
+  費用は 1問 $0.0003・実際に検証する1問あたり $0.0009（倍率3のとき）。
   ゲートではないのでスコアが低い問題も後日のバッチで必ず処理される。
   Jev が使えない場合は自動的に従来どおり古い順で処理する（検証は止めない）。
 
@@ -310,8 +310,18 @@ if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
             sys.stderr.write(f"⚠️  Jevトリアージ失敗（古い順で続行）: {e}\n")
             _scores = {}
         if _scores:
-            # スコアを得られなかった問題は 1.0 とし、Jev の失敗で不利にならないようにする
-            # （＝「分からないものは従来どおり処理する」側に倒す）
+            # 並べ替え用のスコア。得られなかった問題は 1.0 とし、Jev の失敗で不利にならないようにする
+            # （＝「分からないものは従来どおり処理する」側に倒す）。
+            def _sc(qid):
+                v = _scores.get(qid)
+                return float(v['score']) if isinstance(v, dict) and 'score' in v else 1.0
+            # Jev が実際に判定した問題だけ、観点別の値を _jev として問題に付ける。
+            # 後段のプロンプト生成が「どのくらい怪しいか」の参考値として Claude に渡す。
+            # _jev は DB へは書かれない（DB更新は Claude の fix の値だけを使う）。
+            for _, q in _pool:
+                v = _scores.get(q.get('questionId'))
+                if isinstance(v, dict):
+                    q['_jev'] = {k: v[k] for k in ('hint_leak',) if k in v}
             _pool_ids = {q.get('questionId') for _, q in _pool}
             _in  = [(sk, q) for sk, q in _verified if q.get('questionId') in _pool_ids]
             _out = [(sk, q) for sk, q in _verified if q.get('questionId') not in _pool_ids]
@@ -319,11 +329,10 @@ if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
             # +1e-9 は浮動小数点対策（0.70/0.1 が 6.999… になりバンドが1つ下にずれる）。
             def _triage_key(t):
                 sk, q = t
-                s = _scores.get(q.get('questionId'), 1.0)
-                return (-int(s / _triage_band + 1e-9), sk)
+                return (-int(_sc(q.get('questionId')) / _triage_band + 1e-9), sk)
             _in.sort(key=_triage_key)
             candidates = _unverified + _in + _out
-            _sel = [(_scores.get(q.get('questionId'), 1.0), sk) for sk, q in _in[:_slots]]
+            _sel = [(_sc(q.get('questionId')), sk) for sk, q in _in[:_slots]]
             sys.stderr.write(
                 f"Jevトリアージ: 確認済み{len(_pool)}問をスコア化 → 上位{min(_slots, len(_in))}問を選定"
                 f"（スコア {max(s for s, _ in _sel):.2f}〜{min(s for s, _ in _sel):.2f}"
@@ -527,6 +536,24 @@ PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです
 _extra = (os.environ.get('VALIDITY_EXTRA', '') or '').strip()
 if _extra:
     PROMPT_HEADER = PROMPT_HEADER.replace('\n\n【問題リスト】', '\n\n【追加の確認観点（監査による自動改良）】\n' + _extra + '\n\n【問題リスト】')
+# Jev 事前スコアが付いた問題がチャンクにある場合だけ、読み方の注意書きを入れる（無ければ従来と同一）。
+# 数値の根拠は jev-validity-eval.py の実測（AUC: hint_leak 0.82 / 事実誤り 0.64 / 正解の当否 0.47）。
+# 「低スコア＝問題なし」と受け取って確認を省くと、Jev が見逃す種類の欠陥（正解の誤り等）が素通りするため、
+# その誤読を防ぐ文言を入れている。
+if any(isinstance(q.get('_jev'), dict) and q.get('_jev') for q in questions):
+    _JEV_NOTE = (
+        '【Jev事前スコアの読み方】\n'
+        '一部の問題には、軽量判定モデル Jev による事前スコア（0=問題なし寄り〜1=疑わしい）が付いている。'
+        '参考情報であり、最終判断は必ずあなた自身の確認で行うこと。\n'
+        '- スコアは「選択肢の括弧補足（略語展開・定義文）によるヒント漏れ」だけを見たもの。比較的信頼できる。'
+        '高い問題は選択肢の括弧を最優先で確認する。ただし数量「（12シャード）」・参照記号「（要件①）」・'
+        '製品名の一部など正当な括弧でも高く出ることがあるので、削るかどうかはあなたが判断する。\n'
+        '- スコアが低いことは「問題なし」の保証ではない。Jev は事実誤り・正解の当否・解説のズレ・ドメインの誤りなどを'
+        '一切判定していない。【確認観点】は全問について通常どおり確認すること。\n'
+        '- スコアが高いことだけを理由に fix / delete しない。根拠をあなた自身が確認できた場合のみ行う。\n'
+        '- スコアが付いていない問題は Jev 未判定であり、問題の良し悪しとは無関係。'
+    )
+    PROMPT_HEADER = PROMPT_HEADER.replace('\n\n【問題リスト】', '\n\n' + _JEV_NOTE + '\n\n【問題リスト】')
 # B: チャンク内に実在する資格のドメイン表だけ残す（他資格の "  XXX: ..." 行を削除しトークン削減）
 import re as _re
 _chunk_exams = set(q.get('examType', '') for q in questions)
@@ -575,6 +602,11 @@ for q in questions:
         lines.append(f"ドメイン: {domain_name if domain_name else '（不明）'}")
     else:
         lines.append(f"タグ: {', '.join(tags) if tags else '（なし）'}")
+    # 小数1桁に丸める。Jev のスコアは同一入力でも最大0.1程度揺れるので、それ以上の桁は偽の精度になる。
+    _jv = q.get('_jev')
+    if isinstance(_jv, dict) and _jv:
+        if isinstance(_jv.get('hint_leak'), (int, float)):
+            lines.append(f"Jev事前スコア（0=問題なし寄り〜1=疑わしい）: 選択肢ヒント漏れ {_jv['hint_leak']:.1f}")
     lines.append("")
 print('\n'.join(lines))
 PYEOF

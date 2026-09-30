@@ -7,29 +7,36 @@ Jev のモデル更新や検証プロンプトの改訂で有効性が変わり�
 これを回して数字を取り直す。
 
 ── 2026-09-30 の測定結果（ベースライン） ────────────────────────────────
-質問ごとの AUC（positive/negative 各45件・現行ルール下のラベル）:
+質問ごとの AUC（現行ルール下のラベル。domain 補完の正例は除外。質問ごとに別コール・
+必要な state だけを渡して測定）:
 
-  hint_leak      0.901  選択肢への略語展開・定義説明の混入   → 採用
-  factual_error  0.643  解説の事実誤り                       → 採用（弱いが寄与する）
-  ce_misaligned  0.750  選択肢別解説のズレ                   → 不採用（R=0.40 で低再現）
+  hint_leak      0.82   選択肢への略語展開・定義説明の混入   → 採用（探索188件＋未見186件のプール）
+  factual_error  0.64   解説の事実誤り                       → 不採用（hint_leak に足しても改善しない）
+  ce_misaligned  0.55   選択肢別解説のズレ                   → 不採用
+  answer_wrong   0.47   正解の当否                           → 不採用（ランダム同等。n=45 の旧測定）
+  any_issue      0.43   「何か問題があるか」                  → 不採用（ランダム以下。n=45 の旧測定）
   domain_wrong   ―     下記の落とし穴を参照                  → 不採用
-  answer_wrong   0.473  正解の当否                           → 不採用（ランダム同等）
-  any_issue      0.425  「何か問題があるか」                  → 不採用（ランダム以下）
 
-  合成 max(hint_leak, factual_error) = AUC 0.763 ← triage が使う指標
+  triage は hint_leak 単独（選択肢のみ・1質問）。未見データで 0.833、費用 $0.0003/問。
+  n=45 の AUC は 95%CI が ±0.1 あり、差を語れない。比較は必ず CI つきで見ること。
 
 落とし穴（同じ轍を踏まないための記録）:
-  1. 曖昧な単一質問（any_issue）は AUC 0.425 でランダム以下。質問は必ず
+  1. 曖昧な単一質問（any_issue）は AUC 0.43 でランダム以下。質問は必ず
      「何をどう見るか」まで具体的に書き、criteria で true/false の意味を示す。
-  2. domain_wrong は当初 AUC 1.000 が出たが**ラベルリーク**。domain 修正66件のうち
-     62件は `None → int`（未設定の補完）で、Jev は「フィールドが空」を検出していた
-     だけだった。真の誤分類（int→int）に対する argmax 一致率は 85%、不一致を誤りと
-     みなすと P=0.286 で使えない。未設定の検出は Python でやるべき。
-  3. 質問ごとの AUC を「全 positive」に対して測ると別種の欠陥で希釈されて低く出る。
+  2. domain 補完の正例が評価を歪める。domain 修正の大半は `None → int`（未設定の補完）で、
+     本番のプールにはもう存在しない欠陥種。Jev には domain が見えず不当に低く出る一方、
+     決定的特徴には自明で不当に高く出る（domain_wrong は当初 AUC 1.000 のラベルリーク）。
+     既定で除外する（--include-domain-fill で戻せる）。
+  3. 質問を1コールに詰める・不要な state を渡すと希釈される（hint_leak: 選択肢のみ 0.819 /
+     2質問・全 state 0.776、差 +0.043 [+0.011, +0.075]）。本ツールは質問ごとに別コール・
+     必要な state のみで測る。（初期に見た「6質問詰め込みで 0.57」は n=20 の値で誤差が大きく、過大だった）
+  4. 質問ごとの AUC を「全 positive」に対して測ると別種の欠陥で希釈されて低く出る。
      欠陥カテゴリ別（その質問が担当する欠陥のみ）でも測ること。
-  4. negative は現行ルール確定後（CUTOFF 以降）に ok 判定されたものに限る。
+  5. negative は現行ルール確定後（CUTOFF 以降）に ok 判定されたものに限る。
      選択肢括弧ルールは 2026-08-20（コミット e5b3630）に入ったため、それ以前の
      「ok」は現行ルールでは要修正でありラベルノイズになる。
+  6. 事後に多数の候補を見て選ぶと、選択バイアスで偽の改善が見える（abbr は探索 0.68 →
+     未見 0.54）。改良案は事前に1つに固定し、未見データで現行と比較する。
 
 使い方:
   python3 jev-validity-eval.py --dump /tmp/questions_full.json          # 全質問を評価
@@ -59,9 +66,23 @@ CUTOFF = "2026-08-20"
 
 # 2026-09-30 実測のベースライン。回帰に気づけるよう並べて表示する。
 BASELINE_AUC = {
-    "hint_leak": 0.901, "factual_error": 0.643, "ce_misaligned": 0.750,
+    "hint_leak": 0.819, "factual_error": 0.644, "ce_misaligned": 0.547,
     "domain_wrong": None, "answer_wrong": 0.473, "any_issue": 0.425,
 }
+
+# 質問ごとに必要な state のキー。全部渡すと希釈されて精度が落ちる（jev-triage.py と同じ方針）。
+STATE_KEYS = {
+    "hint_leak": ["choices"],
+    "factual_error": ["question_text", "choices", "marked_correct_answers", "explanation", "per_choice_explanations"],
+    "ce_misaligned": ["question_text", "choices", "per_choice_explanations"],
+    "answer_wrong": ["question_text", "choices", "marked_correct_answers"],
+    "domain_wrong": ["certification", "question_text", "choices", "valid_domains", "assigned_domain"],
+}
+
+
+def state_for(qk, state):
+    keys = STATE_KEYS.get(qk)
+    return state if keys is None else {k: state[k] for k in keys if k in state}
 
 # ── 質問定義（構造化 instructions + criteria = Jev 公式実装の作法） ──────
 QUESTIONS = {
@@ -283,13 +304,26 @@ def metrics(labels, probs, thr):
     return dict(threshold=thr, tp=tp, fp=fp, tn=tn, fn=fn, precision=P, recall=R, f1=F)
 
 
+def boot_ci(labels, probs, B=800, seed=2):
+    """AUC の 95% ブートストラップ信頼区間。n が小さいと ±0.1 になり、差を語れない。"""
+    rnd = random.Random(seed); n = len(labels); v = []
+    for _ in range(B):
+        idx = [rnd.randrange(n) for _ in range(n)]
+        ly = [labels[i] for i in idx]
+        if 0 in ly and 1 in ly:
+            v.append(auc(ly, [probs[i] for i in idx]))
+    v.sort()
+    return (v[int(len(v) * .025)], v[int(len(v) * .975)]) if v else (0.0, 1.0)
+
+
 def naive_regex(q):
     """比較用: 選択肢に括弧補足があるか。検出はできるが修正はできない点に注意。"""
     return any(re.search(r'[（(][^）)]{2,}[）)]', str(c)) for c in (q.get("choices") or []))
 
 
-def sample_population(qs, kind=None):
-    """kind 指定時はその欠陥を持つものだけを positive にする。"""
+def sample_population(qs, kind=None, include_domain_fill=False):
+    """kind 指定時はその欠陥を持つものだけを positive にする。
+    既定では domain 未設定の補完(None→int)を含む正例を除外する（落とし穴2）。"""
     pos, neg = [], []
     for q in qs:
         if (q.get("validityCheckedAt") or "") < CUTOFF:
@@ -297,6 +331,9 @@ def sample_population(qs, kind=None):
         lg = edit_log(q)
         ch = (lg or {}).get("changes") or {}
         if lg and (lg.get("checkedAt") or "") >= CUTOFF and ch:
+            fill = isinstance(ch.get("domain"), dict) and ch["domain"].get("before") is None
+            if fill and not include_domain_fill and kind != "domain":
+                continue
             if kind is None or kind in ch:
                 pos.append((q, lg))
         elif not lg or (lg.get("checkedAt") or "") < CUTOFF:
@@ -315,6 +352,8 @@ def main():
     ap.add_argument("--compare-regex", action="store_true", help="正規表現との性能比較も出す")
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--include-domain-fill", action="store_true",
+                    help="domain 未設定の補完を含む正例も使う（既定は除外。落とし穴2）")
     ap.add_argument("--dry-run", action="store_true", help="Jev を呼ばず投入内容だけ確認")
     ap.add_argument("--output", default="", help="詳細結果の JSON 出力先")
     args = ap.parse_args()
@@ -337,7 +376,7 @@ def main():
         sys.exit("❌ 有効な質問が選択されていません")
 
     kind = MODE_KINDS.get(args.mode) if args.mode else None
-    pos, neg = sample_population(qs, kind)
+    pos, neg = sample_population(qs, kind, args.include_domain_fill)
     n = min(args.samples, len(pos), len(neg))
     print(f"母集団: positive{f'({kind})' if kind else ''} {len(pos)}件 / negative {len(neg)}件 → 各{n}件")
     if n == 0:
@@ -363,13 +402,19 @@ def main():
         return
 
     key = api_key()
-    print(f"Jev 呼び出し（{len(items)}件・{len(active)}質問/コール・並列{args.workers}）\n")
+    print(f"Jev 呼び出し（{len(items)}件×{len(active)}質問・質問ごとに別コール・並列{args.workers}）\n")
     t0 = time.time()
     results, usages, errors = [], [], []
 
     def work(it):
-        probs, usage, err = call_jev(key, build_state(it["q"]), active)
-        return it, probs, usage, err
+        # 質問ごとに別コール・必要な state のみ（本番の jev-triage.py と同じ条件で測る）
+        state = build_state(it["q"]); probs, costs, rem = {}, 0.0, None
+        for qk, qdef in active.items():
+            pr, us, err = call_jev(key, state_for(qk, state), {qk: qdef})
+            if pr is None:
+                return it, None, None, err
+            probs.update(pr); costs += us.get("cost_usd", 0); rem = us.get("credits_remaining_usd", rem)
+        return it, probs, {"cost_usd": costs, "credits_remaining_usd": rem}, None
 
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
         for it, probs, usage, err in ex.map(work, items):
@@ -391,9 +436,9 @@ def main():
 
     labels = [r["label"] for r in results]
 
-    print("\n" + "=" * 76)
-    print(f"{'質問':<16}{'AUC':>7}{'基準値':>8}{'差':>8}{'pos平均':>9}{'neg平均':>9}{'最良F1':>8}{'閾値':>7}")
-    print("-" * 76)
+    print("\n" + "=" * 86)
+    print(f"{'質問':<16}{'AUC':>7}{'95%CI':>16}{'基準値':>8}{'差':>8}{'pos平均':>9}{'neg平均':>9}{'最良F1':>8}")
+    print("-" * 86)
     THR = [i / 20 for i in range(1, 20)]
     per_q = {}
     for qk in active:
@@ -406,19 +451,20 @@ def main():
         base = BASELINE_AUC.get(qk)
         bs = f"{base:.3f}" if base is not None else "  ―  "
         ds = f"{A-base:+.3f}" if base is not None else "  ―  "
-        print(f"{qk:<16}{A:>7.3f}{bs:>8}{ds:>8}{mp:>9.3f}{mn:>9.3f}"
-              f"{best['f1']:>8.3f}{best['threshold']:>7.2f}")
-    print("=" * 76)
+        lo, hi = boot_ci(labels, probs)
+        print(f"{qk:<16}{A:>7.3f}{f'[{lo:.2f},{hi:.2f}]':>16}{bs:>8}{ds:>8}{mp:>9.3f}{mn:>9.3f}"
+              f"{best['f1']:>8.3f}")
+    print("=" * 86)
     print("※ 基準値は 2026-09-30 の測定。大きく下回ったら質問文か Jev モデルの変化を疑う")
 
-    # triage が使う合成指標
-    if {"hint_leak", "factual_error"} <= set(active):
-        comb = [max(r["probs"]["hint_leak"], r["probs"]["factual_error"]) for r in results]
-        A = auc(labels, comb)
-        print(f"\n★ triage の指標 max(hint_leak, factual_error): AUC={A:.3f}（基準 0.763）")
+    # triage が使う指標は hint_leak 単独（factual_error を足しても改善しなかった）
+    if "hint_leak" in active:
+        hl = [r["probs"]["hint_leak"] for r in results]
+        lo, hi = boot_ci(labels, hl)
+        print(f"\n★ triage の指標 hint_leak: AUC={auc(labels, hl):.3f} [{lo:.3f},{hi:.3f}]（基準 0.819）")
         print(f"{'閾値':>6}{'P':>8}{'R':>8}{'F1':>8}{'送信率':>9}")
         for t in (0.3, 0.4, 0.5, 0.6, 0.7):
-            m = metrics(labels, comb, t)
+            m = metrics(labels, hl, t)
             print(f"{t:>6.2f}{m['precision']:>8.3f}{m['recall']:>8.3f}{m['f1']:>8.3f}"
                   f"{(m['tp']+m['fp'])/len(results)*100:>8.1f}%")
 
