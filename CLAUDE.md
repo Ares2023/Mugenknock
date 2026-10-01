@@ -109,6 +109,25 @@
   「本番にリリース」「master にマージ」などの指示がない限り絶対に行わない。
 - セッション開始時に `git branch` で現在のブランチを確認し、`develop` でなければ `git checkout develop` してから作業を始める。
 
+### 検証（develop）への commit / push は自動で行ってよい（2026-10-01 確定）
+
+グローバルの「コミット/プッシュは明示指示があったときのみ」に対する、**このプロジェクトの例外**。
+実装が終わったら、ユーザーの個別指示を待たずに `develop` へ commit し、`git push github develop` してよい。
+
+**自動で行う条件（すべて満たしてから）**:
+1. 実装とローカル検証が済んでいる。`npx tsc --noEmit` が通り、UI の変更はブラウザで動作確認済み。
+2. docs の更新が要る変更は、同じコミットに docs を含めている。
+3. コミットは**自分の変更だけ**。`git diff` で中身を確認し、ファイル名を指定して add する
+   （`git add -A` / `git add <dir>` は使わない）。夜間バッチが自動更新する
+   `prompts/night-prompts/scripts/state/*.json`・`instructions/*.txt` や、他セッションの作りかけは含めない。
+4. push したら `./prompts/night-prompts/scripts/cf-deploy-status.sh wait` で
+   **自分のコミットの**ビルド成功を確認する。失敗なら原因を調べて直す（再 push も自動でよい）。
+
+**自動にしない（従来どおりユーザーの明示指示が必要）**:
+- `master` へのマージ・push（本番リリース）、`./scripts/deploy-lambda.sh prod`
+- force push、履歴の書き換え（amend・rebase）、ブランチ削除
+- このリポジトリ以外（記事プロジェクトなど）への push
+
 ### リモートリポジトリ
 
 | リモート名 | URL | 用途 |
