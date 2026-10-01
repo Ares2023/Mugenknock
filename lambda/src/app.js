@@ -45,6 +45,21 @@ function normalizeQuestion(q) {
   return { ...q, choices, correctAnswers, correctAnswerIndices };
 }
 
+// 公開の問題API(GET /questions, GET /questions/:id)で返さない、内部・運用メタデータ。
+// 出題画面は使わず、validityEditLog だけで1問あたり1.7〜2.9KB（応答の約3割）を占めていた。
+// 管理画面は /admin/questions 系から取得するので影響しない。
+// *En は英語対応の廃止後（lang は 'ja' 固定）は UI から参照されない。
+const INTERNAL_QUESTION_FIELDS = [
+  'validityEditLog', 'formatCheckedAt', 'linebreakCheckedAt', 'translationCheckedAt',
+  'sourceQuestionId', 'auditNote', 'auditFlaggedAt', 'isResolved', 'resolvedAt',
+  'questionTextEn', 'choicesEn', 'explanationEn', 'choiceExplanationsEn',
+];
+function stripInternalFields(q) {
+  const o = { ...q };
+  for (const f of INTERNAL_QUESTION_FIELDS) delete o[f];
+  return o;
+}
+
 // ── 問題書き込み用の正規化＋検証（import / update 共通） ──────────────
 // 正準キーは correctAnswerIndices。correctAnswers は choices から派生させ整合を保証する。
 // スキーマ不正は Error を投げる（呼び出し側で 400 / skip 扱い）。
@@ -531,29 +546,6 @@ app.get('/questions/growth-stats', async (req, res) => {
   }
 });
 
-// SSG用：検証済み問題を試験別に一括取得（Next.jsビルド時 / 静的ページ生成専用）
-// フィールド射影で最小限のペイロードを返し、ビルド時間を短縮する
-app.get('/questions/public', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { examType } = req.query;
-    if (!examType) return res.status(400).json({ error: 'examType required' });
-
-    // examType-index GSI + キャッシュ経由で取得（全テーブル Scan を回避）。
-    // getAllQuestionsForExam は AIP→GAI のエイリアスも解決する。
-    const FIELDS = ['questionId', 'examType', 'questionText', 'choices', 'correctAnswerIndices', 'correctAnswers', 'choiceExplanations', 'explanation', 'domain', 'isMultiple', 'validityCheckedAt', 'globalAttempts', 'globalCorrect'];
-    const all = await getAllQuestionsForExam(docClient, examType);
-    const items = all
-      .filter(q => q.validityCheckedAt)
-      .map(q => { const o = {}; for (const f of FIELDS) if (q[f] !== undefined) o[f] = q[f]; return o; });
-
-    res.json({ items, count: items.length });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
@@ -671,7 +663,7 @@ app.get('/questions', async (req, res) => {
     }
 
     const withAnswers = req.query.withAnswers === 'true';
-    const sanitized = withAnswers
+    const sanitized = (withAnswers
       ? items.map(item => {
           const n = normalizeQuestion(item);
           return { ...n, correctAnswerCount: n.correctAnswerIndices.length || 1 };
@@ -680,7 +672,8 @@ app.get('/questions', async (req, res) => {
           const { correctAnswers, explanation, explanationEn, ...rest } = item;
           const n = normalizeQuestion({ ...rest, correctAnswers: [] });
           return { ...n, correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1 };
-        });
+        })
+    ).map(stripInternalFields);
     res.json({ items: sanitized, count: sanitized.length, total });
   } catch (err) {
     console.error(err);
@@ -697,7 +690,7 @@ app.get('/questions/:id', async (req, res) => {
       Key: { questionId: req.params.id }
     }));
     if (!result.Item) return res.status(404).json({ error: 'Question not found' });
-    res.json(normalizeQuestion(result.Item));
+    res.json(stripInternalFields(normalizeQuestion(result.Item)));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
