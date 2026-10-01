@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
-import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
+import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, EXAM_LEVEL_COLORS, qDomainName, isNonAwsExam, companionLabel } from '../constants';
 import { recordSessionDomainStats, recentForTag } from '../utils/domainStats';
 import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, deleteCachedByPrefix, DEFAULT_TTL } from '../utils/cache';
@@ -16,7 +16,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
 import { ConfirmBurst } from '../components/ExamSelectOverlay';
-import { IconBookOpen, IconBean, IconCopy, IconCheck, IconCircleCheck, IconCircleX, IconHeart, IconThumbsUp, IconThumbsDown, IconMoreVertical } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconCircleCheck, IconCircleX, IconHeart, IconThumbsUp, IconThumbsDown, IconMoreVertical, IconInfinity } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -1373,8 +1373,20 @@ export default function ExerciseSession() {
       <Card padding={isMobile ? 'var(--spacing-md)' : 'var(--spacing-xl)'}>
         {/* ブックマーク(旧☆)は解説下のアクション列(♡)へ移動した */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
-          <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
+          <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
+            {/* 公式資格の演習に混ざった基礎知識資格(ML/DB/NW/SEC)の問題だけ ∞ を出す。
+                基礎知識資格そのものの演習は全問が該当して意味がないので出さない。 */}
+            {examType && isNonAwsExam(currentQuestion.examType) && currentQuestion.examType !== examType && (
+              <span
+                role="img"
+                title={`${t('exerciseSession.companionBadge')}（${companionLabel(currentQuestion.examType)}）`}
+                aria-label={`${t('exerciseSession.companionBadge')}（${companionLabel(currentQuestion.examType)}）`}
+                style={{ display: 'inline-flex', color: EXAM_LEVEL_COLORS[EXAM_LEVEL[currentQuestion.examType]] ?? 'var(--color-primary)' }}
+              >
+                <IconInfinity size={22} />
+              </span>
+            )}
           </h1>
         </div>
 
