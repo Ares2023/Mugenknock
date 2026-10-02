@@ -135,6 +135,23 @@ audit-questions         監査。事実誤りではない指摘（易しすぎ�
 体裁は 09（Haiku）が担当。ただし**選択肢長（正解が最長にならないようにする）のルールは継続**。
 この方針は自動改良（audit の `-i`）で崩されないよう明示されている。
 
+### 夜間スクリプトの MCP（`--strict-mcp-config`）
+
+夜間バッチ・hook から呼ぶ `claude -p`（16ファイル・30箇所）は、すべて `--strict-mcp-config` を付けている。
+付けないと、ユーザー/ローカルスコープの MCP（Playwright・Context7・AWS Docs）と claude.ai コネクタ
+（Gmail・Drive・Calendar・Notion）に、起動のたびに接続する（最大2.3秒）。さらに `--tools` を指定しない
+スクリプト（翻訳・体裁・リリースノート等）では、**MCP ツールがモデルに渡り、呼べる状態になる**（実測）。
+
+AWS の最新情報を引くスクリプト（02検証・監査・サービスカタログ更新・日次レポート）だけ、
+`prompts/night-prompts/scripts/mcp-aws-docs.json` の AWS ドキュメント MCP を許可している。
+詳細な書式と、`ToolSearch` が必須な理由は CLAUDE.md の「MCP: 全ての `claude -p` に
+`--strict-mcp-config` を付ける」。02 の検証プロンプトにも、WebFetch と並べて MCP の案内がある
+（確認は合わせてチャンクあたり最大2回の上限は維持）。
+
+**権限を絞った設計は保たれている**ことを、`--tools WebFetch,ToolSearch` の構成で実測した:
+Bash は動かず（ファイルが作られない）、Read で秘密ファイルを読ませても `NO_READ`、
+Playwright・Notion・Gmail 等は存在しない（`NONE`）。
+
 ### 検証（02）の構造チェックは Python（Claude に見させない）
 
 「正解と選択肢の完全一致」「isMultiple の整合」「選択肢別解説の件数」は、**前処理（Python）で

@@ -945,7 +945,7 @@ PYEOF
         echo "  ❌ API エラー (HTTP $_http_code): $_http_body"
       fi
 
-    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
+    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" --strict-mcp-config -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
 
     # 529 Overloaded かつ このチャンクでまだ1問も取れていない → 最大3回リトライ（60秒待機）。
     # deadline を過ぎている場合はリトライせず打ち切る（トークン回復後まで走らせない）。

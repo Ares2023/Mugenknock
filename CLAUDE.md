@@ -428,6 +428,36 @@ AWS 資格が前提とする **AWS 外の土台知識**を補う独自演習（A
 - 対象は `prompts/night-scripts.list` に載るスクリプトだけでなく、`prompts/run-prompts.sh`
   の ping・texts/ 実行、`scripts/local-hook-run.sh` 等から呼ばれる経路もすべて含む。
 
+### MCP: 全ての `claude -p` に `--strict-mcp-config` を付ける（2026-10-02 確定）
+
+**`claude` を呼ぶ箇所は、`--model` と同様に `--strict-mcp-config` も必ず付ける。**
+
+- ユーザー/ローカルスコープに登録した MCP（Playwright・Context7・AWS Docs）や、claude.ai の
+  コネクタ（Gmail・Drive・Calendar・Notion）は、**`claude -p` 起動のたびに接続される**
+  （最大2.3秒かかり、外部サービスへも接続する）。付けないと夜間バッチが毎回これを巻き込む。
+- **`--tools` を指定しない起動では、MCP ツールがモデルに渡る**（実測）。つまり Playwright や
+  Gmail 等をモデルが呼べる状態になる。`--tools WebFetch` / `--tools ""` では渡らないが、
+  これは今の実装の挙動で、仕様としては保証されないので、明示的に塞ぐ。
+- `--tools ""`（通報チェック・生成・日めくり）は「ツール権限ゼロ」が設計の意図。
+  `--strict-mcp-config` を足して、MCP も含めて何も使えないことを明示的に保証する。
+
+**AWS の最新情報を引けるスクリプト**（すでに WebFetch で調べているもの。02検証・監査・
+サービスカタログ更新・日次レポートの2箇所）だけ、AWS ドキュメント MCP を許可する:
+
+```bash
+--tools WebFetch,ToolSearch --allowed-tools WebFetch,mcp__aws-docs \
+  --strict-mcp-config --mcp-config /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/mcp-aws-docs.json
+```
+
+- **`ToolSearch` を `--tools` に含めるのが必須。** MCP ツールは遅延ロードで、ToolSearch が無いと
+  `--allowed-tools` に書いても渡らない（実測。`--tools WebFetch` のままだと呼べなかった）。
+  使わない呼び出しの基本コストはほぼ増えない（17,413→17,495トークン）。引いたときは3ターン約5.6万トークン。
+- 組み込みツールは `WebFetch` と `ToolSearch` だけのまま。Bash・Read・他の MCP が使えないことを実測済み。
+- 設定ファイルは `uvx` を絶対パスで指定し、バージョンを固定している（`@1.2.2`）。hook の PATH に
+  `~/.local/bin` が無いこと、起動のたびに最新コードが自動実行されるのを避けるため。
+- 生成（01）・日めくり（04/05）・通報チェック（03）は `--tools ""`（ツールなし）が設計なので、
+  AWS Docs も付けない。
+
 ## 複数セッション・並行作業時の注意
 
 **このリポジトリは複数の Claude Code セッションが同時に作業していることがある。**
