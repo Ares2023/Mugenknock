@@ -380,9 +380,11 @@ Cloudflare Pages 上でも**1.5〜2分**（直近10回の実測 84〜137秒。cl
 
 無フィルタ（ブックマーク/不正解/未回答フィルタなし）の通常演習のドメイン配分は、**deficit round-robin（累積是正）を維持する**。
 
-- 実装: `lambda/src/app.js` の `domainBalancedOrder` / `selectionOrder`（`answeredPerDomain` を使う）。
+- 実装: `lambda/src/selection.js` の `domainBalancedOrder` / `selectionOrder`（`answeredPerDomain` を使う）。
 - ログインユーザーは「過去回答が少ないドメインを優先」して累積の偏りを是正する。
 - **1セッション内で特定ドメインが多くなる / 0問になるのは許容する**（「各ドメイン最低1問保証」は検討のうえ不採用）。
+- 基礎知識(companion)が混ざるときは、公式と基礎知識を**問題数比でランダムに混ぜ**、各側の内部で deficit round-robin を維持する
+  （実装は `lambda/src/selection.js`、specs/005）。フィルタ時も同じ。「公式を先に使い切る」は廃止。
 
 ## チートシートの用語は別名を併記する
 

@@ -2130,22 +2130,9 @@ export default function Home() {
         if (q.examType === targetExam) w += domainDeficit(qDomainName(q)) * W_DOMAIN;
         return w;
       };
-      // フィルタ（回答状況 or ブックマーク）が有効なときは、対象資格(targetExam)の問題を
-      // 抽出し尽くしてから、不足分だけ前提知識(companion)の問題で補う（specs/004）。
-      // フィルタ無しの通常抽出は従来通り target/companion を均等に混ぜる
-      // （specs/003-original-exam-blendの「基礎知識を含める」本来の目的を維持）。
-      const hasActiveFilter = focusPriority !== 'none' || focusBookmark;
-      let items: any[];
-      if (hasActiveFilter && COMPANION_EXAM[targetExam]) {
-        const targetPool = pool.filter((q: any) => q.examType === targetExam);
-        const companionPool = pool.filter((q: any) => q.examType !== targetExam);
-        items = weightedSampleWithoutReplacement(targetPool, focusWeightFn, count);
-        if (items.length < count && companionPool.length > 0) {
-          items = items.concat(weightedSampleWithoutReplacement(companionPool, focusWeightFn, count - items.length));
-        }
-      } else {
-        items = weightedSampleWithoutReplacement(pool, focusWeightFn, count);
-      }
+      // 公式と前提知識(companion)は同じプールで重み付き抽出する（specs/005）。
+      // フィルタ有効時に公式を先に使い切る処理（specs/004）は廃止した。
+      const items: any[] = weightedSampleWithoutReplacement(pool, focusWeightFn, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       setFocusedLoadPct(90);
       const questionIds = items.map((q: any) => q.questionId);

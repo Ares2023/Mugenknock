@@ -74,7 +74,9 @@
 1. `bookmarkOnly` / `unansweredOnly` / `incorrectOnly` が指定されていれば、
    一致数（0〜3）をスコアとする階層に分ける（**フィルタ一致が先頭**）
 2. 各階層の中で `domainBalancedOrder` によるドメイン均等化（deficit round-robin）
-3. フィルタ無しなら純粋にドメイン均等化のみ
+   - `includeCompanion` で基礎知識が混ざる場合は、公式と基礎知識を**問題数比でランダムに混ぜる**
+     （各側の内部はドメイン均等化。フィルタ時も同じ。→ [06 §6.2](06-exercise-logic.md)、specs/005）
+3. フィルタ無しなら純粋にドメイン均等化のみ（基礎知識が混ざる場合は上記のランダム混在）
 
 ### `GET /questions/:id`
 
