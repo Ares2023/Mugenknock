@@ -45,6 +45,21 @@ function normalizeQuestion(q) {
   return { ...q, choices, correctAnswers, correctAnswerIndices };
 }
 
+// 公開の問題API(GET /questions, GET /questions/:id)で返さない、内部・運用メタデータ。
+// 出題画面は使わず、validityEditLog だけで1問あたり1.7〜2.9KB（応答の約3割）を占めていた。
+// 管理画面は /admin/questions 系から取得するので影響しない。
+// *En は英語対応の廃止後（lang は 'ja' 固定）は UI から参照されない。
+const INTERNAL_QUESTION_FIELDS = [
+  'validityEditLog', 'formatCheckedAt', 'linebreakCheckedAt', 'translationCheckedAt',
+  'sourceQuestionId', 'auditNote', 'auditFlaggedAt', 'isResolved', 'resolvedAt',
+  'questionTextEn', 'choicesEn', 'explanationEn', 'choiceExplanationsEn',
+];
+function stripInternalFields(q) {
+  const o = { ...q };
+  for (const f of INTERNAL_QUESTION_FIELDS) delete o[f];
+  return o;
+}
+
 // ── 問題書き込み用の正規化＋検証（import / update 共通） ──────────────
 // 正準キーは correctAnswerIndices。correctAnswers は choices から派生させ整合を保証する。
 // スキーマ不正は Error を投げる（呼び出し側で 400 / skip 扱い）。
@@ -258,87 +273,9 @@ async function requireUser(req, res, next) {
 }
 app.use('/users/me', requireUser);
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-// ドメインのバケットキー。examType を含めた複合キーにすることで、公式資格と
-// companion(オリジナル資格)の問題を混在させたとき（includeCompanion）に、
-// 別体系のドメインインデックスが同じ数値というだけで誤って同一バケット扱いに
-// なるのを防ぐ。単一examTypeのみの呼び出し（従来の全呼び出し）では常に同じ
-// examTypeが入るため、挙動は変わらない安全な一般化。
-function domainBucketKey(q) {
-  return `${q.examType || ''}:${q.domain == null ? -1 : q.domain}`;
-}
-
-// ドメイン均等化: 「ユーザーの既回答数 + 本選定での選出数」が最小のドメインから1問ずつ拾う
-// （deficit round-robin）。回答が少ないドメインほど優先され、出題が特定ドメインに偏らない。
-// answeredPerDomain: { domainBucketKey: 既回答数 }。ゲスト等で空なら全0＝均等割り。
-function domainBalancedOrder(items, answeredPerDomain) {
-  const buckets = new Map();
-  for (const q of items) {
-    const d = domainBucketKey(q);
-    if (!buckets.has(d)) buckets.set(d, []);
-    buckets.get(d).push(q);
-  }
-  for (const arr of buckets.values()) shuffle(arr);
-  const running = {};
-  for (const d of buckets.keys()) running[d] = (answeredPerDomain && answeredPerDomain[d]) || 0;
-  const result = [];
-  while (result.length < items.length) {
-    let bestD = null, best = Infinity;
-    for (const [d, arr] of buckets) {
-      if (arr.length === 0) continue;
-      if (running[d] < best) { best = running[d]; bestD = d; }
-    }
-    if (bestD === null) break;
-    result.push(buckets.get(bestD).shift());
-    running[bestD] += 1;
-  }
-  return result;
-}
-
-// フィルタ優先（matching を先頭）を保ちつつ、各スコア階層の中でドメイン均等化する。
-// scoreFn が無ければ純粋にドメイン均等化。
-//
-// targetExam が渡され、かつ scoreFn がある（＝フィルタが有効な）場合は、各スコア階層の中を
-// さらに「対象資格(targetExam)の問題」→「前提知識(companion)の問題」の2段に分けて、
-// 対象資格側を出題し尽くしてから companion 側で不足分を埋める（specs/004）。
-// フィルタが無い（無条件の通常演習）場合は対象外＝従来通り両者を均等に混ぜる
-// （specs/003-original-exam-blend の「基礎知識を含める」本来の目的を維持するため）。
-function selectionOrder(items, answeredPerDomain, scoreFn, targetExam) {
-  if (!scoreFn) return domainBalancedOrder(items, answeredPerDomain);
-  const tiers = new Map();
-  for (const q of items) {
-    const s = scoreFn(q);
-    if (!tiers.has(s)) tiers.set(s, []);
-    tiers.get(s).push(q);
-  }
-  const out = [];
-  for (const s of [...tiers.keys()].sort((a, b) => b - a)) {
-    out.push(...domainBalancedOrderWithCompanionPriority(tiers.get(s), answeredPerDomain, targetExam));
-  }
-  return out;
-}
-
-// domainBalancedOrder のラッパー: targetExam が指定されていれば、対象資格の問題を
-// 先に domainBalancedOrder した結果 → companion(前提知識)の問題を domainBalancedOrder した
-// 結果、の順で連結する。companion 側の問題が0件（混在なし）なら従来と同じ単発呼び出しに
-// 短絡し、挙動は変わらない。
-function domainBalancedOrderWithCompanionPriority(items, answeredPerDomain, targetExam) {
-  if (!targetExam) return domainBalancedOrder(items, answeredPerDomain);
-  const targetItems = items.filter(q => q.examType === targetExam);
-  const companionItems = items.filter(q => q.examType !== targetExam);
-  if (companionItems.length === 0) return domainBalancedOrder(targetItems, answeredPerDomain);
-  return [
-    ...domainBalancedOrder(targetItems, answeredPerDomain),
-    ...domainBalancedOrder(companionItems, answeredPerDomain),
-  ];
-}
+// 出題順の決定ロジックは lambda/src/selection.js（依存ゼロ・単体テストあり）。
+// ドメイン均等化・公式資格と基礎知識資格の混在（specs/003・005）。docs/06-exercise-logic.md §6.2
+const { shuffle, domainBucketKey, selectionOrder } = require('./selection');
 
 async function scanAll(docClient, params) {
   const items = [];
@@ -531,29 +468,6 @@ app.get('/questions/growth-stats', async (req, res) => {
   }
 });
 
-// SSG用：検証済み問題を試験別に一括取得（Next.jsビルド時 / 静的ページ生成専用）
-// フィールド射影で最小限のペイロードを返し、ビルド時間を短縮する
-app.get('/questions/public', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { examType } = req.query;
-    if (!examType) return res.status(400).json({ error: 'examType required' });
-
-    // examType-index GSI + キャッシュ経由で取得（全テーブル Scan を回避）。
-    // getAllQuestionsForExam は AIP→GAI のエイリアスも解決する。
-    const FIELDS = ['questionId', 'examType', 'questionText', 'choices', 'correctAnswerIndices', 'correctAnswers', 'choiceExplanations', 'explanation', 'domain', 'isMultiple', 'validityCheckedAt', 'globalAttempts', 'globalCorrect'];
-    const all = await getAllQuestionsForExam(docClient, examType);
-    const items = all
-      .filter(q => q.validityCheckedAt)
-      .map(q => { const o = {}; for (const f of FIELDS) if (q[f] !== undefined) o[f] = q[f]; return o; });
-
-    res.json({ items, count: items.length });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
@@ -671,7 +585,7 @@ app.get('/questions', async (req, res) => {
     }
 
     const withAnswers = req.query.withAnswers === 'true';
-    const sanitized = withAnswers
+    const sanitized = (withAnswers
       ? items.map(item => {
           const n = normalizeQuestion(item);
           return { ...n, correctAnswerCount: n.correctAnswerIndices.length || 1 };
@@ -680,7 +594,8 @@ app.get('/questions', async (req, res) => {
           const { correctAnswers, explanation, explanationEn, ...rest } = item;
           const n = normalizeQuestion({ ...rest, correctAnswers: [] });
           return { ...n, correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1 };
-        });
+        })
+    ).map(stripInternalFields);
     res.json({ items: sanitized, count: sanitized.length, total });
   } catch (err) {
     console.error(err);
@@ -697,7 +612,7 @@ app.get('/questions/:id', async (req, res) => {
       Key: { questionId: req.params.id }
     }));
     if (!result.Item) return res.status(404).json({ error: 'Question not found' });
-    res.json(normalizeQuestion(result.Item));
+    res.json(stripInternalFields(normalizeQuestion(result.Item)));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

@@ -61,19 +61,26 @@
 
 `withAnswers` 無しの場合も `correctAnswerCount`（正解の個数）は返る（UI が「2つ選べ」を出すため）。
 
+**返さないフィールド**（`GET /questions` と `GET /questions/:id` 共通・`stripInternalFields`）:
+`validityEditLog` `formatCheckedAt` `linebreakCheckedAt` `translationCheckedAt` `sourceQuestionId`
+`auditNote` `auditFlaggedAt` `isResolved` `resolvedAt` `questionTextEn` `choicesEn` `explanationEn`
+`choiceExplanationsEn`。内部・運用メタデータで、出題画面は使わない。とくに `validityEditLog`
+（検証での修正前後の全文）は1問あたり1.7〜2.9KB あり、除去前は応答の約3割を占めていた。
+`*En` は英語対応の廃止後（`lang` は `'ja'` 固定）に参照されない。管理画面は `/admin/questions` 系
+から取得するので影響しない。新しい内部フィールドを DB に足したら、`INTERNAL_QUESTION_FIELDS`
+（`lambda/src/app.js`）にも足すこと（足さないと公開 API にそのまま出る）。
+
 **`idsOnly` の並び順**（重要 → [06-exercise-logic.md](06-exercise-logic.md)）:
 1. `bookmarkOnly` / `unansweredOnly` / `incorrectOnly` が指定されていれば、
    一致数（0〜3）をスコアとする階層に分ける（**フィルタ一致が先頭**）
 2. 各階層の中で `domainBalancedOrder` によるドメイン均等化（deficit round-robin）
-3. フィルタ無しなら純粋にドメイン均等化のみ
+   - `includeCompanion` で基礎知識が混ざる場合は、公式と基礎知識を**問題数比でランダムに混ぜる**
+     （各側の内部はドメイン均等化。フィルタ時も同じ。→ [06 §6.2](06-exercise-logic.md)、specs/005）
+3. フィルタ無しなら純粋にドメイン均等化のみ（基礎知識が混ざる場合は上記のランダム混在）
 
 ### `GET /questions/:id`
 
 問題1件。ラベル接頭辞を除去して返す（`normalizeQuestion`）。404 あり。
-
-### `GET /questions/public?examType=`
-
-**Next.js のビルド時（SSG）専用。** 検証済み問題を射影付きで一括返却。
 
 ### `GET /questions/growth-stats`
 

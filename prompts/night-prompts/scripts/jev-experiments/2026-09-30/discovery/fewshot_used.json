@@ -1,0 +1,13 @@
+{
+ "defects": [
+  "AWS Backup の保持ルールで7年を設定し、IAM 権限境界（Permissions Boundary）で管理者ロールのバックアップ削除権限を制限する",
+  "ワークフローAにBedrock Agents（動的オーケストレーション）、ワークフローBにAmazon Bedrock Flows（決定論的パイプライン）を使用する",
+  "Amazon DynamoDB グローバルテーブル（Global Tables）を使用してショッピングカートデータをマルチリージョンでアクティブ/アクティブレプリケーションする",
+  "userIdをパーティションキーとしたGSI（グローバルセカンダリインデックス）を作成し、そのGSIに対してQueryを実行する"
+ ],
+ "oks": [
+  "AWS X-Ray を有効化してサービスマップ（Service Map）を生成し、各コンポーネントのレイテンシー分布とエラー率を可視化してボトルネックを特定する",
+  "`region.internal` のNSレコードとns1・ns2のAAAAレコード（IPv6アドレスのみ）を親ゾーン `internal` に設定する",
+  "Amazon Redshift（timestamp カラムを Sort Key に設定）"
+ ]
+}

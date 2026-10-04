@@ -764,7 +764,7 @@ PYEOF
         _ping_bin=$( { [ -x /usr/local/bin/claude ] && echo /usr/local/bin/claude; } || command -v claude 2>/dev/null )
         # 夜間バッチ本体（sonnet/opus）のセッション可用性を確認するのが目的のため、
         # 別モデル(haiku等)の枠を見てしまわないよう本体と同じ sonnet を明示する。
-        _ping_out=$("${_ping_bin:-claude}" --dangerously-skip-permissions -p "." --model sonnet --output-format json 2>&1)
+        _ping_out=$("${_ping_bin:-claude}" --strict-mcp-config --dangerously-skip-permissions -p "." --model sonnet --output-format json 2>&1)
         _ping_ec=$?
         local _ping_s=$(( $(date +%s) - _pt0 ))
         printf "  → %ds\n" "$_ping_s"

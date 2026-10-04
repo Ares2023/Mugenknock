@@ -2269,7 +2269,10 @@ export default function Admin() {
               const hasIndices = Array.isArray(q.correctAnswerIndices) && q.correctAnswerIndices.length > 0;
               const hasAnswers = Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0;
               if (!hasIndices && !hasAnswers) throw new Error('correctAnswerIndices または correctAnswers が必要です');
-              if (!q.domain) throw new Error(`domain が未設定の問題があります（questionText: ${String(q.questionText ?? '').slice(0, 30)}…）`);
+              // 0 は有効な domain インデックス（バックエンドの qDomainIndex は数値も受ける）ため
+              // falsy 判定にしない。未設定（null/undefined/空文字）だけを弾く。
+              const domainRaw: unknown = q.domain;
+              if (domainRaw == null || domainRaw === '') throw new Error(`domain が未設定の問題があります（questionText: ${String(q.questionText ?? '').slice(0, 30)}…）`);
             }
             setImportParsed(parsed);
             const mismatched = [...new Set(

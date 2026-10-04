@@ -169,6 +169,18 @@ GET /questions?ids=<1問目>&withAnswers=true
 
 state が無ければ `localStorage` のドラフトから復元。それも無ければ `/aws/` へ戻る。
 
+### 見出し「問題 N」の∞バッジ
+
+公式資格の演習（例: MLA）には、既定で基礎知識資格（ML/DB/NW/SEC）の問題が混ざる
+（[06-exercise-logic.md](06-exercise-logic.md) §6.1）。解いている最中にどちらの資格の問題か
+分かるよう、**基礎知識資格の問題のときだけ**「問題 N」の右に∞アイコン（`IconInfinity`）を出す。
+
+- 条件: `isNonAwsExam(問題.examType) && 問題.examType !== 演習の資格`
+- **基礎知識資格そのものの演習（ML を解いているとき）は出さない。** 全問が該当して意味がないため
+- 色は資格カードと同じ `EXAM_LEVEL_COLORS[EXAM_LEVEL[examType]]`（Additional = ティール）
+- `title` / `aria-label` に「基礎知識資格の問題（機械学習）」。モバイルではタップしても title は出ない
+- デスクトップ・モバイル共通（分岐なし）
+
 ### プログレッシブロード
 
 ```

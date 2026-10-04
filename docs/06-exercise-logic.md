@@ -89,18 +89,38 @@ scoreFn(q) = (bookmarkOnly && bookmarked ? 1 : 0)
 
 1. scoreFn の値で階層（tier）に分ける
 2. スコアが高い階層から順に出力
-3. 各階層の中で domainBalancedOrder を適用
+3. 各階層の中で companionMixedOrder を適用（下記「公式と基礎知識の混ぜ方」）
 ```
 
 つまり**フィルタ一致が最優先、その中でドメイン均等化**という2段構成。
 「未正解（未回答 or 不正解）」は `unansweredOnly` と `incorrectOnly` の**両方を立てる**ことで、
 scoreFn の加算により和集合として機能する。
 
+### 公式と基礎知識の混ぜ方（`companionMixedOrder`、specs/005）
+
+`includeCompanion` で基礎知識(companion)が混ざるとき、公式と基礎知識は**1問ごとに、残り問題数に比例した確率で
+ランダムに**選ぶ（`interleaveByPool`）。
+
+```
+P(基礎知識を取る) = 基礎知識の残り / (公式の残り + 基礎知識の残り)
+```
+
+- 期待される基礎知識の割合はプール（フィルタ時は階層）の問題数比と一致する
+  （例: MLA は公式314・基礎166 → 平均 約35%）。試行ごとにばらつき、先頭がどちらかも毎回ランダム
+- **フィルタ有効時も同じ**。各スコア階層の中で、その階層の問題数比で混ぜる
+  （specs/004 の「公式を先に使い切ってから基礎知識で埋める」は廃止）
+- 各側の内部は従来どおり `domainBalancedOrder`（deficit round-robin）で並べ、相対順序を保つ
+- 片側が空（基礎知識が混ざらない資格・階層）なら従来と同じ単発の `domainBalancedOrder`
+- しっかり対策（`Home.tsx` の `startFocusedExercise`）は、フロントで公式と基礎知識を**同じプールから重み付き抽出**する
+  （フィルタ有効時に公式を先に抽出する分岐は廃止）
+- 旧実装は、バケット（ドメイン）数が公式側4・基礎側6のとき同値が公式優先で解決され、
+  先頭が `MLA 20%/60%`（固定）になっていた。テスト: `lambda/test/selection.test.js`（`node --test lambda/test/`）
+
 ### 実装が2箇所にある
 
 | 場所 | 使われるフロー |
 |---|---|
-| `lambda/src/app.js` の `domainBalancedOrder` / `selectionOrder` | `GET /questions?idsOnly=true` — サクッと演習・演習・模試 |
+| `lambda/src/selection.js` の `domainBalancedOrder` / `selectionOrder`（`app.js` が require） | `GET /questions?idsOnly=true` — サクッと演習・演習・模試 |
 | `src/utils/domainBalance.ts` の `domainBalancedOrder` | `idsOnly` を通らないフォールバック経路 |
 
 **片方だけ直すと挙動が食い違う。** → [08-refactor-plan.md](08-refactor-plan.md) の Dup-1

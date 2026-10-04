@@ -185,6 +185,7 @@ export const ja: Translations = {
 
   // ── ExerciseSession ──
   'exerciseSession.qLabel': '問題',
+  'exerciseSession.companionBadge': '基礎知識資格の問題',
   'exerciseSession.totalQ': '全 {n} 問',
   'exerciseSession.multiple': '複数選択',
   'exerciseSession.choices': '選択肢',

@@ -1,0 +1,2188 @@
+[
+  {
+    "stored": 0,
+    "truth": 1,
+    "group": "fixed",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.1,
+      "d1": 0.35,
+      "d2": 0.22,
+      "d3": 0.43
+    },
+    "pred": 3,
+    "pred_p": 0.43,
+    "second": 1,
+    "second_p": 0.35,
+    "usage": {
+      "input_tokens": 1719,
+      "output_tokens": 72,
+      "cost_usd": 0.000722,
+      "credits_remaining_usd": 9.7394
+    },
+    "qid": "aib-fd0b336b"
+  },
+  {
+    "stored": 3,
+    "truth": 0,
+    "group": "fixed",
+    "doms": [
+      "AI/MLの基礎概念",
+      "データ準備・特徴量エンジニアリング",
+      "モデル学習と最適化",
+      "モデル評価と指標",
+      "生成AI・基盤モデル",
+      "責任あるAI・運用"
+    ],
+    "probs": {
+      "d0": 0.88,
+      "d1": 0.04,
+      "d2": 0.25,
+      "d3": 0.03,
+      "d4": 0.02,
+      "d5": 0.03
+    },
+    "pred": 0,
+    "pred_p": 0.88,
+    "second": 2,
+    "second_p": 0.25,
+    "usage": {
+      "input_tokens": 1817,
+      "output_tokens": 106,
+      "cost_usd": 0.000764,
+      "credits_remaining_usd": 9.739025
+    },
+    "qid": "ml-e81673e6"
+  },
+  {
+    "stored": 1,
+    "truth": 3,
+    "group": "fixed",
+    "doms": [
+      "AI/MLの基礎概念",
+      "データ準備・特徴量エンジニアリング",
+      "モデル学習と最適化",
+      "モデル評価と指標",
+      "生成AI・基盤モデル",
+      "責任あるAI・運用"
+    ],
+    "probs": {
+      "d0": 0.46,
+      "d1": 0.04,
+      "d2": 0.24,
+      "d3": 0.63,
+      "d4": 0.02,
+      "d5": 0.03
+    },
+    "pred": 3,
+    "pred_p": 0.63,
+    "second": 0,
+    "second_p": 0.46,
+    "usage": {
+      "input_tokens": 1851,
+      "output_tokens": 106,
+      "cost_usd": 0.000778,
+      "credits_remaining_usd": 9.737865
+    },
+    "qid": "ml-5b2587e3"
+  },
+  {
+    "stored": 3,
+    "truth": 5,
+    "group": "fixed",
+    "doms": [
+      "AI/MLの基礎概念",
+      "データ準備・特徴量エンジニアリング",
+      "モデル学習と最適化",
+      "モデル評価と指標",
+      "生成AI・基盤モデル",
+      "責任あるAI・運用"
+    ],
+    "probs": {
+      "d4": 0.01,
+      "d5": 0.89,
+      "d0": 0.06,
+      "d1": 0.34,
+      "d2": 0.04,
+      "d3": 0.09
+    },
+    "pred": 5,
+    "pred_p": 0.89,
+    "second": 1,
+    "second_p": 0.34,
+    "usage": {
+      "input_tokens": 2002,
+      "output_tokens": 106,
+      "cost_usd": 0.000841,
+      "credits_remaining_usd": 9.738223
+    },
+    "qid": "ml-e3fa1832"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "セキュアなアーキテクチャの設計",
+      "弾力性に優れたアーキテクチャの設計",
+      "高性能なアーキテクチャの設計",
+      "コスト最適化されたアーキテクチャの設計"
+    ],
+    "probs": {
+      "d0": 0.83,
+      "d1": 0.12,
+      "d2": 0.05,
+      "d3": 0.03
+    },
+    "pred": 0,
+    "pred_p": 0.83,
+    "second": 1,
+    "second_p": 0.12,
+    "usage": {
+      "input_tokens": 1735,
+      "output_tokens": 72,
+      "cost_usd": 0.000729,
+      "credits_remaining_usd": 9.738658
+    },
+    "qid": "saa-1d9714dc"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.03,
+      "d1": 0.18,
+      "d2": 0.9,
+      "d3": 0.34
+    },
+    "pred": 2,
+    "pred_p": 0.9,
+    "second": 3,
+    "second_p": 0.34,
+    "usage": {
+      "input_tokens": 1740,
+      "output_tokens": 72,
+      "cost_usd": 0.000731,
+      "credits_remaining_usd": 9.739711
+    },
+    "qid": "aib-198ba50e"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "doms": [
+      "AI/MLの基礎概念",
+      "データ準備・特徴量エンジニアリング",
+      "モデル学習と最適化",
+      "モデル評価と指標",
+      "生成AI・基盤モデル",
+      "責任あるAI・運用"
+    ],
+    "probs": {
+      "d0": 0.03,
+      "d1": 0.01,
+      "d2": 0.02,
+      "d3": 0.03,
+      "d4": 0.02,
+      "d5": 0.98
+    },
+    "pred": 5,
+    "pred_p": 0.98,
+    "second": 3,
+    "second_p": 0.03,
+    "usage": {
+      "input_tokens": 1977,
+      "output_tokens": 106,
+      "cost_usd": 0.000831,
+      "credits_remaining_usd": 9.735046
+    },
+    "qid": "ml-c4185dda"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "doms": [
+      "リレーショナル設計・正規化",
+      "SQL・クエリ",
+      "インデックスと性能",
+      "トランザクション・整合性",
+      "データモデリング・分析基盤",
+      "データ処理方式・品質"
+    ],
+    "probs": {
+      "d0": 0.03,
+      "d1": 0.05,
+      "d2": 0.14,
+      "d3": 0.23,
+      "d4": 0.45,
+      "d5": 0.77
+    },
+    "pred": 5,
+    "pred_p": 0.77,
+    "second": 4,
+    "second_p": 0.45,
+    "usage": {
+      "input_tokens": 1907,
+      "output_tokens": 106,
+      "cost_usd": 0.000801,
+      "credits_remaining_usd": 9.734655
+    },
+    "qid": "db-24d2f5fd"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "検出",
+      "インシデント対応",
+      "インフラストラクチャのセキュリティ",
+      "アイデンティティとアクセス管理",
+      "データ保護",
+      "セキュリティの基盤とガバナンス"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.02,
+      "d2": 0.08,
+      "d3": 0.96,
+      "d4": 0.02,
+      "d5": 0.15
+    },
+    "pred": 3,
+    "pred_p": 0.96,
+    "second": 5,
+    "second_p": 0.15,
+    "usage": {
+      "input_tokens": 2290,
+      "output_tokens": 106,
+      "cost_usd": 0.000962,
+      "credits_remaining_usd": 9.733283
+    },
+    "qid": "scs-96cff29a"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "セキュアなアーキテクチャの設計",
+      "弾力性に優れたアーキテクチャの設計",
+      "高性能なアーキテクチャの設計",
+      "コスト最適化されたアーキテクチャの設計"
+    ],
+    "probs": {
+      "d0": 0.04,
+      "d1": 0.3,
+      "d2": 0.34,
+      "d3": 0.16
+    },
+    "pred": 2,
+    "pred_p": 0.34,
+    "second": 1,
+    "second_p": 0.3,
+    "usage": {
+      "input_tokens": 1608,
+      "output_tokens": 72,
+      "cost_usd": 0.000676,
+      "credits_remaining_usd": 9.732436
+    },
+    "qid": "saa-d0ecf277"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "ネットワーク設計",
+      "ネットワーク実装",
+      "ネットワーク管理と運用",
+      "ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+    ],
+    "probs": {
+      "d0": 0.59,
+      "d1": 0.82,
+      "d2": 0.19,
+      "d3": 0.04
+    },
+    "pred": 1,
+    "pred_p": 0.82,
+    "second": 0,
+    "second_p": 0.59,
+    "usage": {
+      "input_tokens": 2001,
+      "output_tokens": 72,
+      "cost_usd": 0.000841,
+      "credits_remaining_usd": 9.732943
+    },
+    "qid": "ans-337c0611"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "AWSのサービスを使用した開発",
+      "セキュリティ",
+      "デプロイ",
+      "トラブルシューティングと最適化"
+    ],
+    "probs": {
+      "d0": 0.44,
+      "d1": 0.85,
+      "d2": 0.05,
+      "d3": 0.03
+    },
+    "pred": 1,
+    "pred_p": 0.85,
+    "second": 0,
+    "second_p": 0.44,
+    "usage": {
+      "input_tokens": 1474,
+      "output_tokens": 72,
+      "cost_usd": 0.00062,
+      "credits_remaining_usd": 9.732799
+    },
+    "qid": "dva-782ac17e"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d0": 0.29,
+      "d1": 0.94,
+      "d2": 0.03,
+      "d3": 0.01,
+      "d4": 0.02,
+      "d5": 0.03
+    },
+    "pred": 1,
+    "pred_p": 0.94,
+    "second": 0,
+    "second_p": 0.29,
+    "usage": {
+      "input_tokens": 1879,
+      "output_tokens": 106,
+      "cost_usd": 0.00079,
+      "credits_remaining_usd": 9.730356
+    },
+    "qid": "nw-26625af7"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "データの取り込みと変換",
+      "データストアの管理",
+      "データオペレーションとサポート",
+      "データのセキュリティとガバナンス"
+    ],
+    "probs": {
+      "d0": 0.1,
+      "d1": 0.12,
+      "d2": 0.1,
+      "d3": 0.91
+    },
+    "pred": 3,
+    "pred_p": 0.91,
+    "second": 1,
+    "second_p": 0.12,
+    "usage": {
+      "input_tokens": 1671,
+      "output_tokens": 72,
+      "cost_usd": 0.000702,
+      "credits_remaining_usd": 9.730028
+    },
+    "qid": "dea-719cc7d1"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d1": 0.03,
+      "d2": 0.9,
+      "d3": 0.2,
+      "d4": 0.11,
+      "d5": 0.04,
+      "d0": 0.01
+    },
+    "pred": 2,
+    "pred_p": 0.9,
+    "second": 3,
+    "second_p": 0.2,
+    "usage": {
+      "input_tokens": 2247,
+      "output_tokens": 106,
+      "cost_usd": 0.000944,
+      "credits_remaining_usd": 9.729462
+    },
+    "qid": "sec-d4a777f8"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "検出",
+      "インシデント対応",
+      "インフラストラクチャのセキュリティ",
+      "アイデンティティとアクセス管理",
+      "データ保護",
+      "セキュリティの基盤とガバナンス"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.01,
+      "d2": 0.13,
+      "d3": 0.92,
+      "d4": 0.12,
+      "d5": 0.1
+    },
+    "pred": 3,
+    "pred_p": 0.92,
+    "second": 2,
+    "second_p": 0.13,
+    "usage": {
+      "input_tokens": 2217,
+      "output_tokens": 106,
+      "cost_usd": 0.000932,
+      "credits_remaining_usd": 9.728656
+    },
+    "qid": "scs-f6a193a8"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "機械学習のためのデータ準備",
+      "MLモデルの開発",
+      "MLワークフローのデプロイとオーケストレーション",
+      "MLソリューションの監視、メンテナンス、セキュリティ"
+    ],
+    "probs": {
+      "d0": 0.83,
+      "d1": 0.11,
+      "d2": 0.32,
+      "d3": 0.05
+    },
+    "pred": 0,
+    "pred_p": 0.83,
+    "second": 2,
+    "second_p": 0.32,
+    "usage": {
+      "input_tokens": 1628,
+      "output_tokens": 72,
+      "cost_usd": 0.000684,
+      "credits_remaining_usd": 9.728452
+    },
+    "qid": "mla-ea47b777"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d2": 0.15,
+      "d3": 0.78,
+      "d4": 0.02,
+      "d5": 0.04,
+      "d0": 0.78,
+      "d1": 0.38
+    },
+    "pred": 3,
+    "pred_p": 0.78,
+    "second": 0,
+    "second_p": 0.78,
+    "usage": {
+      "input_tokens": 2321,
+      "output_tokens": 106,
+      "cost_usd": 0.000975,
+      "credits_remaining_usd": 9.727466
+    },
+    "qid": "sec-cae8e2b1"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "AWSのサービスを使用した開発",
+      "セキュリティ",
+      "デプロイ",
+      "トラブルシューティングと最適化"
+    ],
+    "probs": {
+      "d0": 0.94,
+      "d1": 0.02,
+      "d2": 0.05,
+      "d3": 0.11
+    },
+    "pred": 0,
+    "pred_p": 0.94,
+    "second": 3,
+    "second_p": 0.11,
+    "usage": {
+      "input_tokens": 1349,
+      "output_tokens": 72,
+      "cost_usd": 0.000567,
+      "credits_remaining_usd": 9.725552
+    },
+    "qid": "dva-806c6d3d"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "機械学習のためのデータ準備",
+      "MLモデルの開発",
+      "MLワークフローのデプロイとオーケストレーション",
+      "MLソリューションの監視、メンテナンス、セキュリティ"
+    ],
+    "probs": {
+      "d0": 0.06,
+      "d1": 0.88,
+      "d2": 0.08,
+      "d3": 0.09
+    },
+    "pred": 1,
+    "pred_p": 0.88,
+    "second": 3,
+    "second_p": 0.09,
+    "usage": {
+      "input_tokens": 1804,
+      "output_tokens": 72,
+      "cost_usd": 0.000758,
+      "credits_remaining_usd": 9.724354
+    },
+    "qid": "mla-e8d20bb9"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d0": 0.01,
+      "d1": 0.03,
+      "d2": 0.05,
+      "d3": 0.17,
+      "d4": 0.94,
+      "d5": 0.03
+    },
+    "pred": 4,
+    "pred_p": 0.94,
+    "second": 3,
+    "second_p": 0.17,
+    "usage": {
+      "input_tokens": 2214,
+      "output_tokens": 106,
+      "cost_usd": 0.00093,
+      "credits_remaining_usd": 9.724892
+    },
+    "qid": "sec-bacbd51f"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.05,
+      "d1": 0.47,
+      "d2": 0.16,
+      "d3": 0.82
+    },
+    "pred": 3,
+    "pred_p": 0.82,
+    "second": 1,
+    "second_p": 0.47,
+    "usage": {
+      "input_tokens": 1383,
+      "output_tokens": 72,
+      "cost_usd": 0.000581,
+      "credits_remaining_usd": 9.72391
+    },
+    "qid": "aib-f359da7c"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "組織の複雑さに対応する設計",
+      "新しいソリューションのための設計",
+      "既存のソリューションの継続的改善",
+      "ワークロードの移行とモダン化の加速"
+    ],
+    "probs": {
+      "d0": 0.15,
+      "d1": 0.83,
+      "d2": 0.09,
+      "d3": 0.07
+    },
+    "pred": 1,
+    "pred_p": 0.83,
+    "second": 0,
+    "second_p": 0.15,
+    "usage": {
+      "input_tokens": 1416,
+      "output_tokens": 72,
+      "cost_usd": 0.000595,
+      "credits_remaining_usd": 9.724182
+    },
+    "qid": "sap-bfc0e48b"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "AWSのサービスを使用した開発",
+      "セキュリティ",
+      "デプロイ",
+      "トラブルシューティングと最適化"
+    ],
+    "probs": {
+      "d0": 0.14,
+      "d1": 0.02,
+      "d2": 0.95,
+      "d3": 0.07
+    },
+    "pred": 2,
+    "pred_p": 0.95,
+    "second": 0,
+    "second_p": 0.14,
+    "usage": {
+      "input_tokens": 1208,
+      "output_tokens": 72,
+      "cost_usd": 0.000508,
+      "credits_remaining_usd": 9.723699
+    },
+    "qid": "dva-ba1d1ac4"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d1": 0.02,
+      "d2": 0.98,
+      "d3": 0.01,
+      "d4": 0.02,
+      "d5": 0.03,
+      "d0": 0.04
+    },
+    "pred": 2,
+    "pred_p": 0.98,
+    "second": 0,
+    "second_p": 0.04,
+    "usage": {
+      "input_tokens": 1995,
+      "output_tokens": 106,
+      "cost_usd": 0.000838,
+      "credits_remaining_usd": 9.721342
+    },
+    "qid": "nw-677e05b1"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "組織の複雑さに対応する設計",
+      "新しいソリューションのための設計",
+      "既存のソリューションの継続的改善",
+      "ワークロードの移行とモダン化の加速"
+    ],
+    "probs": {
+      "d0": 0.2,
+      "d1": 0.87,
+      "d2": 0.08,
+      "d3": 0.07
+    },
+    "pred": 1,
+    "pred_p": 0.87,
+    "second": 0,
+    "second_p": 0.2,
+    "usage": {
+      "input_tokens": 1844,
+      "output_tokens": 72,
+      "cost_usd": 0.000775,
+      "credits_remaining_usd": 9.72097
+    },
+    "qid": "sap-ccc36c2f"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.06,
+      "d1": 0.43,
+      "d2": 0.4,
+      "d3": 0.71
+    },
+    "pred": 3,
+    "pred_p": 0.71,
+    "second": 1,
+    "second_p": 0.43,
+    "usage": {
+      "input_tokens": 1399,
+      "output_tokens": 72,
+      "cost_usd": 0.000588,
+      "credits_remaining_usd": 9.720019
+    },
+    "qid": "aib-b3d0be5e"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d0": 0.12,
+      "d1": 0.83,
+      "d2": 0.21,
+      "d3": 0.25,
+      "d4": 0.09
+    },
+    "pred": 1,
+    "pred_p": 0.83,
+    "second": 3,
+    "second_p": 0.25,
+    "usage": {
+      "input_tokens": 2034,
+      "output_tokens": 89,
+      "cost_usd": 0.000855,
+      "credits_remaining_usd": 9.720146
+    },
+    "qid": "soa-62011fb7"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d0": 0.01,
+      "d1": 0.03,
+      "d2": 0.12,
+      "d3": 0.12,
+      "d4": 0.94,
+      "d5": 0.03
+    },
+    "pred": 4,
+    "pred_p": 0.94,
+    "second": 3,
+    "second_p": 0.12,
+    "usage": {
+      "input_tokens": 2090,
+      "output_tokens": 106,
+      "cost_usd": 0.000878,
+      "credits_remaining_usd": 9.719445
+    },
+    "qid": "sec-0365b789"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d1": 0.98,
+      "d2": 0.04,
+      "d3": 0.01,
+      "d4": 0.01,
+      "d5": 0.02,
+      "d0": 0.06
+    },
+    "pred": 1,
+    "pred_p": 0.98,
+    "second": 0,
+    "second_p": 0.06,
+    "usage": {
+      "input_tokens": 2066,
+      "output_tokens": 106,
+      "cost_usd": 0.000868,
+      "credits_remaining_usd": 9.718595
+    },
+    "qid": "nw-699da84e"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "セキュアなアーキテクチャの設計",
+      "弾力性に優れたアーキテクチャの設計",
+      "高性能なアーキテクチャの設計",
+      "コスト最適化されたアーキテクチャの設計"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.07,
+      "d2": 0.93,
+      "d3": 0.04
+    },
+    "pred": 2,
+    "pred_p": 0.93,
+    "second": 1,
+    "second_p": 0.07,
+    "usage": {
+      "input_tokens": 1419,
+      "output_tokens": 72,
+      "cost_usd": 0.000596,
+      "credits_remaining_usd": 9.716782
+    },
+    "qid": "saa-73a243fa"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d0": 0.03,
+      "d1": 0.01,
+      "d2": 0.02,
+      "d3": 0.98,
+      "d4": 0.03,
+      "d5": 0.05
+    },
+    "pred": 3,
+    "pred_p": 0.98,
+    "second": 5,
+    "second_p": 0.05,
+    "usage": {
+      "input_tokens": 2175,
+      "output_tokens": 106,
+      "cost_usd": 0.000914,
+      "credits_remaining_usd": 9.715537
+    },
+    "qid": "nw-8c349b5e"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "組織の複雑さに対応する設計",
+      "新しいソリューションのための設計",
+      "既存のソリューションの継続的改善",
+      "ワークロードの移行とモダン化の加速"
+    ],
+    "probs": {
+      "d0": 0.18,
+      "d1": 0.11,
+      "d2": 0.86,
+      "d3": 0.05
+    },
+    "pred": 2,
+    "pred_p": 0.86,
+    "second": 0,
+    "second_p": 0.18,
+    "usage": {
+      "input_tokens": 1789,
+      "output_tokens": 72,
+      "cost_usd": 0.000752,
+      "credits_remaining_usd": 9.71603
+    },
+    "qid": "sap-95ca7ae3"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "ネットワーク設計",
+      "ネットワーク実装",
+      "ネットワーク管理と運用",
+      "ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+    ],
+    "probs": {
+      "d0": 0.86,
+      "d1": 0.59,
+      "d2": 0.12,
+      "d3": 0.03
+    },
+    "pred": 0,
+    "pred_p": 0.86,
+    "second": 1,
+    "second_p": 0.59,
+    "usage": {
+      "input_tokens": 1405,
+      "output_tokens": 72,
+      "cost_usd": 0.000591,
+      "credits_remaining_usd": 9.715402
+    },
+    "qid": "ans-5233f400"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "セキュアなアーキテクチャの設計",
+      "弾力性に優れたアーキテクチャの設計",
+      "高性能なアーキテクチャの設計",
+      "コスト最適化されたアーキテクチャの設計"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.07,
+      "d2": 0.03,
+      "d3": 0.97
+    },
+    "pred": 3,
+    "pred_p": 0.97,
+    "second": 1,
+    "second_p": 0.07,
+    "usage": {
+      "input_tokens": 1609,
+      "output_tokens": 72,
+      "cost_usd": 0.000676,
+      "credits_remaining_usd": 9.715028
+    },
+    "qid": "saa-3bfaa7be"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "AWSのサービスを使用した開発",
+      "セキュリティ",
+      "デプロイ",
+      "トラブルシューティングと最適化"
+    ],
+    "probs": {
+      "d0": 0.16,
+      "d1": 0.94,
+      "d2": 0.04,
+      "d3": 0.02
+    },
+    "pred": 1,
+    "pred_p": 0.94,
+    "second": 0,
+    "second_p": 0.16,
+    "usage": {
+      "input_tokens": 1580,
+      "output_tokens": 72,
+      "cost_usd": 0.000664,
+      "credits_remaining_usd": 9.714728
+    },
+    "qid": "dva-71565605"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "機械学習のためのデータ準備",
+      "MLモデルの開発",
+      "MLワークフローのデプロイとオーケストレーション",
+      "MLソリューションの監視、メンテナンス、セキュリティ"
+    ],
+    "probs": {
+      "d0": 0.05,
+      "d1": 0.15,
+      "d2": 0.16,
+      "d3": 0.82
+    },
+    "pred": 3,
+    "pred_p": 0.82,
+    "second": 2,
+    "second_p": 0.16,
+    "usage": {
+      "input_tokens": 1768,
+      "output_tokens": 72,
+      "cost_usd": 0.000743,
+      "credits_remaining_usd": 9.712442
+    },
+    "qid": "mla-2a628db0"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d3": 0.21,
+      "d4": 0.05,
+      "d5": 0.27,
+      "d0": 0.02,
+      "d1": 0.76,
+      "d2": 0.06
+    },
+    "pred": 1,
+    "pred_p": 0.76,
+    "second": 5,
+    "second_p": 0.27,
+    "usage": {
+      "input_tokens": 2130,
+      "output_tokens": 106,
+      "cost_usd": 0.000895,
+      "credits_remaining_usd": 9.71106
+    },
+    "qid": "sec-8f58ace8"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d0": 0.19,
+      "d1": 0.02,
+      "d2": 0.02,
+      "d3": 0.01,
+      "d4": 0.55,
+      "d5": 0.86
+    },
+    "pred": 5,
+    "pred_p": 0.86,
+    "second": 4,
+    "second_p": 0.55,
+    "usage": {
+      "input_tokens": 2006,
+      "output_tokens": 106,
+      "cost_usd": 0.000843,
+      "credits_remaining_usd": 9.708602
+    },
+    "qid": "nw-bdfc5757"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "検出",
+      "インシデント対応",
+      "インフラストラクチャのセキュリティ",
+      "アイデンティティとアクセス管理",
+      "データ保護",
+      "セキュリティの基盤とガバナンス"
+    ],
+    "probs": {
+      "d1": 0.02,
+      "d2": 0.28,
+      "d3": 0.11,
+      "d4": 0.64,
+      "d5": 0.25,
+      "d0": 0.02
+    },
+    "pred": 4,
+    "pred_p": 0.64,
+    "second": 2,
+    "second_p": 0.28,
+    "usage": {
+      "input_tokens": 2149,
+      "output_tokens": 106,
+      "cost_usd": 0.000903,
+      "credits_remaining_usd": 9.711539
+    },
+    "qid": "scs-5e47b4bb"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d2": 0.02,
+      "d3": 0.99,
+      "d4": 0.03,
+      "d5": 0.04,
+      "d0": 0.03,
+      "d1": 0.02
+    },
+    "pred": 3,
+    "pred_p": 0.99,
+    "second": 5,
+    "second_p": 0.04,
+    "usage": {
+      "input_tokens": 2063,
+      "output_tokens": 106,
+      "cost_usd": 0.000867,
+      "credits_remaining_usd": 9.710659
+    },
+    "qid": "nw-2403c6e9"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.26,
+      "d2": 0.39,
+      "d3": 0.8
+    },
+    "pred": 3,
+    "pred_p": 0.8,
+    "second": 2,
+    "second_p": 0.39,
+    "usage": {
+      "input_tokens": 1752,
+      "output_tokens": 72,
+      "cost_usd": 0.000736,
+      "credits_remaining_usd": 9.709451
+    },
+    "qid": "aib-a52d0d16"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "セキュアなアーキテクチャの設計",
+      "弾力性に優れたアーキテクチャの設計",
+      "高性能なアーキテクチャの設計",
+      "コスト最適化されたアーキテクチャの設計"
+    ],
+    "probs": {
+      "d0": 0.03,
+      "d1": 0.06,
+      "d2": 0.03,
+      "d3": 0.95
+    },
+    "pred": 3,
+    "pred_p": 0.95,
+    "second": 1,
+    "second_p": 0.06,
+    "usage": {
+      "input_tokens": 1529,
+      "output_tokens": 72,
+      "cost_usd": 0.000643,
+      "credits_remaining_usd": 9.707966
+    },
+    "qid": "saa-ff4a1751"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "検出",
+      "インシデント対応",
+      "インフラストラクチャのセキュリティ",
+      "アイデンティティとアクセス管理",
+      "データ保護",
+      "セキュリティの基盤とガバナンス"
+    ],
+    "probs": {
+      "d0": 0.17,
+      "d1": 0.92,
+      "d2": 0.07,
+      "d3": 0.17,
+      "d4": 0.04,
+      "d5": 0.05
+    },
+    "pred": 1,
+    "pred_p": 0.92,
+    "second": 3,
+    "second_p": 0.17,
+    "usage": {
+      "input_tokens": 2172,
+      "output_tokens": 106,
+      "cost_usd": 0.000913,
+      "credits_remaining_usd": 9.706642
+    },
+    "qid": "scs-863ae802"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "ネットワーク設計",
+      "ネットワーク実装",
+      "ネットワーク管理と運用",
+      "ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+    ],
+    "probs": {
+      "d0": 0.1,
+      "d1": 0.22,
+      "d2": 0.87,
+      "d3": 0.08
+    },
+    "pred": 2,
+    "pred_p": 0.87,
+    "second": 1,
+    "second_p": 0.22,
+    "usage": {
+      "input_tokens": 1665,
+      "output_tokens": 72,
+      "cost_usd": 0.0007,
+      "credits_remaining_usd": 9.706072
+    },
+    "qid": "ans-d8600deb"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "データの取り込みと変換",
+      "データストアの管理",
+      "データオペレーションとサポート",
+      "データのセキュリティとガバナンス"
+    ],
+    "probs": {
+      "d0": 0.95,
+      "d1": 0.08,
+      "d2": 0.07,
+      "d3": 0.02
+    },
+    "pred": 0,
+    "pred_p": 0.95,
+    "second": 1,
+    "second_p": 0.08,
+    "usage": {
+      "input_tokens": 1648,
+      "output_tokens": 72,
+      "cost_usd": 0.000693,
+      "credits_remaining_usd": 9.70641
+    },
+    "qid": "dea-67a793c7"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d0": 0.08,
+      "d1": 0.71,
+      "d2": 0.38,
+      "d3": 0.37,
+      "d4": 0.02
+    },
+    "pred": 1,
+    "pred_p": 0.71,
+    "second": 2,
+    "second_p": 0.38,
+    "usage": {
+      "input_tokens": 2205,
+      "output_tokens": 89,
+      "cost_usd": 0.000927,
+      "credits_remaining_usd": 9.703881
+    },
+    "qid": "soa-93cb47e1"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.02,
+      "d2": 0.19,
+      "d3": 0.16,
+      "d4": 0.94,
+      "d5": 0.03
+    },
+    "pred": 4,
+    "pred_p": 0.94,
+    "second": 2,
+    "second_p": 0.19,
+    "usage": {
+      "input_tokens": 2213,
+      "output_tokens": 106,
+      "cost_usd": 0.00093,
+      "credits_remaining_usd": 9.704319
+    },
+    "qid": "sec-6b6aaab4"
+  },
+  {
+    "stored": 5,
+    "truth": 5,
+    "group": "ok",
+    "doms": [
+      "検出",
+      "インシデント対応",
+      "インフラストラクチャのセキュリティ",
+      "アイデンティティとアクセス管理",
+      "データ保護",
+      "セキュリティの基盤とガバナンス"
+    ],
+    "probs": {
+      "d0": 0.75,
+      "d1": 0.04,
+      "d2": 0.16,
+      "d3": 0.35,
+      "d4": 0.1,
+      "d5": 0.47
+    },
+    "pred": 0,
+    "pred_p": 0.75,
+    "second": 5,
+    "second_p": 0.47,
+    "usage": {
+      "input_tokens": 2224,
+      "output_tokens": 106,
+      "cost_usd": 0.000935,
+      "credits_remaining_usd": 9.702457
+    },
+    "qid": "scs-a04b5832"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "クラウドの概念",
+      "セキュリティとコンプライアンス",
+      "クラウドのテクノロジーとサービス",
+      "請求、料金、およびサポート"
+    ],
+    "probs": {
+      "d0": 0.04,
+      "d1": 0.01,
+      "d2": 0.11,
+      "d3": 0.93
+    },
+    "pred": 3,
+    "pred_p": 0.93,
+    "second": 2,
+    "second_p": 0.11,
+    "usage": {
+      "input_tokens": 1295,
+      "output_tokens": 72,
+      "cost_usd": 0.000544,
+      "credits_remaining_usd": 9.702386
+    },
+    "qid": "clf-105a1119"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.03,
+      "d1": 0.69,
+      "d2": 0.48,
+      "d3": 0.39
+    },
+    "pred": 1,
+    "pred_p": 0.69,
+    "second": 2,
+    "second_p": 0.48,
+    "usage": {
+      "input_tokens": 1371,
+      "output_tokens": 72,
+      "cost_usd": 0.000576,
+      "credits_remaining_usd": 9.702076
+    },
+    "qid": "aib-8ffdd23f"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "ネットワーク設計",
+      "ネットワーク実装",
+      "ネットワーク管理と運用",
+      "ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+    ],
+    "probs": {
+      "d0": 0.67,
+      "d1": 0.77,
+      "d2": 0.17,
+      "d3": 0.04
+    },
+    "pred": 1,
+    "pred_p": 0.77,
+    "second": 0,
+    "second_p": 0.67,
+    "usage": {
+      "input_tokens": 1785,
+      "output_tokens": 72,
+      "cost_usd": 0.00075,
+      "credits_remaining_usd": 9.701148
+    },
+    "qid": "ans-805c61fc"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "データの取り込みと変換",
+      "データストアの管理",
+      "データオペレーションとサポート",
+      "データのセキュリティとガバナンス"
+    ],
+    "probs": {
+      "d0": 0.63,
+      "d1": 0.06,
+      "d2": 0.75,
+      "d3": 0.03
+    },
+    "pred": 2,
+    "pred_p": 0.75,
+    "second": 0,
+    "second_p": 0.63,
+    "usage": {
+      "input_tokens": 1739,
+      "output_tokens": 72,
+      "cost_usd": 0.000731,
+      "credits_remaining_usd": 9.699856
+    },
+    "qid": "dea-a7187d32"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d3": 0.35,
+      "d4": 0.02,
+      "d0": 0.06,
+      "d1": 0.05,
+      "d2": 0.77
+    },
+    "pred": 2,
+    "pred_p": 0.77,
+    "second": 3,
+    "second_p": 0.35,
+    "usage": {
+      "input_tokens": 2239,
+      "output_tokens": 89,
+      "cost_usd": 0.000941,
+      "credits_remaining_usd": 9.699312
+    },
+    "qid": "soa-68f4b070"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "データの取り込みと変換",
+      "データストアの管理",
+      "データオペレーションとサポート",
+      "データのセキュリティとガバナンス"
+    ],
+    "probs": {
+      "d0": 0.09,
+      "d1": 0.85,
+      "d2": 0.16,
+      "d3": 0.03
+    },
+    "pred": 1,
+    "pred_p": 0.85,
+    "second": 2,
+    "second_p": 0.16,
+    "usage": {
+      "input_tokens": 1547,
+      "output_tokens": 72,
+      "cost_usd": 0.00065,
+      "credits_remaining_usd": 9.698265
+    },
+    "qid": "dea-c9200bbe"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d0": 0.2,
+      "d1": 0.07,
+      "d2": 0.59,
+      "d3": 0.48,
+      "d4": 0.02
+    },
+    "pred": 2,
+    "pred_p": 0.59,
+    "second": 3,
+    "second_p": 0.48,
+    "usage": {
+      "input_tokens": 2199,
+      "output_tokens": 89,
+      "cost_usd": 0.000924,
+      "credits_remaining_usd": 9.697682
+    },
+    "qid": "soa-d0cff1f0"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "ネットワーク設計",
+      "ネットワーク実装",
+      "ネットワーク管理と運用",
+      "ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+    ],
+    "probs": {
+      "d0": 0.61,
+      "d1": 0.73,
+      "d2": 0.38,
+      "d3": 0.12
+    },
+    "pred": 1,
+    "pred_p": 0.73,
+    "second": 0,
+    "second_p": 0.61,
+    "usage": {
+      "input_tokens": 1823,
+      "output_tokens": 72,
+      "cost_usd": 0.000766,
+      "credits_remaining_usd": 9.697422
+    },
+    "qid": "ans-7b72fbe5"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d0": 0.09,
+      "d1": 0.94,
+      "d2": 0.13,
+      "d3": 0.02,
+      "d4": 0.15
+    },
+    "pred": 1,
+    "pred_p": 0.94,
+    "second": 4,
+    "second_p": 0.15,
+    "usage": {
+      "input_tokens": 2324,
+      "output_tokens": 89,
+      "cost_usd": 0.000977,
+      "credits_remaining_usd": 9.696004
+    },
+    "qid": "soa-4cd46d4a"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "組織の複雑さに対応する設計",
+      "新しいソリューションのための設計",
+      "既存のソリューションの継続的改善",
+      "ワークロードの移行とモダン化の加速"
+    ],
+    "probs": {
+      "d0": 0.08,
+      "d1": 0.09,
+      "d2": 0.05,
+      "d3": 0.95
+    },
+    "pred": 3,
+    "pred_p": 0.95,
+    "second": 1,
+    "second_p": 0.09,
+    "usage": {
+      "input_tokens": 2108,
+      "output_tokens": 72,
+      "cost_usd": 0.000886,
+      "credits_remaining_usd": 9.695258
+    },
+    "qid": "sap-50c61b44"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "データの取り込みと変換",
+      "データストアの管理",
+      "データオペレーションとサポート",
+      "データのセキュリティとガバナンス"
+    ],
+    "probs": {
+      "d0": 0.12,
+      "d1": 0.64,
+      "d2": 0.19,
+      "d3": 0.53
+    },
+    "pred": 1,
+    "pred_p": 0.64,
+    "second": 3,
+    "second_p": 0.53,
+    "usage": {
+      "input_tokens": 1568,
+      "output_tokens": 72,
+      "cost_usd": 0.000659,
+      "credits_remaining_usd": 9.694555
+    },
+    "qid": "dea-e4f3d5c1"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "暗号技術の基礎",
+      "認証・認可・アイデンティティ",
+      "ネットワークセキュリティ",
+      "脅威・脆弱性・攻撃手法",
+      "インシデント対応・監視・ログ",
+      "データ保護・ガバナンス・コンプライアンス"
+    ],
+    "probs": {
+      "d0": 0.01,
+      "d1": 0.02,
+      "d2": 0.11,
+      "d3": 0.07,
+      "d4": 0.95,
+      "d5": 0.03
+    },
+    "pred": 4,
+    "pred_p": 0.95,
+    "second": 2,
+    "second_p": 0.11,
+    "usage": {
+      "input_tokens": 2217,
+      "output_tokens": 106,
+      "cost_usd": 0.000932,
+      "credits_remaining_usd": 9.693121
+    },
+    "qid": "sec-3c9903ae"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "セキュアなアーキテクチャの設計",
+      "弾力性に優れたアーキテクチャの設計",
+      "高性能なアーキテクチャの設計",
+      "コスト最適化されたアーキテクチャの設計"
+    ],
+    "probs": {
+      "d0": 0.07,
+      "d1": 0.05,
+      "d2": 0.04,
+      "d3": 0.94
+    },
+    "pred": 3,
+    "pred_p": 0.94,
+    "second": 0,
+    "second_p": 0.07,
+    "usage": {
+      "input_tokens": 1638,
+      "output_tokens": 72,
+      "cost_usd": 0.000688,
+      "credits_remaining_usd": 9.692927
+    },
+    "qid": "saa-bc0f642c"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "データの取り込みと変換",
+      "データストアの管理",
+      "データオペレーションとサポート",
+      "データのセキュリティとガバナンス"
+    ],
+    "probs": {
+      "d0": 0.36,
+      "d1": 0.61,
+      "d2": 0.15,
+      "d3": 0.02
+    },
+    "pred": 1,
+    "pred_p": 0.61,
+    "second": 0,
+    "second_p": 0.36,
+    "usage": {
+      "input_tokens": 1520,
+      "output_tokens": 72,
+      "cost_usd": 0.000639,
+      "credits_remaining_usd": 9.692666
+    },
+    "qid": "dea-5d1610c7"
+  },
+  {
+    "stored": 0,
+    "truth": 0,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d0": 0.65,
+      "d1": 0.04,
+      "d2": 0.07,
+      "d3": 0.67,
+      "d4": 0.02
+    },
+    "pred": 3,
+    "pred_p": 0.67,
+    "second": 0,
+    "second_p": 0.65,
+    "usage": {
+      "input_tokens": 2276,
+      "output_tokens": 89,
+      "cost_usd": 0.000956,
+      "credits_remaining_usd": 9.691171
+    },
+    "qid": "soa-46380971"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "AWSのサービスを使用した開発",
+      "セキュリティ",
+      "デプロイ",
+      "トラブルシューティングと最適化"
+    ],
+    "probs": {
+      "d0": 0.19,
+      "d1": 0.02,
+      "d2": 0.11,
+      "d3": 0.9
+    },
+    "pred": 3,
+    "pred_p": 0.9,
+    "second": 0,
+    "second_p": 0.19,
+    "usage": {
+      "input_tokens": 1494,
+      "output_tokens": 72,
+      "cost_usd": 0.000628,
+      "credits_remaining_usd": 9.689862
+    },
+    "qid": "dva-d25a19ff"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "機械学習のためのデータ準備",
+      "MLモデルの開発",
+      "MLワークフローのデプロイとオーケストレーション",
+      "MLソリューションの監視、メンテナンス、セキュリティ"
+    ],
+    "probs": {
+      "d0": 0.02,
+      "d1": 0.04,
+      "d2": 0.96,
+      "d3": 0.05
+    },
+    "pred": 2,
+    "pred_p": 0.96,
+    "second": 3,
+    "second_p": 0.05,
+    "usage": {
+      "input_tokens": 1810,
+      "output_tokens": 72,
+      "cost_usd": 0.000761,
+      "credits_remaining_usd": 9.690077
+    },
+    "qid": "mla-cd65cd12"
+  },
+  {
+    "stored": 2,
+    "truth": 2,
+    "group": "ok",
+    "doms": [
+      "ネットワーク設計",
+      "ネットワーク実装",
+      "ネットワーク管理と運用",
+      "ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+    ],
+    "probs": {
+      "d0": 0.11,
+      "d1": 0.19,
+      "d2": 0.27,
+      "d3": 0.85
+    },
+    "pred": 3,
+    "pred_p": 0.85,
+    "second": 2,
+    "second_p": 0.27,
+    "usage": {
+      "input_tokens": 1725,
+      "output_tokens": 72,
+      "cost_usd": 0.000725,
+      "credits_remaining_usd": 9.689041
+    },
+    "qid": "ans-e0445c9a"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "基盤モデルの統合、データ管理、コンプライアンス",
+      "実装と統合",
+      "AIの安全性、セキュリティ、ガバナンス",
+      "生成AIアプリケーションの運用効率と最適化",
+      "テスト、検証、トラブルシューティング"
+    ],
+    "probs": {
+      "d4": 0.66,
+      "d0": 0.27,
+      "d1": 0.57,
+      "d2": 0.06,
+      "d3": 0.29
+    },
+    "pred": 4,
+    "pred_p": 0.66,
+    "second": 1,
+    "second_p": 0.57,
+    "usage": {
+      "input_tokens": 2093,
+      "output_tokens": 89,
+      "cost_usd": 0.00088,
+      "credits_remaining_usd": 9.688237
+    },
+    "qid": "gai-cb93e1f8"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "AWSのサービスを使用した開発",
+      "セキュリティ",
+      "デプロイ",
+      "トラブルシューティングと最適化"
+    ],
+    "probs": {
+      "d0": 0.19,
+      "d1": 0.02,
+      "d2": 0.06,
+      "d3": 0.93
+    },
+    "pred": 3,
+    "pred_p": 0.93,
+    "second": 0,
+    "second_p": 0.19,
+    "usage": {
+      "input_tokens": 1313,
+      "output_tokens": 72,
+      "cost_usd": 0.000552,
+      "credits_remaining_usd": 9.687771
+    },
+    "qid": "dva-24e6999a"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "基盤モデルの統合、データ管理、コンプライアンス",
+      "実装と統合",
+      "AIの安全性、セキュリティ、ガバナンス",
+      "生成AIアプリケーションの運用効率と最適化",
+      "テスト、検証、トラブルシューティング"
+    ],
+    "probs": {
+      "d0": 0.16,
+      "d1": 0.25,
+      "d2": 0.84,
+      "d3": 0.13,
+      "d4": 0.15
+    },
+    "pred": 2,
+    "pred_p": 0.84,
+    "second": 1,
+    "second_p": 0.25,
+    "usage": {
+      "input_tokens": 2296,
+      "output_tokens": 89,
+      "cost_usd": 0.000965,
+      "credits_remaining_usd": 9.686563
+    },
+    "qid": "gai-14a471e1"
+  },
+  {
+    "stored": 3,
+    "truth": 3,
+    "group": "ok",
+    "doms": [
+      "機械学習のためのデータ準備",
+      "MLモデルの開発",
+      "MLワークフローのデプロイとオーケストレーション",
+      "MLソリューションの監視、メンテナンス、セキュリティ"
+    ],
+    "probs": {
+      "d0": 0.04,
+      "d1": 0.08,
+      "d2": 0.07,
+      "d3": 0.96
+    },
+    "pred": 3,
+    "pred_p": 0.96,
+    "second": 1,
+    "second_p": 0.08,
+    "usage": {
+      "input_tokens": 1683,
+      "output_tokens": 72,
+      "cost_usd": 0.000707,
+      "credits_remaining_usd": 9.685721
+    },
+    "qid": "mla-0ea20e1d"
+  },
+  {
+    "stored": 4,
+    "truth": 4,
+    "group": "ok",
+    "doms": [
+      "ネットワーク基礎（OSI/TCP-IP）",
+      "IPアドレッシング・サブネット",
+      "ルーティング",
+      "DNS・名前解決",
+      "トランスポート・アプリ層",
+      "ネットワークセキュリティ・運用"
+    ],
+    "probs": {
+      "d0": 0.35,
+      "d1": 0.01,
+      "d2": 0.02,
+      "d3": 0.01,
+      "d4": 0.94,
+      "d5": 0.03
+    },
+    "pred": 4,
+    "pred_p": 0.94,
+    "second": 0,
+    "second_p": 0.35,
+    "usage": {
+      "input_tokens": 2070,
+      "output_tokens": 106,
+      "cost_usd": 0.00087,
+      "credits_remaining_usd": 9.685995
+    },
+    "qid": "nw-8a295fa4"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化",
+      "信頼性とビジネス継続性",
+      "デプロイ、プロビジョニング、および自動化",
+      "セキュリティとコンプライアンス",
+      "ネットワークとコンテンツ配信"
+    ],
+    "probs": {
+      "d0": 0.11,
+      "d1": 0.96,
+      "d2": 0.07,
+      "d3": 0.04,
+      "d4": 0.02
+    },
+    "pred": 1,
+    "pred_p": 0.96,
+    "second": 0,
+    "second_p": 0.11,
+    "usage": {
+      "input_tokens": 2240,
+      "output_tokens": 89,
+      "cost_usd": 0.000941,
+      "credits_remaining_usd": 9.683809
+    },
+    "qid": "soa-f39ad0cd"
+  },
+  {
+    "stored": 1,
+    "truth": 1,
+    "group": "ok",
+    "doms": [
+      "AIの基礎とリテラシー",
+      "AI戦略とビジネス価値創出",
+      "AIガバナンスと責任あるAIリーダーシップ",
+      "ビジネス準備・リーダーシップ・AI変革"
+    ],
+    "probs": {
+      "d0": 0.08,
+      "d1": 0.9,
+      "d2": 0.07,
+      "d3": 0.47
+    },
+    "pred": 1,
+    "pred_p": 0.9,
+    "second": 3,
+    "second_p": 0.47,
+    "usage": {
+      "input_tokens": 1392,
+      "output_tokens": 72,
+      "cost_usd": 0.000585,
+      "credits_remaining_usd": 9.683747
+    },
+    "qid": "aib-a023fb6c"
+  }
+]

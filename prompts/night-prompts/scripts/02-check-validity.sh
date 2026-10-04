@@ -74,8 +74,8 @@ usage: check-validity.sh [-n N] [-D HH:MM] [-q FILE] [-T N|--no-triage] [-h]
 
 Jevトリアージ:
   古い順の上位 残り枠×倍率 をプールにしてスコア化する。トークン律速で全問回せない
-  ため、限られた Claude 枠を欠陥密度の高い問題へ寄せる（実測 約1.6〜1.7倍）。
-  費用は 1問 $0.0008・実際に検証する1問あたり $0.0024（倍率3のとき）。
+  ため、限られた Claude 枠を欠陥密度の高い問題へ寄せる（実測 約1.7〜1.8倍）。
+  費用は 1問 $0.0003・実際に検証する1問あたり $0.0009（倍率3のとき）。
   ゲートではないのでスコアが低い問題も後日のバッチで必ず処理される。
   Jev が使えない場合は自動的に従来どおり古い順で処理する（検証は止めない）。
 
@@ -310,8 +310,18 @@ if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
             sys.stderr.write(f"⚠️  Jevトリアージ失敗（古い順で続行）: {e}\n")
             _scores = {}
         if _scores:
-            # スコアを得られなかった問題は 1.0 とし、Jev の失敗で不利にならないようにする
-            # （＝「分からないものは従来どおり処理する」側に倒す）
+            # 並べ替え用のスコア。得られなかった問題は 1.0 とし、Jev の失敗で不利にならないようにする
+            # （＝「分からないものは従来どおり処理する」側に倒す）。
+            def _sc(qid):
+                v = _scores.get(qid)
+                return float(v['score']) if isinstance(v, dict) and 'score' in v else 1.0
+            # Jev が実際に判定した問題だけ、観点別の値を _jev として問題に付ける。
+            # 後段のプロンプト生成が「どのくらい怪しいか」の参考値として Claude に渡す。
+            # _jev は DB へは書かれない（DB更新は Claude の fix の値だけを使う）。
+            for _, q in _pool:
+                v = _scores.get(q.get('questionId'))
+                if isinstance(v, dict):
+                    q['_jev'] = {k: v[k] for k in ('hint_leak',) if k in v}
             _pool_ids = {q.get('questionId') for _, q in _pool}
             _in  = [(sk, q) for sk, q in _verified if q.get('questionId') in _pool_ids]
             _out = [(sk, q) for sk, q in _verified if q.get('questionId') not in _pool_ids]
@@ -319,11 +329,10 @@ if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
             # +1e-9 は浮動小数点対策（0.70/0.1 が 6.999… になりバンドが1つ下にずれる）。
             def _triage_key(t):
                 sk, q = t
-                s = _scores.get(q.get('questionId'), 1.0)
-                return (-int(s / _triage_band + 1e-9), sk)
+                return (-int(_sc(q.get('questionId')) / _triage_band + 1e-9), sk)
             _in.sort(key=_triage_key)
             candidates = _unverified + _in + _out
-            _sel = [(_scores.get(q.get('questionId'), 1.0), sk) for sk, q in _in[:_slots]]
+            _sel = [(_sc(q.get('questionId')), sk) for sk, q in _in[:_slots]]
             sys.stderr.write(
                 f"Jevトリアージ: 確認済み{len(_pool)}問をスコア化 → 上位{min(_slots, len(_in))}問を選定"
                 f"（スコア {max(s for s, _ in _sel):.2f}〜{min(s for s, _ in _sel):.2f}"
@@ -422,6 +431,43 @@ if fixed > 0:
     print(f"  前処理完了: choices ラベル自動除去 {fixed}件", file=sys.stderr)
 else:
     print(f"  前処理: ラベル接頭辞なし（全問クリーン）", file=sys.stderr)
+# ── 構造チェック（確定的・Claude 不要）──
+# 正解と選択肢の完全一致 / isMultiple の整合 / 選択肢別解説の件数。全4,894問で違反0件（2026-10-01 実測）。
+# 以前はこれらをプロンプトの確認観点に入れ、毎回モデルに確認させていた。
+# 違反がある問題にだけ _struct を付け、プロンプトの「構造チェック:」行として Claude に直させる。
+# _struct は DB へは書かれない（DB更新は Claude の fix の値だけを使うため）。
+def structural_issues(q):
+    issues = []
+    choices = [str(c) for c in (q.get('choices') or [])]
+    answers = [str(c) for c in (q.get('correctAnswers') or [])]
+    indices = q.get('correctAnswerIndices')
+    ce = q.get('choiceExplanations') or []
+    text_ok = True
+    if answers and choices:
+        miss = [a for a in answers if a.strip() not in {c.strip() for c in choices}]
+        if miss:
+            text_ok = False
+            issues.append(f"correctAnswers が choices のいずれとも完全一致しない（{len(miss)}件）")
+    if isinstance(indices, list) and indices and choices:
+        if any((not isinstance(i, int)) or i < 0 or i >= len(choices) for i in indices):
+            issues.append("correctAnswerIndices が choices の範囲外")
+        elif answers and text_ok and [choices[i].strip() for i in indices] != [a.strip() for a in answers]:
+            # 文字列の一致が取れているときだけ見る（取れていないと上と同じ原因を二重に報告する）
+            issues.append("correctAnswerIndices と correctAnswers が指す選択肢が食い違う")
+    n_correct = len(indices) if isinstance(indices, list) and indices else len(answers)
+    if n_correct and bool(q.get('isMultiple')) != (n_correct > 1):
+        issues.append(f"isMultiple={bool(q.get('isMultiple'))} だが正解は{n_correct}個")
+    if choices and len(ce) != len(choices):
+        issues.append(f"choiceExplanations が{len(ce)}件（choices は{len(choices)}件）" if ce else "choiceExplanations が未設定")
+    return issues
+
+_struct_n = 0
+for q in clean_data:
+    _iss = structural_issues(q)
+    if _iss:
+        q['_struct'] = _iss
+        _struct_n += 1
+print(f"  構造チェック: 違反あり {_struct_n}問 / {len(clean_data)}問", file=sys.stderr)
 print(json.dumps(clean_data))
 PYEOF
 )
@@ -522,11 +568,41 @@ url_note = ''
 if _chunk_urls:
     url_lines = '\n'.join(f'  {k}: {v}' for k, v in sorted(_chunk_urls.items()))
     url_note = f'\n【公式試験ガイドURL（出題範囲・現行性の確認に使用してよい）】\n{url_lines}\n'
-PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- AWSサービスの仕様・廃止状況が正確か（廃止/非推奨のサービスを現行として扱っていないか）。廃止/非推奨・具体的数値（SLA・上限値・保持期間等）が正否の決め手でモデル知識に疑いがある時のみ WebFetch で確認（チャンクあたり最大2回・確信があれば使わない）。一般的事実の毎回確認は不要。CodeCommitは現行サービス（廃止扱い禁止）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers が choices のいずれかと完全一致しているか（「A. 」等の記号接頭辞がないか）。不一致はfix\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 試験問題として適切な形式・難易度か\n- 選択肢本文に略語の展開（正式名称/意味の括弧補足）が入っていないか（選択肢は用語のみ。入っていれば不要なヒントになるため fix で削り用語のみにする）。一方で解説(explanation・choiceExplanations)側では重要な略語が初出で英語フルスペル併記により展開されているか（例 解説内で「BLEU(Bilingual Evaluation Understudy)」。未展開なら fix で解説に補う）。全略語ではなく重要語のみ、S3・VPC等の周知略称は対象外\n- 選択肢に用語の説明・定義文・略語の展開が含まれていないか（選択肢は用語・答えのみにすべき。過剰な説明文や略語の括弧補足は fix で削り用語のみにする。削った内容・略語の意味は choiceExplanations／explanation 側で担保）\n- タグが下記ドメインの正確な値か（空・欠落・範囲外はfix）\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  AIB: AIの基礎とリテラシー / AI戦略とビジネス価値創出 / AIガバナンスと責任あるAIリーダーシップ / ビジネス準備・リーダーシップ・AI変革\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n  ML: AI/MLの基礎概念 / データ準備・特徴量エンジニアリング / モデル学習と最適化 / モデル評価と指標 / 生成AI・基盤モデル / 責任あるAI・運用\n  DB: リレーショナル設計・正規化 / SQL・クエリ / インデックスと性能 / トランザクション・整合性 / データモデリング・分析基盤 / データ処理方式・品質\n  NW: ネットワーク基礎（OSI/TCP-IP） / IPアドレッシング・サブネット / ルーティング / DNS・名前解決 / トランスポート・アプリ層 / ネットワークセキュリティ・運用\n  SEC: 暗号技術の基礎 / 認証・認可・アイデンティティ / ネットワークセキュリティ / 脅威・脆弱性・攻撃手法 / インシデント対応・監視・ログ / データ保護・ガバナンス・コンプライアンス\n※ ML/DB/NW はAWS認定ではない基礎知識カード。AWSサービスが登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）が主題の問題は不適切（基礎概念を主眼に直せなければdelete、直せるならfix）。基礎概念が主眼ならok\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- choiceExplanations の件数が choices と一致しているか（不一致・未設定はfixで生成。新規生成時は各80字以内・判定文不可）。※既存が80字を超えているだけ（内容は妥当・件数一致・サービス名主語あり）では fix しない\n- choiceExplanations[i] と choices[i] の内容が対応しているか（ずれていればfixで並び替え）\n- 1つの選択肢や解説（choices・correctAnswers・explanation・choiceExplanations）に「原因：」「対処：」「メリット：」「デメリット：」等の複数のラベル付き項目が改行なしで1行に詰まっている場合は、各ラベルの直前に改行（文字 \\n）を入れて1ラベル1行に分ける fix を行う（choices を変更したら correctAnswers も同じ改行で完全一致させること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n  ※ fix は「事実・正確性・データ整合」の問題に加え、以下の明示対象に限る（廃止/誤ったサービス、正解の誤り・選択肢との不一致、isMultiple/ドメインの誤り、choiceExplanations の件数・対応ズレ、実在しない連携、仕様の過大主張、【必須fix】選択肢本文に入った略語の展開(括弧補足)の除去＝選択肢は用語のみにし略語の意味は解説側へ移す(ヒント漏れ防止)。かつ解説(explanation・choiceExplanations)側で重要な略語が英語フルスペルで展開されていなければ解説に追加(例 SMOTE(Synthetic Minority Over-sampling Technique)。BLEU/ROC-AUC/RMSE/MAE/F1/RBAC/MVCC/CIDR/OWASP 等が該当。全略語でなく重要語のみ。S3/VPC等の周知AWS略称は対象外)、【必須fix】選択肢の過剰説明＝用語+定義文になっている選択肢は用語のみに削り説明は choiceExplanations へ 等）。\n  ※ 「易しすぎる／ペア構造(2案×2組)でない／消去法が成立する／暗記寄り」等の難易度・構成に関する好みは、既存問題では fix しない（action=ok とする）。これらは生成時に担保する事項であり、成立している問題を難化目的で作り直さない。下記【追加の確認観点】に難易度・構成の指摘があっても、事実の誤りを伴わない限り fix せず ok とすること。\n  ※ 字数超過（解説や choiceExplanations が長い）だけを理由に既存を縮めない。字数上限は生成時（新規生成）のみ担保し、内容が妥当なら長くても ok とする。※ 「正解選択肢が最長」だけを理由に fix しない。正解が最長になるのは一定割合（目安2〜3割）で許容し、長さと正解の相関を作らない方針。ただし正解が他の全選択肢より極端に長く（概ね1.5倍超、または正解だけ2文構成）長さだけで正解が明白な場合のみ、技術的内容を保ったまま短縮する fix 対象とする。なお選択肢がすべて単語・用語のみ（説明文でない）の場合は長さのバランスを一切問わず、最長の用語が正解でも fix しない。\n  ※ 体裁（問題文・解説の改行や列挙・手順の整形、choiceExplanations 文頭のサービス名主語、番号手順の連番順）はトークン節約のため検証(02)では確認も fix もしない。ただし「選択肢に入った略語の展開の除去（選択肢は用語のみ・略語の意味は解説側へ）」「選択肢の過剰説明の除去（用語のみに）」「解説での重要略語の英語フルスペル展開の補完」「1つの選択肢や解説に複数ラベル（原因／対処 等）が改行なしで詰まっている場合の改行挿入」は上記【確認観点】のとおり fix 対象とする（体裁扱いにして見送らないこと）。生成(01)で担保する事項であり、可読性の決定的整形が要る場合は別途 fix-list-linebreaks.py 等で処理する。\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
+PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- AWSサービスの仕様・廃止状況が正確か（廃止/非推奨のサービスを現行として扱っていないか）。廃止/非推奨・具体的数値（SLA・上限値・保持期間等）が正否の決め手でモデル知識に疑いがある時のみ、公式ドキュメントで確認（WebFetch、または AWS ドキュメント MCP の mcp__aws-docs__search_documentation / read_documentation。MCP は ToolSearch で読み込む。合わせてチャンクあたり最大2回・確信があれば使わない）。一般的事実の毎回確認は不要。CodeCommitは現行サービス（廃止扱い禁止）\n- 正解が正しく、選択肢に正解が含まれているか\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 試験問題として適切な形式・難易度か\n- 選択肢本文に略語の展開（正式名称/意味の括弧補足）が入っていないか（選択肢は用語のみ。入っていれば不要なヒントになるため fix で削り用語のみにする）。一方で解説(explanation・choiceExplanations)側では重要な略語が初出で英語フルスペル併記により展開されているか（例 解説内で「BLEU(Bilingual Evaluation Understudy)」。未展開なら fix で解説に補う）。全略語ではなく重要語のみ、S3・VPC等の周知略称は対象外\n- 選択肢に用語の説明・定義文・略語の展開が含まれていないか（選択肢は用語・答えのみにすべき。過剰な説明文や略語の括弧補足は fix で削り用語のみにする。削った内容・略語の意味は choiceExplanations／explanation 側で担保）\n- タグが下記ドメインの正確な値か（空・欠落・範囲外はfix）\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  AIB: AIの基礎とリテラシー / AI戦略とビジネス価値創出 / AIガバナンスと責任あるAIリーダーシップ / ビジネス準備・リーダーシップ・AI変革\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n  ML: AI/MLの基礎概念 / データ準備・特徴量エンジニアリング / モデル学習と最適化 / モデル評価と指標 / 生成AI・基盤モデル / 責任あるAI・運用\n  DB: リレーショナル設計・正規化 / SQL・クエリ / インデックスと性能 / トランザクション・整合性 / データモデリング・分析基盤 / データ処理方式・品質\n  NW: ネットワーク基礎（OSI/TCP-IP） / IPアドレッシング・サブネット / ルーティング / DNS・名前解決 / トランスポート・アプリ層 / ネットワークセキュリティ・運用\n  SEC: 暗号技術の基礎 / 認証・認可・アイデンティティ / ネットワークセキュリティ / 脅威・脆弱性・攻撃手法 / インシデント対応・監視・ログ / データ保護・ガバナンス・コンプライアンス\n※ ML/DB/NW はAWS認定ではない基礎知識カード。AWSサービスが登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）が主題の問題は不適切（基礎概念を主眼に直せなければdelete、直せるならfix）。基礎概念が主眼ならok\n- 構造（正解と選択肢の完全一致・isMultiple の整合・選択肢別解説の件数）は事前に機械チェック済み。確認不要（問題のあるものだけ「構造チェック:」行が付く）\n- choiceExplanations[i] と choices[i] の内容が対応しているか（ずれていればfixで並び替え）\n- 1つの選択肢や解説（choices・correctAnswers・explanation・choiceExplanations）に「原因：」「対処：」「メリット：」「デメリット：」等の複数のラベル付き項目が改行なしで1行に詰まっている場合は、各ラベルの直前に改行（文字 \\n）を入れて1ラベル1行に分ける fix を行う（choices を変更したら correctAnswers も同じ改行で完全一致させること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n  ※ fix は「事実・正確性・データ整合」の問題に加え、以下の明示対象に限る（廃止/誤ったサービス、正解の誤り・選択肢との不一致、isMultiple/ドメインの誤り、choiceExplanations の件数・対応ズレ、実在しない連携、仕様の過大主張、【必須fix】選択肢本文に入った略語の展開(括弧補足)の除去＝選択肢は用語のみにし略語の意味は解説側へ移す(ヒント漏れ防止)。かつ解説(explanation・choiceExplanations)側で重要な略語が英語フルスペルで展開されていなければ解説に追加(例 SMOTE(Synthetic Minority Over-sampling Technique)。BLEU/ROC-AUC/RMSE/MAE/F1/RBAC/MVCC/CIDR/OWASP 等が該当。全略語でなく重要語のみ。S3/VPC等の周知AWS略称は対象外)、【必須fix】選択肢の過剰説明＝用語+定義文になっている選択肢は用語のみに削り説明は choiceExplanations へ 等）。\n  ※ 「易しすぎる／ペア構造(2案×2組)でない／消去法が成立する／暗記寄り」等の難易度・構成に関する好みは、既存問題では fix しない（action=ok とする）。これらは生成時に担保する事項であり、成立している問題を難化目的で作り直さない。下記【追加の確認観点】に難易度・構成の指摘があっても、事実の誤りを伴わない限り fix せず ok とすること。\n  ※ 字数超過（解説や choiceExplanations が長い）だけを理由に既存を縮めない。字数上限は生成時（新規生成）のみ担保し、内容が妥当なら長くても ok とする。※ 「正解選択肢が最長」だけを理由に fix しない。正解が最長になるのは一定割合（目安2〜3割）で許容し、長さと正解の相関を作らない方針。ただし正解が他の全選択肢より極端に長く（概ね1.5倍超、または正解だけ2文構成）長さだけで正解が明白な場合のみ、技術的内容を保ったまま短縮する fix 対象とする。なお選択肢がすべて単語・用語のみ（説明文でない）の場合は長さのバランスを一切問わず、最長の用語が正解でも fix しない。\n  ※ 体裁（問題文・解説の改行や列挙・手順の整形、choiceExplanations 文頭のサービス名主語、番号手順の連番順）はトークン節約のため検証(02)では確認も fix もしない。ただし「選択肢に入った略語の展開の除去（選択肢は用語のみ・略語の意味は解説側へ）」「選択肢の過剰説明の除去（用語のみに）」「解説での重要略語の英語フルスペル展開の補完」「1つの選択肢や解説に複数ラベル（原因／対処 等）が改行なしで詰まっている場合の改行挿入」は上記【確認観点】のとおり fix 対象とする（体裁扱いにして見送らないこと）。生成(01)で担保する事項であり、可読性の決定的整形が要る場合は別途 fix-list-linebreaks.py 等で処理する。\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
 # 自動改良された追加確認観点を注入（audit-questions.sh -i が _validity-extra.txt を更新）
 _extra = (os.environ.get('VALIDITY_EXTRA', '') or '').strip()
 if _extra:
     PROMPT_HEADER = PROMPT_HEADER.replace('\n\n【問題リスト】', '\n\n【追加の確認観点（監査による自動改良）】\n' + _extra + '\n\n【問題リスト】')
+# 構造チェック行(_struct)が付いた問題がチャンクにある場合だけ、直し方を入れる。
+# 違反は全4,894問で0件なので、大半のチャンクでは入らず、プロンプトがその分だけ軽くなる。
+if any(isinstance(q.get('_struct'), list) and q.get('_struct') for q in questions):
+    _STRUCT_NOTE = (
+        '【構造チェックの直し方】\n'
+        '「構造チェック:」行が付いた問題は、その指摘を fix で直すこと。\n'
+        '- 正解は choices 内の完全一致テキストにする（記号接頭辞なし）。choices を変えたら correctAnswers も同じ内容に揃える。\n'
+        '- isMultiple は、正解が複数なら true・1つなら false。\n'
+        '- 選択肢別解説の件数が合わない・未設定のときは生成する（各80字以内・判定文不可）。'
+        '※既存の解説が80字を超えているだけで、内容が妥当・件数一致・サービス名主語あり、なら fix しない。'
+    )
+    PROMPT_HEADER = PROMPT_HEADER.replace('\n\n【問題リスト】', '\n\n' + _STRUCT_NOTE + '\n\n【問題リスト】')
+# Jev 事前スコアが付いた問題がチャンクにある場合だけ、読み方の注意書きを入れる（無ければ従来と同一）。
+# 数値の根拠は jev-validity-eval.py の実測（AUC: hint_leak 0.82 / 事実誤り 0.64 / 正解の当否 0.47）。
+# 「低スコア＝問題なし」と受け取って確認を省くと、Jev が見逃す種類の欠陥（正解の誤り等）が素通りするため、
+# その誤読を防ぐ文言を入れている。
+if any(isinstance(q.get('_jev'), dict) and q.get('_jev') for q in questions):
+    _JEV_NOTE = (
+        '【Jev事前スコアの読み方】\n'
+        '一部の問題には、軽量判定モデル Jev による事前スコア（0=問題なし寄り〜1=疑わしい）が付いている。'
+        '参考情報であり、最終判断は必ずあなた自身の確認で行うこと。\n'
+        '- スコアは「選択肢の括弧補足（略語展開・定義文）によるヒント漏れ」だけを見たもの。比較的信頼できる。'
+        '高い問題は選択肢の括弧を最優先で確認する。ただし数量「（12シャード）」・参照記号「（要件①）」・'
+        '製品名の一部など正当な括弧でも高く出ることがあるので、削るかどうかはあなたが判断する。\n'
+        '- スコアが低いことは「問題なし」の保証ではない。Jev は事実誤り・正解の当否・解説のズレ・ドメインの誤りなどを'
+        '一切判定していない。【確認観点】は全問について通常どおり確認すること。\n'
+        '- スコアが高いことだけを理由に fix / delete しない。根拠をあなた自身が確認できた場合のみ行う。\n'
+        '- スコアが付いていない問題は Jev 未判定であり、問題の良し悪しとは無関係。'
+    )
+    PROMPT_HEADER = PROMPT_HEADER.replace('\n\n【問題リスト】', '\n\n' + _JEV_NOTE + '\n\n【問題リスト】')
 # B: チャンク内に実在する資格のドメイン表だけ残す（他資格の "  XXX: ..." 行を削除しトークン削減）
 import re as _re
 _chunk_exams = set(q.get('examType', '') for q in questions)
@@ -575,6 +651,14 @@ for q in questions:
         lines.append(f"ドメイン: {domain_name if domain_name else '（不明）'}")
     else:
         lines.append(f"タグ: {', '.join(tags) if tags else '（なし）'}")
+    _st = q.get('_struct')
+    if isinstance(_st, list) and _st:
+        lines.append("構造チェック: " + " / ".join(str(x) for x in _st))
+    # 小数1桁に丸める。Jev のスコアは同一入力でも最大0.1程度揺れるので、それ以上の桁は偽の精度になる。
+    _jv = q.get('_jev')
+    if isinstance(_jv, dict) and _jv:
+        if isinstance(_jv.get('hint_leak'), (int, float)):
+            lines.append(f"Jev事前スコア（0=問題なし寄り〜1=疑わしい）: 選択肢ヒント漏れ {_jv['hint_leak']:.1f}")
     lines.append("")
 print('\n'.join(lines))
 PYEOF
@@ -585,7 +669,7 @@ PYEOF
   while true; do
     _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
     _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-    timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch,ToolSearch --allowed-tools WebFetch,mcp__aws-docs --strict-mcp-config --mcp-config /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/mcp-aws-docs.json < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F")
     _STDERR=$(cat "$_STDERR_F")
@@ -597,7 +681,7 @@ PYEOF
       if [ -x "${CLAUDE_CMD:-}" ]; then
         _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
         _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-        timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+        timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch,ToolSearch --allowed-tools WebFetch,mcp__aws-docs --strict-mcp-config --mcp-config /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/mcp-aws-docs.json < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
         AI_EXIT=$?
         RESULT=$(cat "$_STDOUT_F")
         _STDERR=$(cat "$_STDERR_F")

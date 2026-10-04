@@ -1,0 +1,727 @@
+{
+  "mode": "domain",
+  "n": 45,
+  "cost": 0.030066,
+  "details": [
+    {
+      "qid": "aib-a9780a02",
+      "label": 1,
+      "reason": "タグが未設定。データドリフト監視・MLOpsによるビジネス価値維持はAI戦略ドメインが適切。isMultipleも未設定のため false を明示。",
+      "probs": {
+        "domain_wrong": 0.79
+      }
+    },
+    {
+      "qid": "aib-79eb4024",
+      "label": 1,
+      "reason": "タグ欠落・isMultiple未設定。AI成熟度評価はビジネス変革準備の文脈。",
+      "probs": {
+        "domain_wrong": 0.88
+      }
+    },
+    {
+      "qid": "aib-6ebba597",
+      "label": 1,
+      "reason": "タグが未設定。専門知識・開発期間・インフラ管理を軸にAIサービスを選定するビジネス判断が主題のため「AI戦略とビジネス価値創出」を付与する。",
+      "probs": {
+        "domain_wrong": 0.87
+      }
+    },
+    {
+      "qid": "ml-e3fa1832",
+      "label": 1,
+      "reason": "プロキシ差別・公平性バイアスは「責任あるAI・運用」ドメインが正しく、「モデル評価と指標」は不適切。",
+      "probs": {
+        "domain_wrong": 0.56
+      }
+    },
+    {
+      "qid": "aib-342c0cf5",
+      "label": 1,
+      "reason": "ドメインタグが未設定。AI開発支援ツールのリテラシーが主題のため正しいドメインを付与。",
+      "probs": {
+        "domain_wrong": 0.82
+      }
+    },
+    {
+      "qid": "aib-5cc504ca",
+      "label": 1,
+      "reason": "タグ欠落。Bedrockがデフォルトで顧客データをモデル学習に使用しないという正解・解説は正確。適切なAIBドメインタグを付与。",
+      "probs": {
+        "domain_wrong": 0.83
+      }
+    },
+    {
+      "qid": "aib-a314b313",
+      "label": 1,
+      "reason": "選択肢[1]に「（Web Application Firewall）」の略語展開が混入しているため削除し、choiceExplanations[1]にWAF・LLMのフルスペルを補う。またタグが未設定のため「AIガバナン",
+      "probs": {
+        "domain_wrong": 0.91
+      }
+    },
+    {
+      "qid": "aib-a769612c",
+      "label": 1,
+      "reason": "タグが未設定。全社的なAI意思決定体制とガバナンス構造が主題のためタグを付与。",
+      "probs": {
+        "domain_wrong": 0.91
+      }
+    },
+    {
+      "qid": "aib-cd7208c6",
+      "label": 1,
+      "reason": "タグ欠落。AWS Well-Architected Framework責任あるAIレンズは実在し、公平性・説明可能性等の原則をカバーする正解として正確。適切なAIBドメインタグを付与。",
+      "probs": {
+        "domain_wrong": 0.9
+      }
+    },
+    {
+      "qid": "aib-cda3292e",
+      "label": 1,
+      "reason": "タグ欠落・isMultiple未設定。リスクベース統制はAIガバナンス・責任あるAIの中核。",
+      "probs": {
+        "domain_wrong": 0.89
+      }
+    },
+    {
+      "qid": "aib-bfa6245c",
+      "label": 1,
+      "reason": "タグ未設定。選択肢[0]に括弧補足「(Area Under the ROC Curve)」、選択肢[1]に「(Latency)」が混入しており必須fix対象。correctAnswersも更新。",
+      "probs": {
+        "domain_wrong": 0.84
+      }
+    },
+    {
+      "qid": "aib-0673673d",
+      "label": 1,
+      "reason": "タグが欠落、isMultipleが未設定（単一正解）",
+      "probs": {
+        "domain_wrong": 0.8
+      }
+    },
+    {
+      "qid": "aib-f4d758b4",
+      "label": 1,
+      "reason": "タグ未設定。AI出力の批判的評価・AIリテラシー教育が主題のため「AIの基礎とリテラシー」を付与。isMultiple未設定のためfalseを追加。",
+      "probs": {
+        "domain_wrong": 0.92
+      }
+    },
+    {
+      "qid": "aib-5d39d874",
+      "label": 1,
+      "reason": "タグ欠落。Buy vs Buildのビジネス戦略判断はAI戦略ドメイン。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "domain_wrong": 0.88
+      }
+    },
+    {
+      "qid": "aib-96a785f7",
+      "label": 1,
+      "reason": "ドメインタグが未設定。責任あるAI・継続的リスク評価が主題のため正しいドメインを付与。",
+      "probs": {
+        "domain_wrong": 0.86
+      }
+    },
+    {
+      "qid": "aib-f1f7d4b3",
+      "label": 1,
+      "reason": "タグ欠落。GDPRデータレジデンシー要件に対するリージョン選択の正解・解説は正確。適切なAIBドメインタグを付与。",
+      "probs": {
+        "domain_wrong": 0.88
+      }
+    },
+    {
+      "qid": "aib-da9273d5",
+      "label": 1,
+      "reason": "タグが未設定。全社AI変革推進のためのCoE組織設立はビジネス準備・リーダーシップ・AI変革ドメインに該当する。",
+      "probs": {
+        "domain_wrong": 0.9
+      }
+    },
+    {
+      "qid": "aib-273749b9",
+      "label": 1,
+      "reason": "タグが未設定。BedrockのコストモデルとROIの予測可能性に関する意思決定はAI戦略とビジネス価値創出ドメインに該当する。",
+      "probs": {
+        "domain_wrong": 0.85
+      }
+    },
+    {
+      "qid": "aib-28c65931",
+      "label": 1,
+      "reason": "タグが欠落、isMultipleが未設定（単一正解）",
+      "probs": {
+        "domain_wrong": 0.88
+      }
+    },
+    {
+      "qid": "aib-04e702c0",
+      "label": 1,
+      "reason": "タグが未設定。経営層によるAI変革ビジョン共有・部門横断推進が主題なのでビジネス準備・リーダーシップ・AI変革を付与。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "domain_wrong": 0.87
+      }
+    },
+    {
+      "qid": "ml-e81673e6",
+      "label": 1,
+      "reason": "ドメインが「モデル評価と指標」だが問題内容は決定木の特徴（基礎概念の説明）であり「AI/MLの基礎概念」が正しい。",
+      "probs": {
+        "domain_wrong": 0.63
+      }
+    },
+    {
+      "qid": "aib-4f0ef891",
+      "label": 1,
+      "reason": "タグが未設定。専任エンジニア不在企業がAI基盤を短期構築するアプローチ選択が主題のためタグを付与。",
+      "probs": {
+        "domain_wrong": 0.84
+      }
+    },
+    {
+      "qid": "aib-99076859",
+      "label": 1,
+      "reason": "タグが未設定。責任あるAI・採用判断における人間監督が主題のため「AIガバナンスと責任あるAIリーダーシップ」を付与する。",
+      "probs": {
+        "domain_wrong": 0.85
+      }
+    },
+    {
+      "qid": "aib-bf78de86",
+      "label": 1,
+      "reason": "タグが空。PoC優先順位付けフレームワークはAI戦略・ビジネス価値創出領域に該当。",
+      "probs": {
+        "domain_wrong": 0.91
+      }
+    },
+    {
+      "qid": "aib-cb7d7091",
+      "label": 1,
+      "reason": "タグが未設定。大規模AI投資前の顧客価値仮説検証という事業性判断が主題のためタグを付与。",
+      "probs": {
+        "domain_wrong": 0.93
+      }
+    },
+    {
+      "qid": "aib-b8face11",
+      "label": 1,
+      "reason": "タグ欠落。段階的展開・評価によるAI変革推進というAIBビジネス文脈の問題。適切なAIBドメインタグを付与。",
+      "probs": {
+        "domain_wrong": 0.89
+      }
+    },
+    {
+      "qid": "aib-b70352aa",
+      "label": 1,
+      "reason": "タグが未設定。AIリテラシー向上（データ取扱いの意識教育）が主題なのでAIの基礎とリテラシーを付与。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "domain_wrong": 0.86
+      }
+    },
+    {
+      "qid": "aib-1bf768db",
+      "label": 1,
+      "reason": "タグが空。生成AIのガバナンス・コンプライアンス管理はAIガバナンスと責任あるAIリーダーシップ領域に該当。",
+      "probs": {
+        "domain_wrong": 0.89
+      }
+    },
+    {
+      "qid": "aib-ba88cec4",
+      "label": 1,
+      "reason": "タグが未設定。AI導入時の社員不安への対応・変革推進はビジネス準備・リーダーシップドメインが適切。isMultipleも未設定のため false を明示。",
+      "probs": {
+        "domain_wrong": 0.86
+      }
+    },
+    {
+      "qid": "aib-fd0b336b",
+      "label": 1,
+      "reason": "ドメインが「AIの基礎とリテラシー」だが、問題の主眼はビジネス制約下でのAIソリューション選定（戦略・価値創出）であり「AI戦略とビジネス価値創出」が正確。",
+      "probs": {
+        "domain_wrong": 0.53
+      }
+    },
+    {
+      "qid": "aib-6204e7fd",
+      "label": 1,
+      "reason": "タグが未設定。医療AIの説明可能性・透明性確保はAIガバナンスと責任あるAIリーダーシップドメインに該当する。",
+      "probs": {
+        "domain_wrong": 0.89
+      }
+    },
+    {
+      "qid": "aib-84bec34d",
+      "label": 1,
+      "reason": "タグが未設定。AWS CAFによるクラウド変革準備状況の評価が主題のためタグを付与。",
+      "probs": {
+        "domain_wrong": 0.89
+      }
+    },
+    {
+      "qid": "aib-46b06a42",
+      "label": 1,
+      "reason": "タグが未設定。AI投資の優先順位付け・戦略整合性の問題はAI戦略ドメインが適切。isMultipleも未設定のため false を明示。",
+      "probs": {
+        "domain_wrong": 0.91
+      }
+    },
+    {
+      "qid": "aib-9e9d92aa",
+      "label": 1,
+      "reason": "タグが未設定。AI導入効果をKPIで測定するビジネス評価が主題のため「AI戦略とビジネス価値創出」を付与する。",
+      "probs": {
+        "domain_wrong": 0.92
+      }
+    },
+    {
+      "qid": "aib-fda1cc41",
+      "label": 1,
+      "reason": "タグ欠落。プロンプト設計の基礎教育はAIリテラシー向上に関する問題。適切なAIBドメインタグを付与。",
+      "probs": {
+        "domain_wrong": 0.91
+      }
+    },
+    {
+      "qid": "aib-5750e121",
+      "label": 1,
+      "reason": "タグ欠落。バイアス軽減と公平性トレードオフの判断はAIガバナンスドメイン。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "domain_wrong": 0.8
+      }
+    },
+    {
+      "qid": "aib-ad019c47",
+      "label": 1,
+      "reason": "タグが欠落、isMultipleが未設定（単一正解）",
+      "probs": {
+        "domain_wrong": 0.9
+      }
+    },
+    {
+      "qid": "aib-02f8d922",
+      "label": 1,
+      "reason": "タグが未設定。生成AI導入前のリスク把握・シナリオ整理はガバナンスと責任あるAIリーダーシップドメイン。その他は問題なし。",
+      "probs": {
+        "domain_wrong": 0.84
+      }
+    },
+    {
+      "qid": "aib-f8dc6dfe",
+      "label": 1,
+      "reason": "タグが未設定。AWS CAF for AIを用いた組織のAI準備度評価・ロードマップ策定が主題なのでビジネス準備・リーダーシップ・AI変革を付与。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "domain_wrong": 0.84
+      }
+    },
+    {
+      "qid": "aib-e08a8266",
+      "label": 1,
+      "reason": "タグが欠落、isMultipleが未設定（単一正解）",
+      "probs": {
+        "domain_wrong": 0.92
+      }
+    },
+    {
+      "qid": "aib-87e6d99b",
+      "label": 1,
+      "reason": "タグが未設定。AIプロジェクト投資の優先順位付け・ポートフォリオ評価が主題なのでAI戦略とビジネス価値創出を付与。isMultipleも未設定のためfalseを明示。",
+      "probs": {
+        "domain_wrong": 0.9
+      }
+    },
+    {
+      "qid": "aib-10147b5d",
+      "label": 1,
+      "reason": "タグ未設定。継続的AIリスク監視・責任あるAI運用が主題のため「AIガバナンスと責任あるAIリーダーシップ」を付与。isMultiple未設定のためfalseを追加。",
+      "probs": {
+        "domain_wrong": 0.88
+      }
+    },
+    {
+      "qid": "aib-f7072d55",
+      "label": 1,
+      "reason": "タグが未設定。AI導入優先順位付け・期待価値と実現可能性の評価はAI戦略ドメインが適切。isMultipleも未設定のため false を明示。",
+      "probs": {
+        "domain_wrong": 0.91
+      }
+    },
+    {
+      "qid": "aib-d06b8cc6",
+      "label": 1,
+      "reason": "タグ欠落・isMultiple未設定。生成AIサービスの料金構造評価はAI戦略・ビジネス価値の文脈。",
+      "probs": {
+        "domain_wrong": 0.92
+      }
+    },
+    {
+      "qid": "aib-c9260ebb",
+      "label": 1,
+      "reason": "タグが未設定。利用特性に応じたAIサービス料金モデルの選択・コスト予測はAI戦略ドメイン。その他は問題なし。",
+      "probs": {
+        "domain_wrong": 0.86
+      }
+    },
+    {
+      "qid": "mla-0c554f57",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.06
+      }
+    },
+    {
+      "qid": "aib-bc2c711b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.14
+      }
+    },
+    {
+      "qid": "nw-fd5591c6",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.05
+      }
+    },
+    {
+      "qid": "dea-75892cdf",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.09
+      }
+    },
+    {
+      "qid": "scs-03a1611e",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.21
+      }
+    },
+    {
+      "qid": "gai-d6130452",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.37
+      }
+    },
+    {
+      "qid": "nw-8bd4f6d6",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.05
+      }
+    },
+    {
+      "qid": "aib-d854ab36",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.2
+      }
+    },
+    {
+      "qid": "ml-f5879edd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.28
+      }
+    },
+    {
+      "qid": "nw-bdfc5757",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.1
+      }
+    },
+    {
+      "qid": "ans-a6504d9c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.1
+      }
+    },
+    {
+      "qid": "saa-aa211a83",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.26
+      }
+    },
+    {
+      "qid": "db-9110fb1f",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.16
+      }
+    },
+    {
+      "qid": "saa-4d9f4bbe",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.27
+      }
+    },
+    {
+      "qid": "mla-78702ad3",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.04
+      }
+    },
+    {
+      "qid": "aib-ffa2f103",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.11
+      }
+    },
+    {
+      "qid": "aib-ae1e2b59",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.26
+      }
+    },
+    {
+      "qid": "scs-74f7320a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.13
+      }
+    },
+    {
+      "qid": "clf-15fcaaee",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.32
+      }
+    },
+    {
+      "qid": "ans-87ce2adf",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.1
+      }
+    },
+    {
+      "qid": "db-24d2f5fd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.29
+      }
+    },
+    {
+      "qid": "dea-80f0ea94",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.07
+      }
+    },
+    {
+      "qid": "saa-9880a66a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.16
+      }
+    },
+    {
+      "qid": "saa-5af9e9a1",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.21
+      }
+    },
+    {
+      "qid": "saa-aa8e8b85",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.09
+      }
+    },
+    {
+      "qid": "sap-5b4f179c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.28
+      }
+    },
+    {
+      "qid": "clf-090e422c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.09
+      }
+    },
+    {
+      "qid": "nw-6e263f7b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.05
+      }
+    },
+    {
+      "qid": "scs-49972f00",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.28
+      }
+    },
+    {
+      "qid": "dop-a87cf810",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.21
+      }
+    },
+    {
+      "qid": "saa-4f6c71c0",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.2
+      }
+    },
+    {
+      "qid": "saa-5f58519d",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.1
+      }
+    },
+    {
+      "qid": "nw-44ec3566",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.05
+      }
+    },
+    {
+      "qid": "nw-51348b71",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.03
+      }
+    },
+    {
+      "qid": "clf-b6a31e4b",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.08
+      }
+    },
+    {
+      "qid": "mla-aea5c63a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.43
+      }
+    },
+    {
+      "qid": "nw-c0bd7ba5",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.22
+      }
+    },
+    {
+      "qid": "ans-064cfc78",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.21
+      }
+    },
+    {
+      "qid": "mla-df55271c",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.17
+      }
+    },
+    {
+      "qid": "soa-5995a9db",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.19
+      }
+    },
+    {
+      "qid": "dea-0485d0fd",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.23
+      }
+    },
+    {
+      "qid": "aif-4d8b3c15",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.06
+      }
+    },
+    {
+      "qid": "saa-40935a2a",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.16
+      }
+    },
+    {
+      "qid": "dea-719cc7d1",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.07
+      }
+    },
+    {
+      "qid": "nw-d02fc555",
+      "label": 0,
+      "reason": "",
+      "probs": {
+        "domain_wrong": 0.13
+      }
+    }
+  ]
+}
