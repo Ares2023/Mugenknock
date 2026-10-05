@@ -399,7 +399,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       ? (pathname === '/aws/' || pathname === '/aws')
       : pathname.startsWith(path);
 
-  const isOthersActive = pathname === '/aws/others' || OTHERS_ITEMS.some(item => isActive(item.path));
+  const isOthersActive = pathname === '/aws/others' || pathname === '/aws/ohineri' || OTHERS_ITEMS.some(item => isActive(item.path));
 
   const navItems = NAV_KEYS;
 
@@ -631,6 +631,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/aws/stats':            [{ label: t('nav.home'), path: '/aws/' }, { label: t('stats.title') }],
     '/aws/release-notes':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.releaseNotes') }],
     '/aws/announcements':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.announcements') }],
+    '/aws/ohineri':          [{ label: t('nav.home'), path: '/aws/' }, { label: lang === 'ja' ? 'おひねり' : 'Tip jar' }],
     '/about':                [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.about') }],
     '/architecture':         [{ label: t('nav.home'), path: '/aws/' }, { label: lang === 'ja' ? 'Webサイトの構成図' : 'Site Architecture' }],
   };

@@ -1197,7 +1197,7 @@ function TodayServiceSection({ lang, userId, authReady, onNavigateEncyclopedia, 
 }
 
 // ── メインコンポーネント ────────────────────────────────────────
-const FOCUSED_UNLOCK_THRESHOLD = 30;
+const FOCUSED_UNLOCK_THRESHOLD = 20;
 function loadQuickPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
@@ -1705,7 +1705,7 @@ export default function Home() {
 
   // 解放到達を検知して一度だけ祝福ポップアップを出す。
   // ※このeffectは下の focusedUnlockedCache 書き込みより前に宣言し、上書き前の
-  //   「前回までの解放状態」を読む（今まさに30問を超えた瞬間だけ祝う）。
+  //   「前回までの解放状態」を読む（今まさに閾値(FOCUSED_UNLOCK_THRESHOLD)を超えた瞬間だけ祝う）。
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   useEffect(() => {
     if (!user || !answeredCountReady || !focusedUnlocked) return;
@@ -1724,7 +1724,7 @@ export default function Home() {
   }, [answeredCountReady, focusedUnlocked, uid]);
 
   // ── ホーム「苦手分析」カード（デスクトップ限定・ログイン専用）用 ──
-  // マイページ苦手分析タブと同じデータ源。頻出ミス問題は解放(30問)まで取得しない。
+  // マイページ苦手分析タブと同じデータ源。頻出ミス問題は解放(FOCUSED_UNLOCK_THRESHOLD)まで取得しない。
   const [weakQuestions, setWeakQuestions] = useState<WeakQuestion[]>([]);
   const [weakLoaded, setWeakLoaded] = useState(false);
   useEffect(() => {

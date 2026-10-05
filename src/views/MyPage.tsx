@@ -21,7 +21,7 @@ import Confetti from '../components/Confetti';
 import KeyHint from '../components/KeyHint';
 
 
-const FOCUSED_UNLOCK_THRESHOLD = 30;
+const FOCUSED_UNLOCK_THRESHOLD = 20;
 
 type Session = {
   sessionId: string;

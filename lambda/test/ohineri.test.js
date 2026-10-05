@@ -22,7 +22,8 @@ test('決済セッションに、誰の購入か(sub)・100円・JPYが入る', 
   assert.strictEqual(p.line_items[0].price_data.currency, 'jpy');
   assert.strictEqual(p.line_items[0].price_data.unit_amount, PRICE_YEN);
   assert.ok(p.success_url.includes('{CHECKOUT_SESSION_ID}'));
-  assert.ok(p.success_url.startsWith('https://mugenknock.com/'));
+  assert.ok(p.success_url.startsWith('https://mugenknock.com/aws/ohineri/'));
+  assert.ok(p.cancel_url.startsWith('https://mugenknock.com/aws/ohineri/'));
 });
 
 test('支払い済み・100円・JPY・sub あり なら購入として扱う', () => {

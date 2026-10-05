@@ -27,8 +27,8 @@ function buildCheckoutParams({ sub, email, origin }) {
       price_data: { currency: 'jpy', unit_amount: PRICE_YEN, product_data: { name: PRODUCT_NAME } },
     }],
     // {CHECKOUT_SESSION_ID} は Stripe が実際のIDに置き換える。戻り先でサーバに確認を依頼するために使う
-    success_url: `${base}/aws/?ohineri=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/aws/?ohineri=cancel`,
+    success_url: `${base}/aws/ohineri/?ohineri=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${base}/aws/ohineri/?ohineri=cancel`,
   };
 }
 

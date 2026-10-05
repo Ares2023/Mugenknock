@@ -21,7 +21,8 @@
 | `/aws/exam-dashboard` | `ExamDashboard.tsx` | ❌ | 不要 | 全資格の進捗ダッシュボード |
 | `/aws/announcements` | `Announcements.tsx` | ❌ | 不要 | お知らせ |
 | `/aws/release-notes` | `ReleaseNotes.tsx` | ❌ | 不要 | リリースノート |
-| `/aws/others` | `Others.tsx` | ❌ | 不要 | その他メニュー・問い合わせ |
+| `/aws/others` | `Others.tsx` | ❌ | 不要 | その他メニュー・問い合わせ。**最下部**に「おひねり」ボタン（ログイン中かつ機能が有効なときだけ） |
+| `/aws/ohineri` | `Ohineri.tsx` | ✅ | 必須 | おひねりの案内・購入（1日の上限の残り表示・Stripe 決済へ遷移・決済後の確認）。specs/006 |
 | `/login` | `LoginPage.tsx` | ❌ | 不要 | Amplify Authenticator |
 | `/account` | `Account.tsx` | ❌ | 不要 | アカウント設定・データ削除 |
 | `/about` | `About.tsx` | ✅ | 不要 | サイト情報 / プライバシー / 利用規約 / 運営者情報 |
@@ -72,7 +73,7 @@
    今日のサービス（日めくり）
    苦手分析（ログイン専用。ゲストは非表示）
      マイページ苦手分析タブの要約（苦手ドメイン上位2件・頻出ミス問題2件）。
-     30問未満は「あとX問でアンロック」。クリックで /aws/mypage（苦手分析タブ）へ
+     20問未満は「あとX問でアンロック」。クリックで /aws/mypage（苦手分析タブ）へ
      右カラムを flexDirection:'column' にし、苦手分析カードに flex:1 を付けて
      左カラムの下端（ページ最下部）までパネルの底を揃える
 
@@ -82,7 +83,7 @@
 ─────────────────────────
  プライマリ演習ボタン
    ├ サクッと演習（quick）        … 常時
-   └ しっかり対策（focused）      … ログイン + 30問解答で解放
+   └ しっかり対策（focused）      … ログイン + 20問解答で解放
    （再開ドラフトがあれば「再開する」表示）
 ─────────────────────────
 ```
@@ -93,7 +94,7 @@
 |---|---|---|
 | `targetExam` | `localStorage.targetExam_<uid>` | 未設定ならオンボーディング表示 |
 | `quickDraft` / `focusedDraft` | `localStorage.*Draft_<uid>` | 起動時に `hydrateDraftsFromServer()` でサーバ分を補完 |
-| `answeredCount` | `GET /users/me/question-stats` | Focused 解放判定（30問） |
+| `answeredCount` | `GET /users/me/question-stats` | Focused 解放判定（20問） |
 | `domainStats` | `GET /users/me/stats` | stale-while-revalidate（sessionStorage キャッシュ） |
 | `estimatedScore` | `domainStats` から算出 | → [06-exercise-logic.md](06-exercise-logic.md) |
 | `lastMode` | `localStorage.lastQuickMode_<uid>` | どちらをプライマリに出すか |
