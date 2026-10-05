@@ -650,8 +650,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {lang === 'ja'
-              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
-              : 'This site uses cookies for advertising and analytics.'}
+              ? '本サービスは、ログイン状態の維持・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies to keep you signed in and for analytics.'}
             {' '}
             <button onClick={() => navigate('/about#privacy')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}>
               {lang === 'ja' ? '詳細' : 'Learn more'}

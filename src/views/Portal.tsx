@@ -480,8 +480,8 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {ja
-              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
-              : 'This site uses cookies for advertising and analytics.'}
+              ? '本サービスは、ログイン状態の維持・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies to keep you signed in and for analytics.'}
             {' '}
             <a href="/about#privacy" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
               {ja ? '詳細' : 'Learn more'}

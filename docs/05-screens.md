@@ -462,7 +462,7 @@ adsbygoogle.js）と `src/components/ui/AdPlaceholder.tsx`（未使用）も削�
 
 **存続したもの**: `/about`（プライバシーポリシー・利用規約）と `/architecture`（サイト構成図）は
 アプリ内から実際にリンクされ機能しているため、ページ自体は残し AdSense 広告読み込みのみ削除。
-Android/iOS アプリ版の Google AdMob（`app/privacy-policy/page.tsx` 参照）は別施策で影響なし。
+プライバシーポリシー・Cookie バナーの広告の記述も削除済み（2026-10-05）。現在は広告を配信していない。
 
 ---
 

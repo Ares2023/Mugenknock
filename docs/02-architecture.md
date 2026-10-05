@@ -55,8 +55,9 @@ Web版は元々「過去問道場」を参考に、AdSense 収益化のための
 主因になっていた。
 `/about`（プライバシーポリシー・利用規約）と `/architecture`（サイト構成図）はアプリ内から
 実際にリンクされて機能しているため**ページ自体は存続**、AdSense 広告読み込みだけを削除した。
-Android/iOS アプリ版の Google AdMob（`app/privacy-policy/page.tsx` に記載）は本施策と別物で
-影響なし（現状 Web版は無収益化・アプリ版のみ AdMob 広告を配信）。
+プライバシーポリシー（`app/privacy-policy/page.tsx` / `src/views/About.tsx`）と Cookie バナー
+（`Layout.tsx` / `Portal.tsx`）に残っていた広告（AdSense・AdMob）の記述も、2026-10-05 に削除した
+（アプリ版はストア未公開で、AdMob の SDK も `android/` に存在しない。現在は Web・アプリとも広告なし）。
 
 ## 2.2 環境
 
