@@ -32,6 +32,7 @@ import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { fetchDailyProgress } from '../utils/dailyProgress';
+import { useOhineriGate } from '../utils/useOhineriGate';
 
 // ダッシュボードはワイドモニタで横を使い切れるよう、他ページ(900px)より広く取る。
 // デスクトップ固定の開始バーも同じ幅で中央寄せするため定数で共有する。
@@ -1316,6 +1317,7 @@ export default function Home() {
   const location = useLocation();
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
+  const { gate: ohineriGate, ui: ohineriUi } = useOhineriGate(user, ja, true);
 
   const [nodeWindow, setNodeWindow] = useState<5 | 10>(() =>
     localStorage.getItem(`scoreWindow_${uid}`) === '10' ? 10 : 5
@@ -1927,6 +1929,9 @@ export default function Home() {
   // サクッと演習
   const startQuickExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
+    // 1日の演習上限（おひねり）。残りに切り詰めるか、閉じたら開始しない
+    const gatedCount = await ohineriGate(loadQuickPrefs(uid).questionCount ?? 5);
+    if (gatedCount == null) return;
     setShowStartTutorial(false);
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, JSON.stringify({ s: estimatedScore, w: nodeWindow }));
     const userId = user?.userId ?? 'guest';
@@ -1954,7 +1959,7 @@ export default function Home() {
       const selIdx = domainsToIndices(targetExam, qPrefs.domains ?? []);
       const allDomains = EXAM_DOMAINS[targetExam] ?? [];
       const allSelected = selIdx.length === 0 || selIdx.length >= allDomains.length;
-      const count = qPrefs.questionCount ?? 5;
+      const count = gatedCount;
       const plateau = randomPlateau();
       const stopAnim = animateLoadPct(setQuickLoadPct, 10, plateau);
       // 前提知識(オリジナル資格)の混在: 対応資格があり、ドメイン絞り込みをしていない時のみ
@@ -2008,6 +2013,8 @@ export default function Home() {
   const startFocusedExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
+    const gatedCount = await ohineriGate(loadFocusedPrefs(uid).questionCount ?? 5);
+    if (gatedCount == null) return;
     setShowStartTutorial(false);
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, JSON.stringify({ s: estimatedScore, w: nodeWindow }));
     // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
@@ -2105,7 +2112,7 @@ export default function Home() {
       //    選んだ優先条件（未回答/不正解/未正解）に合う問題を強く優先しつつ、base 重みで
       //    条件外の問題も混ぜて充足（count 件）を担保する（少ない場合の補充）。
       const W_PRIORITY = 8, W_WEAK = 8, W_INCORRECT = 4, W_DOMAIN = 6, W_BOOKMARK = 8, BASE = 1;
-      const count = fPrefs.questionCount ?? 5;
+      const count = gatedCount;
       const pool = Array.from(new Map(allItems.map((q: any) => [q.questionId, q])).values());
       const focusWeightFn = (q: any) => {
         const qid = q.questionId;
@@ -2603,6 +2610,8 @@ export default function Home() {
 
       </div>
       </div>
+
+      {ohineriUi}
 
       {revealService && (
         <DailyServiceRevealModal

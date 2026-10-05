@@ -17,6 +17,14 @@
 > 認証なしで `userId` を受け取る。他人の `userId` を指定した書き込みが理論上可能
 > （→ [08-refactor-plan.md](08-refactor-plan.md) の Sec-1）。
 
+**1日の演習上限（おひねり・specs/006）**: 管理設定 `AppSettings.ohineri.enabled` が true の間だけ働く
+（既定は無効＝何も変わらない）。有効かつ**有効なトークンの sub がある**ときに限り:
+- `POST /sessions`: 通常演習（`mode !== 'exam' && !isMini`）で今日の残りが 0 なら `429 { code: 'DAILY_LIMIT', … }`
+- `POST /sessions/:id/answers`: 上限対象のセッションなら、同じトランザクションで `UserDailyCounts` に `ADD answered 1`
+  （回数の加算に失敗しても回答の記録は止めない）。セッションの `mode` はサーバが `Sessions` を読んで判定する
+- この2本は従来ログイン検証が無い。上記のときだけトークンの sub を本人として扱う（他人の回数を増やせない）。
+  トークン無し（ゲスト）・無効なトークンは従来どおり素通し
+
 エラーレスポンスは一貫して `{ "error": "..." }`。想定外の例外はすべて
 `500 { error: 'Internal server error' }` に潰される（詳細は CloudWatch Logs）。
 
@@ -270,6 +278,19 @@ questionId も母集団に合流してから絞る（`GET /questions?includeComp
 
 - `scoreHistory` — 日付キーでマージし各日の**最大点**を採用、末尾30件
 - `sessionScoreHistory` / `sessionScoreLog` — **受信配列が既存より短ければ無視**
+
+### おひねり（1日の演習上限の撤廃）— specs/006
+
+| メソッド | パス | 認証 | 内容 |
+|---|---|---|---|
+| GET | `/users/me/limits` | ログイン | `{ enabled, unlimited, applies, limit, used, remaining, purchaseEnabled, priceYen }`。`applies`＝上限が掛かるか |
+| POST | `/users/me/checkout` | ログイン | Stripe Checkout セッションを作り `{ url }` を返す。購入済みは 409、無効・決済キー無しは 503 |
+| POST | `/users/me/checkout/confirm` | ログイン | `{ sessionId }`。Stripe API で支払いを確認し、本人の支払い済みなら購入を記録（冪等）して `limits` を返す |
+| POST | `/webhooks/stripe` | **署名検証のみ** | `checkout.session.completed` 等。生ボディで署名検証し、支払い済み・100円・JPY のものだけ購入を記録 |
+
+- 購入の記録は `UserEntitlements`（`ConditionExpression: attribute_not_exists(userId)` で冪等）。**書くのは Webhook と confirm だけ**
+- 戻り先 URL はオリジン許可リスト（`lambda/src/ohineri.js` の `safeOrigin`）で絞る
+- 環境変数（Lambda ごと）: `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`。dev はテストキー。本番キーへの差し替えは人間の確認が必要
 
 ### `PUT /users/me/preferences`
 

@@ -13,6 +13,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
+import { useOhineriGate } from '../utils/useOhineriGate';
 
 const fmtSec = (sec: number) => `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
 
@@ -41,6 +42,7 @@ export default function Practice() {
   const navigate = useNavigate();
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
+  const { gate: ohineriGate, ui: ohineriUi } = useOhineriGate(user, ja);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -293,6 +295,10 @@ export default function Practice() {
   });
 
   const startExercise = async () => {
+    // 1日の演習上限（おひねり）。残りに切り詰めるか、閉じたら開始しない
+    const gated = await ohineriGate(limit);
+    if (gated == null) return;
+    const lim = gated;
     const userId = user?.userId ?? 'guest';
     await autoScoreAndClearDrafts(userId, [`practiceExerciseDraft_${userId}`]);
     setExerciseDraft(null);
@@ -316,10 +322,10 @@ export default function Practice() {
         try {
           let items: any[] = [...cached.questions];
           if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
-          items = shuffleArray(items).slice(0, limit);
+          items = shuffleArray(items).slice(0, lim);
           // フィルタで設定数に満たない場合はキャッシュ即遷移せず、
           // フィルタ外から補充できるフォールバック経路へ回す
-          if (items.length > 0 && (items.length >= limit || !hasStatusFilter)) {
+          if (items.length > 0 && (items.length >= lim || !hasStatusFilter)) {
             setExerciseLoadPct(90);
             const questionIds = items.map((q: any) => q.questionId);
             // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
@@ -349,9 +355,9 @@ export default function Practice() {
       if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       const allIds: string[] = idsData.questionIds ?? [];
-      let selectedIds = allIds.slice(0, limit);
+      let selectedIds = allIds.slice(0, lim);
       // 優先フィルタで設定の問題数に満たない場合、同一ドメイン内のフィルタ外の問題で補充する
-      if (selectedIds.length < limit && hasStatusFilter) {
+      if (selectedIds.length < lim && hasStatusFilter) {
         const fillParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
         if (!allSelected) fillParams.set('domain', domainsToIndices(examType, selectedDomains).join(','));
         if (useCompanionEx) fillParams.set('includeCompanion', 'true');
@@ -360,7 +366,7 @@ export default function Practice() {
           const fillData = await fetch(`${API_ENDPOINT}/questions?${fillParams}`).then(r => r.json());
           const have = new Set(selectedIds);
           for (const id of (fillData.questionIds ?? []) as string[]) {
-            if (selectedIds.length >= limit) break;
+            if (selectedIds.length >= lim) break;
             if (!have.has(id)) { selectedIds.push(id); have.add(id); }
           }
         } catch (e) { console.debug('[exercise] fill topup failed:', e); }
@@ -1114,6 +1120,8 @@ export default function Practice() {
           )}
         </>
       )}
+
+      {ohineriUi}
 
       {/* ── 開始確認モーダル ── */}
       {showStartConfirm && (

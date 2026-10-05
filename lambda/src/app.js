@@ -5,13 +5,16 @@ const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/cl
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
+const Stripe = require('stripe');
+const { DEFAULT_DAILY_LIMIT, jstDateKey, countTtlSeconds, isCountedSession, computeLimits } = require('./entitlements');
+const ohineri = require('./ohineri');
 
 // ── 環境別テーブル名解決 ───────────────────────────────────────
 // ユーザーデータ系テーブルは dev/prod で分離（接尾辞 -dev / -prod）。
 // コンテンツ系（Questions/Tips/Releases/DailyServices/AppSettings/Reports 等）は共有のまま。
 // 環境は各 Lambda の既存環境変数 ENV（awsquizHandler-dev→'dev' / -prod→'prod'）で判定。
 const APP_ENV = process.env.ENV || 'prod';
-const SPLIT_TABLES = new Set(['Sessions', 'UserAnswers', 'UserQuestionStats', 'UserTagStats', 'UserPoints', 'EncyclopediaUnlocks']);
+const SPLIT_TABLES = new Set(['Sessions', 'UserAnswers', 'UserQuestionStats', 'UserTagStats', 'UserPoints', 'EncyclopediaUnlocks', 'UserEntitlements', 'UserDailyCounts']);
 function T(name) { return SPLIT_TABLES.has(name) ? `${name}-${APP_ENV}` : name; }
 
 // ── domain フィールドのユーティリティ ──────────────────────────
@@ -27,12 +30,86 @@ function qDomainIndex(examType, nameOrIndex) {
 }
 
 const app = express();
+
+// ── おひねり: Stripe Webhook（specs/006）──
+// 署名検証には「加工前の生ボディ」が必要。express.json() より前に raw で登録する。
+// 購入の事実を書くのはここと /users/me/checkout/confirm（Stripe API で支払いを確認）だけ。
+app.post('/webhooks/stripe', express.raw({ type: '*/*', limit: '1mb' }), async (req, res) => {
+  const stripe = getStripe();
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!stripe || !secret) return res.status(503).json({ error: 'Not configured' });
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], secret);
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid signature' });
+  }
+  try {
+    if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
+      const purchase = ohineri.purchaseFromSession(event.data.object);
+      if (purchase) {
+        const r = await ohineri.recordPurchase({ docClient: getClient(), PutCommand, table: T('UserEntitlements'), purchase });
+        console.log(`[ohineri] webhook purchase user=${purchase.userId} recorded=${r.recorded}`);
+      }
+    }
+    res.json({ received: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });  // 500 を返すと Stripe が再送する
+  }
+});
+
 app.use(express.json({ limit: '2mb' }));
 
 const getClient = () => {
   const client = new DynamoDBClient({ region: 'ap-northeast-1' });
   return DynamoDBDocumentClient.from(client);
 };
+
+// ── おひねり: 設定・上限の取得（specs/006）──
+let _stripe = null;
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  return _stripe;
+}
+
+// 管理設定 AppSettings.ohineri = { enabled, limit }。決済キーが無ければ有効にならない。
+// 公開前は enabled が無い＝上限も購入ボタンも出ない。60秒だけメモリに持つ（回答のたびに読まない）。
+let _ohineriCfg = { at: 0, value: null };
+async function getOhineriConfig() {
+  if (_ohineriCfg.value && Date.now() - _ohineriCfg.at < 60000) return _ohineriCfg.value;
+  let item = null;
+  try {
+    const r = await getClient().send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'ohineri' } }));
+    item = r.Item || null;
+  } catch (e) { console.error('[ohineri] config read failed', e.message); }
+  const value = {
+    enabled: !!(item && item.enabled) && !!getStripe(),
+    limit: Number.isInteger(item && item.limit) && item.limit > 0 ? item.limit : DEFAULT_DAILY_LIMIT,
+  };
+  _ohineriCfg = { at: Date.now(), value };
+  return value;
+}
+
+// /sessions 系は従来ログイン検証が無い（body の userId を信用）。上限を厳密に効かせるため、
+// おひねりが有効なときだけ、有効なトークンの sub を本人として使う。無効・無しなら null（ゲスト扱い）。
+async function softUserSub(req) {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) return null;
+  try {
+    const payload = await jwtVerifier.verify(auth.slice(7));
+    return payload.sub || null;
+  } catch { return null; }
+}
+
+async function loadLimits(docClient, sub, cfg) {
+  const [ent, cnt] = await Promise.all([
+    docClient.send(new GetCommand({ TableName: T('UserEntitlements'), Key: { userId: sub } })),
+    docClient.send(new GetCommand({ TableName: T('UserDailyCounts'), Key: { userId: sub, date: jstDateKey() } })),
+  ]);
+  return computeLimits({ enabled: cfg.enabled, limit: cfg.limit, used: (cnt.Item && cnt.Item.answered) || 0, unlimited: !!(ent.Item && ent.Item.ohineri) });
+}
 
 // ── 問題データ正規化 ──────────────────────────────────────────────
 // choices と correctAnswers からラベル接頭辞（"A. " 等）を除去する。
@@ -1258,6 +1335,17 @@ app.post('/sessions', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId, mode, examType, questionIds, isMini, isFocused, sessionType } = req.body;
+    // おひねり: 有効かつログイン中で、上限対象の演習なら、残りが無いときは開始させない
+    const cfg = await getOhineriConfig();
+    if (cfg.enabled && isCountedSession({ mode, isMini })) {
+      const sub = await softUserSub(req);
+      if (sub) {
+        const limits = await loadLimits(docClient, sub, cfg);
+        if (limits.applies && limits.remaining <= 0) {
+          return res.status(429).json({ error: 'Daily limit reached', code: 'DAILY_LIMIT', ...limits });
+        }
+      }
+    }
     const sessionId = uuidv4();
     const now = new Date().toISOString();
     const item = {
@@ -1352,6 +1440,29 @@ app.post('/sessions/:id/answers', async (req, res) => {
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
+    // おひねり: 有効かつログイン中なら、上限対象の演習の回答を今日の回答数に原子的に加算する。
+    // 他人の userId を指定して回数を増やされないよう、トークンの sub を本人とする。
+    let dailyCountItem = null;
+    try {
+      const ohCfg = await getOhineriConfig();
+      const sub = ohCfg.enabled ? await softUserSub(req) : null;
+      if (sub) {
+        const sess = await docClient.send(new GetCommand({
+          TableName: T('Sessions'), Key: { userId: sub, sessionId: req.params.id }, ProjectionExpression: '#m, isMini', ExpressionAttributeNames: { '#m': 'mode' },
+        }));
+        if (isCountedSession(sess.Item)) {
+          dailyCountItem = {
+            Update: {
+              TableName: T('UserDailyCounts'),
+              Key: { userId: sub, date: jstDateKey() },
+              UpdateExpression: 'ADD answered :one SET expiresAt = :ttl',
+              ExpressionAttributeValues: { ':one': 1, ':ttl': countTtlSeconds() },
+            }
+          };
+        }
+      }
+    } catch (e) { console.error('[ohineri] daily count skipped', e.message); }  // 回数の加算失敗で回答の記録を止めない
+
     // UserAnswers（回答ログ）と UserQuestionStats（問題別正誤）を原子的に記録。
     // どちらも問題ID単位の別項目なので、複数回答が並列送信されても競合しない。
     // 解放カウントは GET /question-stats が UserQuestionStats から都度集計するため、
@@ -1375,6 +1486,7 @@ app.post('/sessions/:id/answers', async (req, res) => {
       }
     ];
 
+    if (dailyCountItem) transactItems.push(dailyCountItem);
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
 
     // 全ユーザー正答率のグローバル集計（全試行ベース・ゲスト含む）。
@@ -3065,6 +3177,59 @@ app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
 });
 
 // ── ユーザーポイント ──
+
+// ── おひねり（specs/006）: 上限の確認・購入 ──
+app.get('/users/me/limits', async (req, res) => {
+  try {
+    const cfg = await getOhineriConfig();
+    const limits = await loadLimits(getClient(), req.authSub, cfg);
+    res.json({ ...limits, purchaseEnabled: cfg.enabled, priceYen: ohineri.PRICE_YEN });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/users/me/checkout', async (req, res) => {
+  try {
+    const cfg = await getOhineriConfig();
+    const stripe = getStripe();
+    if (!cfg.enabled || !stripe) return res.status(503).json({ error: 'Not available' });
+    const limits = await loadLimits(getClient(), req.authSub, cfg);
+    if (limits.unlimited) return res.status(409).json({ error: 'Already purchased' });
+    // メールはトークンから取る（クライアントの申告は信用しない）
+    const payload = await jwtVerifier.verify((req.headers.authorization || '').slice(7));
+    const session = await stripe.checkout.sessions.create(
+      ohineri.buildCheckoutParams({ sub: req.authSub, email: payload.email, origin: req.headers.origin })
+    );
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 決済ページから戻った直後に、Stripe API で支払いを確認して購入を記録する。
+// URL の session_id は「確認の対象」を示すだけで、本人かつ支払い済みかは Stripe の応答で判断する。
+// Webhook より先に戻ってきても反映が遅れないようにするため（記録は冪等なので Webhook と二重にならない）。
+app.post('/users/me/checkout/confirm', async (req, res) => {
+  try {
+    const stripe = getStripe();
+    const { sessionId } = req.body || {};
+    if (!stripe || typeof sessionId !== 'string' || !sessionId.startsWith('cs_')) return res.status(400).json({ error: 'Bad request' });
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const purchase = ohineri.purchaseFromSession(session);
+    if (purchase && purchase.userId === req.authSub) {
+      await ohineri.recordPurchase({ docClient: getClient(), PutCommand, table: T('UserEntitlements'), purchase });
+    }
+    const cfg = await getOhineriConfig();
+    const limits = await loadLimits(getClient(), req.authSub, cfg);
+    res.json({ ...limits, purchaseEnabled: cfg.enabled, priceYen: ohineri.PRICE_YEN });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.get('/users/me/points', async (req, res) => {
   try {
