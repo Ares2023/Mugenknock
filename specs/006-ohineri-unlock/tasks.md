@@ -15,7 +15,8 @@
 - [x] `app.js`: Webhook（生ボディ）・`/users/me/limits`・`checkout`・`checkout/confirm`・セッション開始の上限・回答時の日次加算
 - [x] Webhook の疎通テスト（`lambda/test/webhook.test.js`。署名OK/NG/未払い）
 - [x] フロント: `OhineriDialog`・`useOhineriGate`・Home（サクッと/しっかり対策）・Practice（演習）に組み込み。戻り先の確認は Home
-- [ ] 特定商取引法に基づく表記ページ・プライバシーポリシー追記（**売り手情報の入力が要る**。公開前）
+- [x] プライバシーポリシー・利用規約の追記（返金方針を含む。2026-10-06）
+- [ ] 特定商取引法に基づく表記ページ（**売り手情報の入力が要る**。公開前。返金は規約 第7条と同じ内容を書く）
 
 ## インフラ（人間の確認が要る）
 
