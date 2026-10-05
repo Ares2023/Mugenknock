@@ -28,7 +28,7 @@ export default function OhineriDialog({
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-lg)' }}
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-lg)' }}
       onClick={onClose}>
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-lg)', width: '100%', maxWidth: 380, boxShadow: 'var(--box-shadow-lg)' }}
         onClick={e => e.stopPropagation()}>

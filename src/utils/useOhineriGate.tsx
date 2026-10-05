@@ -44,7 +44,7 @@ export function useOhineriGate(user: unknown, ja: boolean, handleReturn = false)
         onStartCapped={n => finish(n)} onClose={() => finish(null)} />}
       {notice && (
         <div role="status" onClick={() => setNotice(null)}
-          style={{ position: 'fixed', left: '50%', bottom: 'var(--spacing-lg)', transform: 'translateX(-50%)', zIndex: 300, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-pop)', padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', maxWidth: 'calc(100vw - 32px)', cursor: 'pointer' }}>
+          style={{ position: 'fixed', left: '50%', bottom: 'var(--spacing-lg)', transform: 'translateX(-50%)', zIndex: 10000, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-pop)', padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', maxWidth: 'calc(100vw - 32px)', cursor: 'pointer' }}>
           {notice}
         </div>
       )}

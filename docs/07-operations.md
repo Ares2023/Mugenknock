@@ -410,6 +410,16 @@ S3 `mugenknock-error-logs/canary-logs/` にアップロードする。
 
 二重送信は S3 マーカーで冪等化されている。
 
+### おひねり（Stripe 決済）の運用 — specs/006
+
+- 有効化は管理設定 `AppSettings.ohineri = { enabled: true, limit: 30 }`（**dev/prod 共有テーブル**）。
+  `enabled` が true でも、その Lambda に `STRIPE_SECRET_KEY` が無ければ無効のまま
+- Lambda 環境変数: `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`。`update-function-configuration --environment` は
+  **全変数を置き換える**ので、必ず現在の値を読んでマージする（`ENV` / `REGION` を消さない）
+- Webhook 受け口は `/webhooks/{proxy+}`（API Gateway・認証なし）。dev ステージのみ作成済み。
+  dev の Stripe テストキーとエンドポイントは設定済み。**本番キー・本番エンドポイントは人間の確認が要る**
+- 購入の記録は `UserEntitlements-{env}`、日次カウントは `UserDailyCounts-{env}`（TTL 3日）
+
 ## 7.7 トラブルシューティング
 
 | 症状 | 確認すること |

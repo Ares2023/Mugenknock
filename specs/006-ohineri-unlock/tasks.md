@@ -19,19 +19,30 @@
 
 ## インフラ（人間の確認が要る）
 
-- [ ] DynamoDB テーブル作成: `UserEntitlements-{dev,prod}`（PK `userId`）、`UserDailyCounts-{dev,prod}`（PK `userId` / SK `date`、TTL `expiresAt`）
-- [ ] Lambda ロール `awsquizappLambdaRolee2ba0c1b-dev`（dev/prod 共用）に上記4テーブルの権限を追加
-- [ ] API Gateway に `/webhooks` と `/webhooks/{proxy+}` を追加してステージをデプロイ
-- [ ] Stripe アカウントのテストキー → dev Lambda の環境変数へ
-- [ ] Stripe ダッシュボードで Webhook エンドポイント（dev）を登録 → シークレットを環境変数へ
+- [x] DynamoDB テーブル作成: `UserEntitlements-{dev,prod}`（PK `userId`）、`UserDailyCounts-{dev,prod}`（PK `userId` / SK `date`、TTL `expiresAt`）
+- [x] Lambda ロール `awsquizappLambdaRolee2ba0c1b-dev`（dev/prod 共用）に上記4テーブルの権限を追加
+- [x] API Gateway に `/webhooks/{proxy+}` を追加して **dev ステージのみ**デプロイ（prod ステージは未デプロイ＝公開時に人間の確認のうえで）
+- [x] Stripe アカウントのテストキー → dev Lambda の環境変数へ
+- [x] Stripe ダッシュボードで Webhook エンドポイント（dev）を登録 → シークレットを環境変数へ
 
 ## 検証
 
-- [ ] dev でテストカード（4242…）の通し決済 → Webhook と confirm の両方で購入が反映される
-- [ ] 上限30問・残りへの切り詰め・翌日0時（JST）リセットの確認
-- [ ] 旧フロント（上限を知らない）が 429 でも壊れず止まること
+- [x] dev でテストカード（4242…）の通し決済 → Webhook と confirm の両方で購入が反映される
+- [x] 上限30問・残りへの切り詰め・翌日0時（JST）リセットの確認
+- [ ] 旧フロント（上限を知らない）が 429 でも壊れず止まること（未確認。旧JSは429のとき sessionId が空になり回答が保存されない）
+
+## 検証結果（2026-10-05・dev）
+
+- 上限30問・模試は数えない・他人の userId を指定しても自分の回数だけ増える・上限後の通常演習は 429・模試とゲストは 200
+- Stripe テストカードで決済 → **Webhook だけで**購入が記録され `unlimited` になる（confirm 前）。confirm は冪等、再購入は 409
+- 画面（ローカル＋dev Lambda）: `/users/me/limits` が呼ばれ、上限案内ダイアログが最前面に出る
+- 検証後に元へ戻した: `AppSettings.ohineri.enabled=false`、テスト用の購入・日次カウントを削除
 
 ## 公開（**必ず人間に確認**）
+
+- [ ] prod Lambda にコードをデプロイ（`deploy-lambda.sh prod`）。決済キーが無い間は有効にならない
+- [ ] prod ステージへ API Gateway をデプロイ（`/webhooks/{proxy+}`）
+- [ ] 本番の Webhook エンドポイント登録
 
 - [ ] 本番キー・本番 Webhook の登録
 - [ ] `AppSettings.ohineri.enabled = true`
