@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
 import PageLayout from '../components/ui/PageLayout';
@@ -43,10 +42,6 @@ export default function About() {
 
   return (
     <PageLayout>
-      <Helmet>
-        <title>このサイトについて | 無限ノック</title>
-        <meta name="description" content="無限ノックのプライバシーポリシー・利用規約・運営者情報。" />
-      </Helmet>
       {/* タブ */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
         {SECTIONS.map(s => (

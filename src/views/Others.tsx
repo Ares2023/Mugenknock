@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -56,10 +55,6 @@ export default function Others() {
 
   return (
     <PageLayout>
-      <Helmet>
-        <title>その他 | 無限ノック</title>
-        <meta name="description" content="サービス図鑑・問い合わせ・ストリークなど、無限ノックの各種機能へのリンク集。" />
-      </Helmet>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
         {ITEMS.map(({ path, Icon, ja: jaLabel, en: enLabel, desc_ja, desc_en }) => (
           <button

@@ -147,7 +147,7 @@ aws-quiz-app/
 │   ├── components/         共通コンポーネント
 │   │   └── ui/             デザイントークン準拠の基本部品（Button/Card/PageLayout/Badge）
 │   ├── contexts/           AuthContext / ThemeContext
-│   ├── compat/             react-router-dom / react-helmet-async の互換レイヤー
+│   ├── compat/             react-router-dom の互換レイヤー（react-helmet-async スタブは 2026-10-05 に削除。全て no-op だった）
 │   ├── utils/              永続化・同期・算出ロジック
 │   ├── data/               examDomains.json（ドメイン単一マスタ）/ awsServiceCatalog.ts
 │   ├── i18n/               translations.ts

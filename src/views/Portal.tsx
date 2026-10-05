@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -147,11 +146,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
-      <Helmet>
-        <title>無限ノック｜AWS認定試験 練習問題サービス</title>
-        <meta name="description" content={`AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題${qCount}問以上・全12資格対応。4つの学習モードとドメイン別弱点分析でスコアアップをサポート。`} />
-      </Helmet>
-
       {/* ── ヘッダー ── */}
       <header style={{
         height: 56, minHeight: 56, background: 'var(--color-bg-white)',

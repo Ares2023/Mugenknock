@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Helmet } from '@/compat/react-helmet-async';
 import { EXAM_LEVEL, EXAM_LEVEL_COLORS, API_ENDPOINT, levelLabel } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -1378,11 +1377,6 @@ export default function CheatSheet() {
     <>
       {typeof window !== 'undefined' && createPortal(stickyHeader, document.body)}
       <PageLayout maxWidth={860}>
-        <Helmet>
-          <title>チートシート | 無限ノック</title>
-          <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
-        </Helmet>
-
         {/* 固定ヘッダー分の余白スペーサー（marginTop で PageLayout の top padding を相殺） */}
         <div style={{ height: headerHeight || 104, marginTop: `calc(-1 * ${padY})` }} />
 

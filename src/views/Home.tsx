@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallback } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
@@ -2325,11 +2324,6 @@ export default function Home() {
 
   return (
     <PageLayout maxWidth={HOME_MAX_WIDTH} className="page-container">
-      <Helmet>
-        <title>ホーム | 無限ノック</title>
-        <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
-      </Helmet>
-
       {/* ダッシュボード本体。デスクトップは役割で2カラムに分ける。
             左（2fr）= 成績: 「実力の現在地」「推移と記録」＝これまでの結果を見る
             右（1fr）= 今日の行動: 「目標演習量」「日めくり」「苦手分析」＝今日やること

@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -532,11 +531,6 @@ export default function Practice() {
 
   return (
     <PageLayout className="page-container" style={{ paddingBottom: isMobile ? undefined : 80 }}>
-      <Helmet>
-        <title>練習 | 無限ノック</title>
-        <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
-      </Helmet>
-
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>

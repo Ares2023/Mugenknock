@@ -1,7 +1,6 @@
 'use client';
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
@@ -505,10 +504,6 @@ export default function MyPage() {
 
   return (
     <>
-      <Helmet>
-        <title>マイページ | 無限ノック</title>
-      </Helmet>
-
       <PageLayout className="page-container">
 
         {/* ── タブ ── */}

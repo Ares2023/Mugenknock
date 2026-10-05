@@ -259,7 +259,6 @@ Cloudflare Pages 上でも**1.5〜2分**（直近10回の実測 84〜137秒。cl
 - `app/` — Next.js App Router のルート定義（page.tsx は薄いラッパー）
 - `src/views/` — 実際の画面コンポーネント（旧 src/pages/ からリネーム済み）
 - `src/compat/react-router-dom.tsx` — React Router v6 → Next.js App Router 互換レイヤー
-- `src/compat/react-helmet-async.tsx` — Helmet → Next.js metadata 互換スタブ
 
 ### compat レイヤー使用上の注意
 - **`useNavigate(-1)` は `router.back()` に変換済み**（数値デルタ対応）
