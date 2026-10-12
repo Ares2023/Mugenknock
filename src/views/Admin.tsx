@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, EXAM_SUPPLEMENTARY_RULES, toDomainIndex, qDomainName, isNonAwsExam } from '../constants';
-// オリジナルカードの生成プロンプト本文（夜間 instructions/*.txt から prebuild で自動生成・唯一ソース）
-import { ORIGINAL_INSTRUCTIONS, COMMON_RULES } from '../data/originalInstructions';
+// 資格別の生成プロンプト本文（夜間 instructions/*.txt から prebuild で自動生成・唯一ソース）
+import { EXAM_INSTRUCTIONS, COMMON_RULES } from '../data/originalInstructions';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -2350,33 +2350,35 @@ export default function Admin() {
               const topic = promptTopic.trim();
               const count = parseInt(promptCount) || 5;
               const nonAws = isNonAwsExam(importExamType);
-              // オリジナルカードは夜間生成と同一の本文（instructions/*.txt 由来）を作成方針として使う。
-              // ※ EXAM_SUPPLEMENTARY_RULES はこの本文に内包されるため二重には付けない。
-              const origBody = nonAws ? (ORIGINAL_INSTRUCTIONS[importExamType] ?? '') : '';
+              // 夜間生成と同一の本文（instructions/*.txt 由来）を作成方針として使う。AWS 資格も含む
+              // （以前はオリジナルカードだけで、AWS 資格には試験ガイド概要・難易度が入らなかった）。
+              // ※ EXAM_SUPPLEMENTARY_RULES はこの本文に内包されるため、本文がある資格では二重に付けない。
+              const instBody = EXAM_INSTRUCTIONS[importExamType] ?? '';
               const promptIntro = nonAws
                 ? 'あなたは技術系の学習教材の作成の専門家です。（これはAWS認定資格ではなく、基礎知識を問うオリジナル演習です）'
                 : 'あなたはAWS認定試験の問題作成の専門家です。';
               const prompt = `${promptIntro}
 以下の条件に従い、${nonAws ? '演習' : '試験'}問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 本サービスは日本語のみで提供します。英語フィールドは出力しないでください。
-${origBody ? `\n【この演習カードの作成方針（夜間生成と共通）】\n${origBody}\n` : ''}
+${instBody ? `\n【${nonAws ? 'この演習カード' : 'この試験'}の作成方針（夜間生成と共通）】\n${instBody}\n` : ''}
 【試験】${examFull}
 ${topic ? `【トピック / キーワード】${topic}` : '【トピック / キーワード】指定なし（全ドメインから均等に出題すること）'}
 
 【作問ルール】
-・選択肢は必ず4つ（ラベルなし・テキストのみ。"A." "B." 等の接頭辞を付けない）
+・選択肢は単一正解なら4つ、複数正解なら5つ（うち正解2つ）。ラベルなし・テキストのみ（"A." "B." 等の接頭辞を付けない）
 ・単一正解の場合は isMultiple: false、複数正解は isMultiple: true
 ・正解は correctAnswerIndices（choices 配列内の正解の位置を 0 始まりの整数配列で指定）で表すこと。これが唯一の正解指定です（例: choices[1] が正解なら [1]、複数正解なら [0,2]）。correctAnswers 等の文字列での正解指定は不要
-・解説は「正解の理由」と「各不正解の理由」を含めること（150字以上）
-・${nonAws ? '難易度・文体は上記「作成方針」に従うこと' : '本番試験と同等の難易度・文体で作成すること'}
-・正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解だけが著しく長い・短いと文字数から正解が推測できてしまうため、正解の文字数を不正解の平均に近づけること）。ただし選択肢が単語・用語のみ（説明文でない）の場合はこの限りでなく、最長の用語が正解でもよい
+・explanation（全体解説）は正解がなぜ要件を満たすかの核心のみ。各不正解の理由は choiceExplanations に書く（字数は下の品質基準に従う）
+・難易度・文体は上記「作成方針」に従うこと
+・選択肢の長さのバランスは下の品質基準に従う（正解だけ極端に長い・短いで推測できないようにする）
 ・examType には "${importExamType}" を必ず設定すること
 ・domain は必須フィールド。null・空文字・省略は不可。以下のいずれか1つを文字列でそのまま設定すること（保存時に内部インデックスへ変換されます）:
   ${EXAM_DOMAINS[importExamType]?.map((d, i) => `${i === 0 ? '' : '  '}${d}`).join('\n  ')}
-・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
+・choiceExplanations は choices と必ず同じ順序・同じ数で生成すること（正解はなぜ正解か、不正解はなぜ不正解か。字数・書き方は下の品質基準に従う）
+・同じ決め手（同じ正解・同じ判断根拠）の問題を複数作らない。${count}問の論点はそれぞれ別にすること
 ・選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文・略語の展開を選択肢内に含めないこと（不要なヒントになるため。説明・比較・理由・略語の意味は choiceExplanations／explanation 側に書く）
 ・略語が何の略かは選択肢ではなく解説側で説明すること: explanation・choiceExplanations で重要な略語を初出で英語フルスペル併記して展開する（例 解説内で「BLEU(Bilingual Evaluation Understudy)」）。選択肢本文には展開を入れない
-${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}${COMMON_RULES ? `\n【品質基準（夜間生成と共通）】\n${COMMON_RULES}\n` : ''}
+${!instBody && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}${COMMON_RULES ? `\n【品質基準（夜間生成と共通）】\n${COMMON_RULES}\n` : ''}
 【出力形式】
 [
   {
@@ -2386,7 +2388,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
     "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
     "correctAnswerIndices": [0],
     "explanation": "解説文（日本語）",
-    "choiceExplanations": ["選択肢0の解説（100〜150字）", "選択肢1の解説", "選択肢2の解説", "選択肢3の解説"],
+    "choiceExplanations": ["選択肢0の解説", "選択肢1の解説", "選択肢2の解説", "選択肢3の解説"],
     "isMultiple": false
   }
 ]`;
