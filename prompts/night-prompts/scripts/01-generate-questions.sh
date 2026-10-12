@@ -1,7 +1,15 @@
 #!/bin/bash
 # 問題自動生成スクリプト
 # instructions/ 内の資格ごとの指示を元に Claude で問題を生成し API 経由でインポートする
-# 現在の問題数が最も少ない資格を自動選択
+# 資格は需要比（全問の解答数 / 問題数）で自動選択する（詳細は「需要を加味して資格を選ぶ」の節）
+#
+# 環境変数（すべて任意）:
+#   GEN_MIN_POOL=150         問題数がこれ未満の資格を最優先（新設資格の立ち上げ）
+#   GEN_DEMAND_PRIOR=5       需要比の分子に足す値（需要0の資格の扱い）
+#   GEN_SKIP_BELOW_RATIO=0   需要比の最大値がこれ未満なら生成しない（0で無効）
+#   GEN_DOMAIN_CAP=20        1回の実行で1ドメインに割り当てる上限
+#   GEN_CHUNK_SIZE=5         1回の claude 呼び出しで作る問題数
+#   GEN_AVOID_MAX=60         プロンプトに渡す既出の正解肢の件数
 
 set -uo pipefail
 
@@ -49,7 +57,7 @@ show_help() {
 usage: $(basename "$0") [options]
 
   -e, --exam EXAM       生成する資格を指定（例: SAA, CLF, DOP）
-                        省略時は問題数が最も少ない資格を自動選択
+                        省略時は需要比（解答数/問題数）が最大の資格を自動選択
   -d, --domain DOMAIN   生成するドメインを指定（-e と組み合わせて使用）
                         部分一致で検索（例: "セキュリティ"）。省略時は全ドメインを処理
   -n, --questions N     1ドメインあたりの問題数（デフォルト: ${QUESTIONS_PER_DOMAIN}）
@@ -422,6 +430,10 @@ HARDEOF
 ※解説では「なぜ正解が唯一適切か」に加え、各不正解の「具体的な失格理由」を必ず明記すること。
 HARDEOF
 )
+  # ペア構成を付けないときは、残りの規則の番号を 1 から振り直す（2.〜5. → 1.〜4.）
+  if [ -z "$HARD_PAIR" ]; then
+    HARD_REST=$(printf '%s\n' "$HARD_REST" | sed -e 's/^2\. /1. /' -e 's/^3\. /2. /' -e 's/^4\. /3. /' -e 's/^5\. /4. /')
+  fi
   HARD_BLOCK="${HARD_HEAD}
 
 ${HARD_PAIR:+${HARD_PAIR}
@@ -443,6 +455,18 @@ _cognito_auth() {
     --query 'AuthenticationResult.IdToken' --output text 2>/dev/null)
   [ -n "$_t" ] && [ "$_t" != "None" ] || return 1
   ID_TOKEN="$_t"
+}
+
+# 1問分の取込ペイロード（$_validated）を POST する。結果は _http_body / _http_code に入る。
+_import() {
+  _http_resp=$(curl -s -w "\n%{http_code}" \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${ID_TOKEN}" \
+    -d "$_validated" \
+    "${API_ENDPOINT}/admin/questions")
+  _http_body=$(echo "$_http_resp" | head -n -1)
+  _http_code=$(echo "$_http_resp" | tail -n 1)
 }
 
 if ! _cognito_auth; then
@@ -677,8 +701,9 @@ for d, n in sorted(alloc.items(), key=lambda x: -x[1]):
     print(f'  {n}問 → {d} (現在{counts.get(norm(d), 0)}問)', file=sys.stderr)
 print(f'  合計: {sum(alloc.values())}問', file=sys.stderr)
 
-# JSONをstdoutに出力($()でキャプチャ)
-print(json.dumps(alloc))
+# JSONをstdoutに出力($()でキャプチャ)。キーは現在の問題数が少ない順に並べる
+# （後段の処理順で、割り当てが同数のときの並びに使う）。
+print(json.dumps({d: alloc[d] for d in sorted(domains, key=lambda d: counts.get(norm(d), 0))}))
 PYEOF
   )
   rm -f "$_COUNTS_TMP_EARLY"
@@ -707,7 +732,10 @@ try:
 except Exception:
     alloc = {}
 domains = sys.argv[2:]
-for d in sorted(domains, key=lambda d: (-alloc.get(d, 0), d)):
+# 割り当てが同数（上限20で揃うことが多い）なら、alloc のキー順＝現在の問題数が少ない順にする。
+# 名前順にすると、途中でレート制限に当たったときに手薄なドメインが後回しになる。
+_order = {d: i for i, d in enumerate(alloc)}
+for d in sorted(domains, key=lambda d: (-alloc.get(d, 0), _order.get(d, len(_order)))):
     print(d)
 PYEOF
   )
@@ -959,16 +987,6 @@ except Exception:
       fi
 
       # 即インポート
-      _import() {
-        _http_resp=$(curl -s -w "\n%{http_code}" \
-          -X POST \
-          -H "Content-Type: application/json" \
-          -H "Authorization: Bearer ${ID_TOKEN}" \
-          -d "$_validated" \
-          "${API_ENDPOINT}/admin/questions")
-        _http_body=$(echo "$_http_resp" | head -n -1)
-        _http_code=$(echo "$_http_resp" | tail -n 1)
-      }
       _import
       # ID トークンの有効期限は1時間。長い実行で切れると以降の取り込みがすべて 401 になり、
       # 生成済みの問題を捨てていた（2026-09-25）。401 なら1回だけ取り直して再送する。

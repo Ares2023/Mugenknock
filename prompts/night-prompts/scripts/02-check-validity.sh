@@ -487,7 +487,9 @@ with open(os.environ['QUESTIONS_FILE']) as f:
 cs = int(os.environ['CHUNK_SIZE'])
 # 同じ資格の問題を同じチャンクにまとめる（安定ソートなので資格内の優先順位は保たれる）。
 # プロンプトは資格に関係するドメイン表・追加観点だけを入れるので、混ざるほど長くなる。
-qs.sort(key=lambda q: q.get('examType', ''))
+# ただし未確認（非公開）の問題は確認済みより必ず先に置く。資格だけで並べると、終了時刻で
+# 打ち切られたときに Jev で選んだ確認済みの問題が先に処理され、新規問題の公開が遅れる。
+qs.sort(key=lambda q: (bool(q.get('validityCheckedAt')), q.get('examType', '')))
 for i in range(0, len(qs), cs):
     chunk = qs[i:i+cs]
     idx = i // cs
