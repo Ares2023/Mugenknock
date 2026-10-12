@@ -10,24 +10,22 @@
 サブコマンド:
   build  RAW EXAM DOMAINS_CSV OUT   DynamoDB query の出力（ページ連結JSON）を軽量な一覧にする
   avoid  EXISTING DOMAIN N          そのドメインの既出の決め手（正解肢）を新しい順に N 件、プロンプト用に出す
-  check  EXISTING                   標準入力の取込ペイロードが既存と重複していないか判定する。
+  check  EXISTING                   標準入力の取込ペイロードが既存と完全一致していないか判定する。
                                     重複なら理由を出して終了コード 3。重複でなければ EXISTING に追記して 0。
 
-重複の判定（全5,449問で較正。CLF の完全一致26件・DB の同一論点を拾う。0.1〜0.2 で増える分も目視で同一論点だった）:
-  - 問題文の文字3-gram Jaccard >= 0.6（言い回しを変えただけの同一問題）
-  - または 正解肢の文字2-gram Jaccard >= 0.8 かつ 正解肢が12文字以上 かつ 問題文 >= 0.1
-    （決め手が同じ別シナリオ。「論点の重複回避」ルールが禁じているもの。
-      短い用語だけの正解（「Amazon S3」等）は別論点でも一致しうるので対象外）
+重複の判定（2026-10-12 に本人と決めた方針）:
+  - 問題文の文字3-gram Jaccard >= 0.9 の「完全一致」だけを破棄する。
+  - 頻出論点は、生成すると別の問題でも決め手が被ることがある。それは許容する
+    （正解肢が同じ・言い換えだけ、は破棄しない）。被りを減らすのはプロンプトの既出一覧の役目。
+  全5,449問で 0.9 以上は33組（CLF 22・DB 5・DVA 3・NW 3）。30組は空白を除いて一字一句同じ、
+  残り3組（0.91〜0.94・いずれも DVA）は助詞や句読点が違うだけの同じ問題だった。
 同じ資格の全ドメインと比較する（ドメインをまたいだ同一問題も重複とみなす）。
 """
 import json
 import re
 import sys
 
-Q_THRESHOLD = 0.6
-A_THRESHOLD = 0.8
-A_MIN_LEN = 12
-A_Q_THRESHOLD = 0.1
+Q_THRESHOLD = 0.9
 
 
 def _norm(s):
@@ -110,16 +108,11 @@ def _is_dup(cand, other):
     qs = _jac(cand['_q'], other['_q'])
     if qs >= Q_THRESHOLD:
         return f'問題文の類似度 {qs:.2f}'
-    if cand['_alen'] >= A_MIN_LEN and other['_alen'] >= A_MIN_LEN and qs >= A_Q_THRESHOLD:
-        as_ = _jac(cand['_a'], other['_a'])
-        if as_ >= A_THRESHOLD:
-            return f'正解肢の類似度 {as_:.2f}・問題文 {qs:.2f}'
     return None
 
 
 def _features(q, answers):
-    ans = ' '.join(str(s) for s in answers or [])
-    return {'_q': _grams(q, 3), '_a': _grams(ans, 2), '_alen': len(_norm(ans))}
+    return {'_q': _grams(q, 3)}
 
 
 def check(existing_path):
