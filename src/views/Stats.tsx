@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, tagIdMatches } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -376,11 +375,6 @@ export default function Stats() {
 
   return (
     <PageLayout className="page-container">
-      <Helmet>
-        <title>足あと | 無限ノック</title>
-        <meta name="description" content="AWS試験の学習履歴・スコア推移を確認。セッション別の正答率やドメイン弱点を分析して効率的に対策しよう。" />
-      </Helmet>
-
       {showHint && (
         <div className="fade-slide-in" style={{
           display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',

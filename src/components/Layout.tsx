@@ -399,7 +399,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       ? (pathname === '/aws/' || pathname === '/aws')
       : pathname.startsWith(path);
 
-  const isOthersActive = pathname === '/aws/others' || OTHERS_ITEMS.some(item => isActive(item.path));
+  const isOthersActive = pathname === '/aws/others' || pathname === '/aws/ohineri' || OTHERS_ITEMS.some(item => isActive(item.path));
 
   const navItems = NAV_KEYS;
 
@@ -631,6 +631,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/aws/stats':            [{ label: t('nav.home'), path: '/aws/' }, { label: t('stats.title') }],
     '/aws/release-notes':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.releaseNotes') }],
     '/aws/announcements':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.announcements') }],
+    '/aws/ohineri':          [{ label: t('nav.home'), path: '/aws/' }, { label: lang === 'ja' ? 'おひねり' : 'Tip jar' }],
     '/about':                [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.about') }],
     '/architecture':         [{ label: t('nav.home'), path: '/aws/' }, { label: lang === 'ja' ? 'Webサイトの構成図' : 'Site Architecture' }],
   };
@@ -650,8 +651,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {lang === 'ja'
-              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
-              : 'This site uses cookies for advertising and analytics.'}
+              ? '本サービスは、ログイン状態の維持・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies to keep you signed in and for analytics.'}
             {' '}
             <button onClick={() => navigate('/about#privacy')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}>
               {lang === 'ja' ? '詳細' : 'Learn more'}

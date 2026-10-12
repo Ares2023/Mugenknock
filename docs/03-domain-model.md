@@ -26,6 +26,8 @@
 | `UserTagStats{-env}` | `userId` | `tagId` | 分離 | ドメイン別の直近正誤 |
 | `UserPoints{-env}` | `userId` | — | 分離 | ポイント残高 |
 | `EncyclopediaUnlocks{-env}` | `userId` | — | 分離 | 図鑑の解放状況 |
+| `UserEntitlements{-env}` | `userId` | — | 分離 | おひねり購入（`ohineri`, `stripeSessionId`, `amount`, `purchasedAt`）。**アカウント削除でも消さない**（決済記録のため）。specs/006 |
+| `UserDailyCounts{-env}` | `userId` | `date`（JST `YYYY-MM-DD`） | 分離 | 1日の演習回答数 `answered`。`expiresAt`（TTL・3日）で自動削除 |
 
 ### GSI
 

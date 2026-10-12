@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/ui/Button';
@@ -36,10 +35,6 @@ export default function ReleaseNotes() {
 
   return (
     <PageLayout className="page-container" style={{ color: 'var(--color-text-main)' }}>
-      <Helmet>
-        <title>リリースノート | 無限ノック</title>
-        <meta name="description" content="無限ノックのアップデート履歴。新機能・改善・バグ修正の最新情報をご確認ください。" />
-      </Helmet>
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
           <div className="sherpa-spinner" />

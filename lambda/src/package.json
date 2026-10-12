@@ -9,6 +9,7 @@
     "aws-serverless-express": "^3.3.5",
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
+    "stripe": "^17.7.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

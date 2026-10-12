@@ -259,7 +259,6 @@ Cloudflare Pages 上でも**1.5〜2分**（直近10回の実測 84〜137秒。cl
 - `app/` — Next.js App Router のルート定義（page.tsx は薄いラッパー）
 - `src/views/` — 実際の画面コンポーネント（旧 src/pages/ からリネーム済み）
 - `src/compat/react-router-dom.tsx` — React Router v6 → Next.js App Router 互換レイヤー
-- `src/compat/react-helmet-async.tsx` — Helmet → Next.js metadata 互換スタブ
 
 ### compat レイヤー使用上の注意
 - **`useNavigate(-1)` は `router.back()` に変換済み**（数値デルタ対応）
@@ -428,7 +427,7 @@ AWS 資格が前提とする **AWS 外の土台知識**を補う独自演習（A
   プロンプト自体を自動改良するタスクは `opus`、改行整形など機械的で軽いタスクは
   `haiku`。新しいスクリプトを追加するときも同じ基準で選ぶ。
 - 対象は `prompts/night-scripts.list` に載るスクリプトだけでなく、`prompts/run-prompts.sh`
-  の ping・texts/ 実行、`scripts/local-hook-run.sh` 等から呼ばれる経路もすべて含む。
+  の ping・texts/ 実行、`scripts/local-generate-hook-run.sh` / `scripts/local-validity-hook-run.sh` 等から呼ばれる経路もすべて含む。
 
 ### MCP: 全ての `claude -p` に `--strict-mcp-config` を付ける（2026-10-02 確定）
 

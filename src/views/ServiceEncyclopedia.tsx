@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg, IconExternalLink, IconSearch } from '../components/Icons';
@@ -233,10 +232,6 @@ export default function ServiceEncyclopedia() {
 
   return (
     <PageLayout>
-      <Helmet>
-        <title>サービス図鑑 | 無限ノック</title>
-        <meta name="description" content="毎日1つ解放されるAWSサービス図鑑。200以上のサービスの概要・特徴を確認して試験対策に役立てよう。" />
-      </Helmet>
       <p style={{ margin: '0 0 var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
         {ja
           ? `アプリを使った日に1つ解放されます。${unlockedCount} / ${totalServices} 解放済み`

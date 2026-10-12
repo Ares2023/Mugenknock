@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -63,10 +62,6 @@ export default function Announcements() {
 
   return (
     <PageLayout className="page-container" style={{ color: 'var(--color-text-main)' }}>
-      <Helmet>
-        <title>お知らせ | 無限ノック</title>
-        <meta name="description" content="無限ノックからのお知らせ。不具合報告や運営からの重要な情報をご確認ください。" />
-      </Helmet>
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
           <div className="sherpa-spinner" />

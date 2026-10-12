@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -147,11 +146,6 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
-      <Helmet>
-        <title>無限ノック｜AWS認定試験 練習問題サービス</title>
-        <meta name="description" content={`AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題${qCount}問以上・全12資格対応。4つの学習モードとドメイン別弱点分析でスコアアップをサポート。`} />
-      </Helmet>
-
       {/* ── ヘッダー ── */}
       <header style={{
         height: 56, minHeight: 56, background: 'var(--color-bg-white)',
@@ -486,8 +480,8 @@ export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { qu
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {ja
-              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
-              : 'This site uses cookies for advertising and analytics.'}
+              ? '本サービスは、ログイン状態の維持・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies to keep you signed in and for analytics.'}
             {' '}
             <a href="/about#privacy" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
               {ja ? '詳細' : 'Learn more'}

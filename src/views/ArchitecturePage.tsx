@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -91,11 +90,6 @@ export default function ArchitecturePage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
-      <Helmet>
-        <title>Webサイトの構成図 | 無限ノック</title>
-        <meta name="description" content="AWS認定試験の学習サイト「無限ノック」の技術構成図。Cloudflare Pages・API Gateway・Lambda・DynamoDB・Cognito で構築・運用されています。" />
-      </Helmet>
-
       {/* ── ヘッダー（ランディングページと同様） ── */}
       <header style={{
         height: 56, minHeight: 56, background: 'var(--color-bg-white)',

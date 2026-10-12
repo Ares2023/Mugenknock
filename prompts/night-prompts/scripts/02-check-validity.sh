@@ -81,12 +81,16 @@ Jevトリアージ:
 
 環境変数:
   JEV_TRIAGE_POOL  プール倍率（既定 3・1で無効）
+  JEV_TRIAGE_POOL_MAX  プールの上限件数（既定 360。-n を大きく取っても超えない）
   JEV_TRIAGE_BAND  スコアのバンド幅（既定 0.25＝5段階）
 EOF
 }
 
 BATCH_SIZE=30
-CHUNK_SIZE=5
+# 1回の claude 呼び出しで検証する問題数。共通ヘッダ（確認観点・追加観点・出力形式で約9,000字）は
+# 毎回送り直すので、5問だと入力の6割以上がヘッダだった（2026-10-12 実測: ヘッダ9,112字・問題5,594字・
+# 入力1.9万トークン）。10問にして1問あたりのヘッダ分を半分にする。
+CHUNK_SIZE=${VALIDITY_CHUNK_SIZE:-10}
 DEADLINE=""
 QID_FILE=""
 # Jevトリアージのプール倍率。1 で無効。環境変数でも上書き可。
@@ -293,12 +297,17 @@ if _unverified:
 
 # ② 未確認でバッチが埋まらない分だけ、確認済みを Jev で並べ替える
 _slots = batch - _unclaimed_unverified
+# プールの上限。-n を大きく取っても（フックは -n 1000）、実際に処理できる件数はトークンで決まり
+# 1回あたり100〜150問程度。プールを slots×倍率（3000問）にすると Jev の予算（120秒≒700問）で
+# 途中までしかスコアが付かず、スコア無しの問題が最優先（1.0）になって事実上「古い順」に戻る。
+# 実際に処理される先頭部分を確実にスコア化するため、プールは上限で切る。
+_pool_max = int(os.environ.get('JEV_TRIAGE_POOL_MAX', '360') or 360)
 if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
-        and _slots > 0 and len(_verified) > _slots):
+        and _slots > 0 and _verified):
     import subprocess
     _pool = [(sk, q) for sk, q in _verified
-             if q.get('questionId') not in _pre_claims][:_slots * _triage_pool_mult]
-    if len(_pool) > _slots:
+             if q.get('questionId') not in _pre_claims][:min(_slots * _triage_pool_mult, _pool_max)]
+    if len(_pool) > min(_slots, 20):
         try:
             _pr = subprocess.run(
                 [sys.executable, _triage_script],
@@ -482,6 +491,11 @@ import json, os
 with open(os.environ['QUESTIONS_FILE']) as f:
     qs = json.load(f)
 cs = int(os.environ['CHUNK_SIZE'])
+# 同じ資格の問題を同じチャンクにまとめる（安定ソートなので資格内の優先順位は保たれる）。
+# プロンプトは資格に関係するドメイン表・追加観点だけを入れるので、混ざるほど長くなる。
+# ただし未確認（非公開）の問題は確認済みより必ず先に置く。資格だけで並べると、終了時刻で
+# 打ち切られたときに Jev で選んだ確認済みの問題が先に処理され、新規問題の公開が遅れる。
+qs.sort(key=lambda q: (bool(q.get('validityCheckedAt')), q.get('examType', '')))
 for i in range(0, len(qs), cs):
     chunk = qs[i:i+cs]
     idx = i // cs
@@ -571,6 +585,31 @@ if _chunk_urls:
 PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- AWSサービスの仕様・廃止状況が正確か（廃止/非推奨のサービスを現行として扱っていないか）。廃止/非推奨・具体的数値（SLA・上限値・保持期間等）が正否の決め手でモデル知識に疑いがある時のみ、公式ドキュメントで確認（WebFetch、または AWS ドキュメント MCP の mcp__aws-docs__search_documentation / read_documentation。MCP は ToolSearch で読み込む。合わせてチャンクあたり最大2回・確信があれば使わない）。一般的事実の毎回確認は不要。CodeCommitは現行サービス（廃止扱い禁止）\n- 正解が正しく、選択肢に正解が含まれているか\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 試験問題として適切な形式・難易度か\n- 選択肢本文に略語の展開（正式名称/意味の括弧補足）が入っていないか（選択肢は用語のみ。入っていれば不要なヒントになるため fix で削り用語のみにする）。一方で解説(explanation・choiceExplanations)側では重要な略語が初出で英語フルスペル併記により展開されているか（例 解説内で「BLEU(Bilingual Evaluation Understudy)」。未展開なら fix で解説に補う）。全略語ではなく重要語のみ、S3・VPC等の周知略称は対象外\n- 選択肢に用語の説明・定義文・略語の展開が含まれていないか（選択肢は用語・答えのみにすべき。過剰な説明文や略語の括弧補足は fix で削り用語のみにする。削った内容・略語の意味は choiceExplanations／explanation 側で担保）\n- タグが下記ドメインの正確な値か（空・欠落・範囲外はfix）\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  AIB: AIの基礎とリテラシー / AI戦略とビジネス価値創出 / AIガバナンスと責任あるAIリーダーシップ / ビジネス準備・リーダーシップ・AI変革\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n  ML: AI/MLの基礎概念 / データ準備・特徴量エンジニアリング / モデル学習と最適化 / モデル評価と指標 / 生成AI・基盤モデル / 責任あるAI・運用\n  DB: リレーショナル設計・正規化 / SQL・クエリ / インデックスと性能 / トランザクション・整合性 / データモデリング・分析基盤 / データ処理方式・品質\n  NW: ネットワーク基礎（OSI/TCP-IP） / IPアドレッシング・サブネット / ルーティング / DNS・名前解決 / トランスポート・アプリ層 / ネットワークセキュリティ・運用\n  SEC: 暗号技術の基礎 / 認証・認可・アイデンティティ / ネットワークセキュリティ / 脅威・脆弱性・攻撃手法 / インシデント対応・監視・ログ / データ保護・ガバナンス・コンプライアンス\n※ ML/DB/NW はAWS認定ではない基礎知識カード。AWSサービスが登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）が主題の問題は不適切（基礎概念を主眼に直せなければdelete、直せるならfix）。基礎概念が主眼ならok\n- 構造（正解と選択肢の完全一致・isMultiple の整合・選択肢別解説の件数）は事前に機械チェック済み。確認不要（問題のあるものだけ「構造チェック:」行が付く）\n- choiceExplanations[i] と choices[i] の内容が対応しているか（ずれていればfixで並び替え）\n- 1つの選択肢や解説（choices・correctAnswers・explanation・choiceExplanations）に「原因：」「対処：」「メリット：」「デメリット：」等の複数のラベル付き項目が改行なしで1行に詰まっている場合は、各ラベルの直前に改行（文字 \\n）を入れて1ラベル1行に分ける fix を行う（choices を変更したら correctAnswers も同じ改行で完全一致させること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n  ※ fix は「事実・正確性・データ整合」の問題に加え、以下の明示対象に限る（廃止/誤ったサービス、正解の誤り・選択肢との不一致、isMultiple/ドメインの誤り、choiceExplanations の件数・対応ズレ、実在しない連携、仕様の過大主張、【必須fix】選択肢本文に入った略語の展開(括弧補足)の除去＝選択肢は用語のみにし略語の意味は解説側へ移す(ヒント漏れ防止)。かつ解説(explanation・choiceExplanations)側で重要な略語が英語フルスペルで展開されていなければ解説に追加(例 SMOTE(Synthetic Minority Over-sampling Technique)。BLEU/ROC-AUC/RMSE/MAE/F1/RBAC/MVCC/CIDR/OWASP 等が該当。全略語でなく重要語のみ。S3/VPC等の周知AWS略称は対象外)、【必須fix】選択肢の過剰説明＝用語+定義文になっている選択肢は用語のみに削り説明は choiceExplanations へ 等）。\n  ※ 「易しすぎる／ペア構造(2案×2組)でない／消去法が成立する／暗記寄り」等の難易度・構成に関する好みは、既存問題では fix しない（action=ok とする）。これらは生成時に担保する事項であり、成立している問題を難化目的で作り直さない。下記【追加の確認観点】に難易度・構成の指摘があっても、事実の誤りを伴わない限り fix せず ok とすること。\n  ※ 字数超過（解説や choiceExplanations が長い）だけを理由に既存を縮めない。字数上限は生成時（新規生成）のみ担保し、内容が妥当なら長くても ok とする。※ 「正解選択肢が最長」だけを理由に fix しない。正解が最長になるのは一定割合（目安2〜3割）で許容し、長さと正解の相関を作らない方針。ただし正解が他の全選択肢より極端に長く（概ね1.5倍超、または正解だけ2文構成）長さだけで正解が明白な場合のみ、技術的内容を保ったまま短縮する fix 対象とする。なお選択肢がすべて単語・用語のみ（説明文でない）の場合は長さのバランスを一切問わず、最長の用語が正解でも fix しない。\n  ※ 体裁（問題文・解説の改行や列挙・手順の整形、choiceExplanations 文頭のサービス名主語、番号手順の連番順）はトークン節約のため検証(02)では確認も fix もしない。ただし「選択肢に入った略語の展開の除去（選択肢は用語のみ・略語の意味は解説側へ）」「選択肢の過剰説明の除去（用語のみに）」「解説での重要略語の英語フルスペル展開の補完」「1つの選択肢や解説に複数ラベル（原因／対処 等）が改行なしで詰まっている場合の改行挿入」は上記【確認観点】のとおり fix 対象とする（体裁扱いにして見送らないこと）。生成(01)で担保する事項であり、可読性の決定的整形が要る場合は別途 fix-list-linebreaks.py 等で処理する。\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
 # 自動改良された追加確認観点を注入（audit-questions.sh -i が _validity-extra.txt を更新）
 _extra = (os.environ.get('VALIDITY_EXTRA', '') or '').strip()
+# 追加観点の絞り込み。# 行（ファイルの説明）は入れない。「- {AIF,MLA} …」のように資格タグが付いた行は
+# チャンクにその資格があるときだけ入れる（{AWS} は ML/DB/NW/SEC 以外）。以前は AIF/MLA 向けの
+# 事実や AWS サービスの仕様が、DB・NW のチャンクにも毎回入っていた。
+import re as _re0
+_NON_AWS = {'ML', 'DB', 'NW', 'SEC'}
+_cx = {q.get('examType', '') for q in questions}
+_cx_tags = _cx | ({'AWS'} if _cx - _NON_AWS else set())
+_kept, _section = [], []
+for _ln in _extra.split('\n'):
+    if _ln.startswith('#') and not _ln.startswith('## '):
+        continue
+    if _ln.startswith('## ') or not _ln.strip():
+        if _section and any(x.startswith('- ') for x in _section):
+            _kept.extend(_section)
+        _section = [_ln] if _ln.startswith('## ') else []
+        continue
+    _m = _re0.match(r'^- \{([A-Za-z0-9,]+)\}\s*', _ln)
+    if _m:
+        if not ({t.strip() for t in _m.group(1).split(',')} & _cx_tags):
+            continue
+        _ln = '- ' + _ln[_m.end():]
+    _section.append(_ln)
+if _section and any(x.startswith('- ') for x in _section):
+    _kept.extend(_section)
+_extra = '\n'.join(_kept).strip()
 if _extra:
     PROMPT_HEADER = PROMPT_HEADER.replace('\n\n【問題リスト】', '\n\n【追加の確認観点（監査による自動改良）】\n' + _extra + '\n\n【問題リスト】')
 # 構造チェック行(_struct)が付いた問題がチャンクにある場合だけ、直し方を入れる。
@@ -817,6 +856,12 @@ for r in results:
         del_count += 1
         resolved_ids.append(qid)
         print(f'  [DELETE] {qid}  生成:{created_at}  前回確認:{prev_checked}: {reason}')
+        continue
+
+    if action == 'fix' and not fix:
+        # 「fix」なのに修正内容が無い。以前は ok と同じ扱いで確認済みにしていたが、
+        # 問題ありと判断した問題を公開してしまうので、未解決のまま次回に回す。
+        print(f'  [WARN ] {qid}: action=fix だが修正内容が空。確認済みにせず次回再チェック: {reason}')
         continue
 
     if action == 'fix' and fix:
