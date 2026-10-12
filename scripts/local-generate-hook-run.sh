@@ -51,13 +51,12 @@ while [ "$TOTAL" -lt "$TARGET" ] && [ "$(date +%s)" -lt "$HOOK_DEADLINE_EPOCH" ]
   FARGATE_MODE=1 bash prompts/night-prompts/scripts/01-generate-questions.sh -H -n "$TARGET" -D "$HOOK_DEADLINE" 2>&1 | tee "$OUT"
   EC=${PIPESTATUS[0]}
   N=$(grep -oE '^合計インポート: [0-9]+' "$OUT" | tail -1 | grep -oE '[0-9]+$')
-  SKIPPED=$(grep -c '^⏭  生成をスキップ' "$OUT")
   rm -f "$OUT"
   TOTAL=$((TOTAL + ${N:-0}))
   log "生成 ${ROUND}回目: ${N:-0}問取込 (累計${TOTAL}/${TARGET}問, exit $EC)"
-  # 異常終了（レート制限・締切・認証失敗など）、供給十分でスキップ、1問も取り込めなかった、のいずれかで止める
+  # 異常終了、または1問も取り込めなかった（レート制限・締切など）なら止める。
+  # ※ 01 の終了コードはログ出力の tee に隠れて常に 0 になるため、実際に止まるのは主に「0問」の判定
   [ "$EC" -ne 0 ] && break
-  [ "$SKIPPED" -gt 0 ] && break
   [ "${N:-0}" -eq 0 ] && break
 done
 log "完了 (累計${TOTAL}問 / ${ROUND}回 / exit $EC)"
