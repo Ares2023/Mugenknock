@@ -2,54 +2,55 @@
 # 02-check-validity.sh がこのファイルの内容を検証プロンプトの確認観点へ自動注入する。
 # 空でも可。手動編集も可だが、自動改良で上書きされることがある。
 # ※ 2026-08 手動棚卸し: 重複する warn 観点を統合。事実系[fix]は各ルールを保持。
+# 資格タグ: 「- {SAA,SAP} [fix] ...」のように {…} を付けた行は、チャンクにその資格の問題があるときだけ注入する（{AWS} は ML/DB/NW/SEC 以外のAWS認定すべて）。タグの無い行は全チャンクに入る。新しい行は迷ったらタグ無しでよい。
 
 ## 易しすぎ・正解特定の漏れ（warn。既存問題は作り直さず action=ok、難易度は生成時に担保）
 - [warn] キーワード照合で即答できる: 要件語や正解を一意特定する固有語（例 マイクロ秒/7年保持、Gremlin→Neptune、MongoDB互換→DocumentDB、「ベイズを引き継ぐ」→Warm Start）が正解肢だけに出る、または正解が要件文言をほぼ反復（「変更せず」→「リフト＆シフト」）。要件は挙動・性質で書き全肢に分散し、サービス特性で正誤が分かれるか。
 - [warn] 選択肢自体が答えを漏らす: 不正解が「〜できない/含まれない」と自ら失格理由を明記、正解に自己解説的末尾（「〜なので要件を満たす」等）、または各肢がコロン以降に「解決できる/できない」等の評価文を持ち、解かずに正解が特定できる。根拠は解説側に置き各肢を簡潔・中立に。
 - [warn] ひっかけ不足: 不正解が露骨に弱い捨て肢（無関係・単一AZでSPOF・全ユーザーにフルアクセス等）や分野違いの肢ばかり（同カテゴリの紛らわしい近接肢が無い）で消去法・連想で即答できる。定番即答パターン（DynamoDB＋マイクロ秒＝DAX、共有＋マルチAZ＝EFS）や機能名1つで解ける暗記寄りも同様。本番相当のひっかけ強度と要件比較があるか。
 - [warn] 汎用/定義暗記: AWS固有シナリオの無い定義暗記（JDBC/ODBC、SQLのUNION、REINDEX/VACUUM/CLUSTER/ANALYZE、評価指標や基礎ML概念の定義、セキュリティ基礎概念=ゼロトラスト/最小権限/MFA/RBAC/CVSS/IDS/PKI/ハッシュの一方向性 等）で、名称連想だけで解け複数要件の取捨選択が無い。Associate以上では易しすぎ/模試不適。
-- [warn] Professional資格(SAP/DOP)の易問: 用語定義・単一サービスの目的・2サービスの違いをそのまま問う、または決め手がAssociate級の定番論点（ゲートウェイエンドポイントのNATコスト削減、単一AZ→Multi-AZ 等）にとどまる。プロ級の複合要件・トレードオフ・制約が無いなら易しすぎ。
+- {SAP,DOP} [warn] Professional資格(SAP/DOP)の易問: 用語定義・単一サービスの目的・2サービスの違いをそのまま問う、または決め手がAssociate級の定番論点（ゲートウェイエンドポイントのNATコスト削減、単一AZ→Multi-AZ 等）にとどまる。プロ級の複合要件・トレードオフ・制約が無いなら易しすぎ。
 - [warn] 問題文が正解の技術的根拠（数値上限・制約値・仕組みの理由。例 KMS 4KB上限）を明示し、その一文で正解が誘導される。問題文は要件・症状のみにし根拠は解説側へ。
 - [warn] 要件・シナリオの論理が正解の根拠と整合しているか（要件表現と正解機能の挙動に齟齬がないか）。推敲不足（重複表現・誤記「マネージドなマネージドAPI」等）が無いか。
 
 ## 構成・体裁（warn。生成時担保のため既存は action=ok）
 - [warn] 複数正解(isMultiple=true)が4択。AWS本番の複数正解は5択以上（5択2正解/6択3正解、DOPは6択3正解可）。5肢以上へ。
-- [warn] Pro/Specialty(SAP/DOP/ANS/SCS)の4択で「2案ペア×2組」構造でない（A・B類似ペア、C・D類似ペア＝同一アプローチ内で設定/構成/パラメータが異なる2案を1ペアにし、別アプローチのペアを並べる）。単なる並列4択はペア構造不満。複数正解は対象外。
-- [warn] 入門(CLF)で正解と紛らわしい肢の差が実装詳細レベルで微妙すぎ判別不能（例 App Runner対Elastic Beanstalk）。差別化が「何のために使うか」レベルで判別でき、解説で決定的な差を明示しているか。
+- {SAP,DOP,ANS,SCS} [warn] Pro/Specialty(SAP/DOP/ANS/SCS)の4択で「2案ペア×2組」構造でない（A・B類似ペア、C・D類似ペア＝同一アプローチ内で設定/構成/パラメータが異なる2案を1ペアにし、別アプローチのペアを並べる）。単なる並列4択はペア構造不満。複数正解は対象外。
+- {CLF} [warn] 入門(CLF)で正解と紛らわしい肢の差が実装詳細レベルで微妙すぎ判別不能（例 App Runner対Elastic Beanstalk）。差別化が「何のために使うか」レベルで判別でき、解説で決定的な差を明示しているか。
 
 ## 正解の長さで特定できる（fix。全資格対象）
 - [fix] 正解肢が単独で最長（概ね不正解の1.5倍以上、または最短の不正解との差が概ね30字以上、または正解だけ2文構成）で長さから正解が推測できる。技術的内容を保ったまま正解を短縮し各肢の長さを揃える。※選択肢が単語・用語のみの場合は長さを問わない。
 
 ## 事実・現行性・整合の誤り（fix。裏取りのうえ修正。正解キーが崩れるなら delete）
-- [fix] 実在しないサービス間の直接連携を前提（例 S3イベントから直接AWS Batch投入。実際はLambda/EventBridge等の介在が必要）。
-- [fix] 機能の適用範囲・タイミング・保持の過大主張（例 CloudWatch Logsのデータ保護は取込時マスクで、適用前の既存ログには遡及しない）。
-- [fix] 旧名称を現行扱い（例 Kinesis Data Firehose→Amazon Data Firehose）。
-- [fix] 現行機能で不正解も成立し正解が二択化（例 DynamoDBは2024以降リソースベースポリシーでAssumeRoleなし直接アクセス可／Step Functions標準のExactly-once「実行」保証はタスク(Lambda/Fargate)の二重処理・二重支払いを防がない）。現行仕様で単一正解が保てるか。
-- [fix] 優越性/充足の断定（「最もコスト効率」「低RTOを最小構成で」等）が公式制約と齟齬（例 Athena CTASは1クエリ最大100パーティション・書込タイムアウト／DynamoDB PITR復元は新規テーブル作成でRTO保証されない）。制約で正解が破綻するなら修正。
-- [fix] 不正解理由(choiceExplanations)の事実誤認・過度な一般化（例「TerraformはAWSネイティブでない」は誤り。TerraformのAWS対応は充実）。失格理由は当該要件との不一致に限定。
-- [fix] 不正解のchoiceExplanationが一般論で機能非対応を断じるが現行提供済み（例 Aurora Serverless v2は最小0 ACUでscale-to-zero自動ポーズ可）。
+- {AWS} [fix] 実在しないサービス間の直接連携を前提（例 S3イベントから直接AWS Batch投入。実際はLambda/EventBridge等の介在が必要）。
+- {AWS} [fix] 機能の適用範囲・タイミング・保持の過大主張（例 CloudWatch Logsのデータ保護は取込時マスクで、適用前の既存ログには遡及しない）。
+- {AWS} [fix] 旧名称を現行扱い（例 Kinesis Data Firehose→Amazon Data Firehose）。
+- {AWS} [fix] 現行機能で不正解も成立し正解が二択化（例 DynamoDBは2024以降リソースベースポリシーでAssumeRoleなし直接アクセス可／Step Functions標準のExactly-once「実行」保証はタスク(Lambda/Fargate)の二重処理・二重支払いを防がない）。現行仕様で単一正解が保てるか。
+- {AWS} [fix] 優越性/充足の断定（「最もコスト効率」「低RTOを最小構成で」等）が公式制約と齟齬（例 Athena CTASは1クエリ最大100パーティション・書込タイムアウト／DynamoDB PITR復元は新規テーブル作成でRTO保証されない）。制約で正解が破綻するなら修正。
+- {AWS} [fix] 不正解理由(choiceExplanations)の事実誤認・過度な一般化（例「TerraformはAWSネイティブでない」は誤り。TerraformのAWS対応は充実）。失格理由は当該要件との不一致に限定。
+- {AWS} [fix] 不正解のchoiceExplanationが一般論で機能非対応を断じるが現行提供済み（例 Aurora Serverless v2は最小0 ACUでscale-to-zero自動ポーズ可）。
 - [fix] トラブルシュート系で不正解も正解と同一の診断証拠（MatchedEvents=0・同一エラー等）で成立し正解が一意に定まらない。証拠で切り分かない肢は別シナリオへ差し替える。
 - [fix] choiceExplanationsの複数要素がほぼ同一文で各肢固有の正誤理由になっていない。各肢の内容に即した固有の根拠へ書き換える。
 - [fix] explanation・choiceExplanationsが途中で切れ未完結（助詞・読点・動詞で途切れ、内容欠落）。字数超過でなくデータ欠損として補完。全肢分の choiceExplanations が過不足なく揃っているかも確認。
 - [fix] SQLが構文破損（COUNT()の引数/アスタリスク欠落＝本来COUNT(*)、GROUP BY/JOIN条件欠落、本文と解説の不整合）。正しい構文にし本文・選択肢・解説の整合を取る。
 - [fix] CIDR表記が相互に矛盾/重複（例 172.31.0.0/16と172.31.100.0/16は同一/16で重複）。プレフィックス長・アドレス範囲の整合を確認。
 - [fix] ルーティング因果の誤り（ブラックホールルートはアタッチメント削除後の静的ルート残存等で生じる。「新規追加で自動生成され既存宛先ルートが自然消失」は事実誤認）。
-- [fix] CloudWatch Logs Insightsは2024末以降 OpenSearch SQL(SELECT/FROM/WHERE/GROUP BY)・PPL をネイティブ対応。「SQL非対応で専用構文のみ」は誤り。クエリ言語対応を決め手にする問題は裏取り。
-- [fix] Neptune AnalyticsはBedrock Knowledge BasesのGraphRAG用ベクターストアとして正式サポート。「非対応」を不正解の失格理由にするのは誤り。
-- [fix] CloudTrail Lakeのイベントデータストアは作成後の将来イベントを収集。過去N日の遡及には既存ログのインポートが別途必要。作成だけで遡及分析可能を前提にすると、S3ログをAthena検索する肢が要件を満たし正解が二択化しうる。
-- [fix] IAM Identity CenterのPermission Setは原則アカウント単位で割当。「OUで定義し配下の新規アカウントに自動継承」する標準機能は無い（自動継承には自動化が別途必要）。
-- [fix] Bedrock Model Evaluationのヒューマン評価ワークフォースはCognito/SageMaker Ground Truthのプライベートワークフォースで管理。「IAM Identity Centerでレビュアー割当」は誤り。
-- [fix] X-Rayのサンプリング決定はリクエスト受信時に確定。レスポンスコード(5xx等)による事後の上書き・強制トレースは不可。
-- [fix] 「Bedrock Model Cards」は名称誤り。モデルカードはSageMaker Model Cardsが正式（Bedrock側はモデル評価成果物）。
+- {AWS} [fix] CloudWatch Logs Insightsは2024末以降 OpenSearch SQL(SELECT/FROM/WHERE/GROUP BY)・PPL をネイティブ対応。「SQL非対応で専用構文のみ」は誤り。クエリ言語対応を決め手にする問題は裏取り。
+- {AWS} [fix] Neptune AnalyticsはBedrock Knowledge BasesのGraphRAG用ベクターストアとして正式サポート。「非対応」を不正解の失格理由にするのは誤り。
+- {AWS} [fix] CloudTrail Lakeのイベントデータストアは作成後の将来イベントを収集。過去N日の遡及には既存ログのインポートが別途必要。作成だけで遡及分析可能を前提にすると、S3ログをAthena検索する肢が要件を満たし正解が二択化しうる。
+- {AWS} [fix] IAM Identity CenterのPermission Setは原則アカウント単位で割当。「OUで定義し配下の新規アカウントに自動継承」する標準機能は無い（自動継承には自動化が別途必要）。
+- {AIF,AIP,MLA} [fix] Bedrock Model Evaluationのヒューマン評価ワークフォースはCognito/SageMaker Ground Truthのプライベートワークフォースで管理。「IAM Identity Centerでレビュアー割当」は誤り。
+- {AWS} [fix] X-Rayのサンプリング決定はリクエスト受信時に確定。レスポンスコード(5xx等)による事後の上書き・強制トレースは不可。
+- {AIF,AIP,MLA} [fix] 「Bedrock Model Cards」は名称誤り。モデルカードはSageMaker Model Cardsが正式（Bedrock側はモデル評価成果物）。
 
 ## 資格別・概念の正確性（AIF/AIP/MLA）
-- [warn] AIF評価指標: BLEU=機械翻訳・ROUGE=要約・BERTScore=意味的類似度、の用途取り違え（「翻訳にROUGE」等）は誤り。
-- [warn] AIF: 転移学習(事前学習済みモデルを別タスクに適用)とファインチューニング(特定タスクデータで追加学習)の区別、ネガティブプロンプト(禁止制約の明示)とプロンプトインジェクション(攻撃手法)の混同、IDPのTextract(抽出)対Comprehend(意味解析)の役割、古典ML(二項分類/決定木/ランダムフォレスト)の説明が正確か。
-- [fix] AIモデル能力の事実誤認（特に正解・解説）。BedrockモデルのモダリティやコンテキストをWebFetchで裏取り（例 Claude 3.5 Haikuはテキスト専用で画像非対応、Titan Embeddings系はベクター生成用で生成/要約不可）。破綻なら正しいモデルへ修正/delete。
-- [warn] AIP: モデル選定で絶対的トークン単価比較を決め手にしない（価格改定で陳腐化）。相対特性(マルチモーダル/コンテキスト長/レイテンシ/用途)で決まるか。旧世代のみで現行性が乏しくないか。
-- [warn] AIP: SageMaker Clarifyのバイアス検出を生成テキストの属性別測定に充てない（表形式データ・モデル予測向け）。「改ざん不可(immutable)な監査証跡」にはS3 Object Lock(Compliance mode)等の不変化機構が必要（二重送信での単一障害点排除だけでは不足）。
-- [warn] MLA: SageMaker network isolation(enable_network_isolation=True)でもコンテナ間ピア通信(NCCL/DDP)は許可・S3入出力は実行ロールで処理する（「DDPが起動直後に失敗」は誤認）。Serverless Inferenceは1エンドポイント1モデルでMMEのように同居不可。NLP/トランスフォーマー推論の現行推奨はInferentia2(inf2)。
-- [fix] MLA: SageMaker非同期推論(Async Inference)の上限は最大処理1時間・ペイロード最大1GB（「15分」等の数値誤りは修正）。
+- {AIF,ML} [warn] AIF評価指標: BLEU=機械翻訳・ROUGE=要約・BERTScore=意味的類似度、の用途取り違え（「翻訳にROUGE」等）は誤り。
+- {AIF,ML} [warn] AIF: 転移学習(事前学習済みモデルを別タスクに適用)とファインチューニング(特定タスクデータで追加学習)の区別、ネガティブプロンプト(禁止制約の明示)とプロンプトインジェクション(攻撃手法)の混同、IDPのTextract(抽出)対Comprehend(意味解析)の役割、古典ML(二項分類/決定木/ランダムフォレスト)の説明が正確か。
+- {AIF,AIP,MLA} [fix] AIモデル能力の事実誤認（特に正解・解説）。BedrockモデルのモダリティやコンテキストをWebFetchで裏取り（例 Claude 3.5 Haikuはテキスト専用で画像非対応、Titan Embeddings系はベクター生成用で生成/要約不可）。破綻なら正しいモデルへ修正/delete。
+- {AIP} [warn] AIP: モデル選定で絶対的トークン単価比較を決め手にしない（価格改定で陳腐化）。相対特性(マルチモーダル/コンテキスト長/レイテンシ/用途)で決まるか。旧世代のみで現行性が乏しくないか。
+- {AIP} [warn] AIP: SageMaker Clarifyのバイアス検出を生成テキストの属性別測定に充てない（表形式データ・モデル予測向け）。「改ざん不可(immutable)な監査証跡」にはS3 Object Lock(Compliance mode)等の不変化機構が必要（二重送信での単一障害点排除だけでは不足）。
+- {MLA} [warn] MLA: SageMaker network isolation(enable_network_isolation=True)でもコンテナ間ピア通信(NCCL/DDP)は許可・S3入出力は実行ロールで処理する（「DDPが起動直後に失敗」は誤認）。Serverless Inferenceは1エンドポイント1モデルでMMEのように同居不可。NLP/トランスフォーマー推論の現行推奨はInferentia2(inf2)。
+- {MLA} [fix] MLA: SageMaker非同期推論(Async Inference)の上限は最大処理1時間・ペイロード最大1GB（「15分」等の数値誤りは修正）。
 - [fix] 選択肢本体(choices)に略語のフルスペル括弧展開が混入し（例「PR AUC(Precision-Recall Area Under the Curve)」）、その肢（多くは正解）だけ文字数が膨らんで長さから正解が特定できる。choicesは短い名称のみに揃え（展開はexplanation/choiceExplanations側）、correctAnswersも短縮後の表記に一致させる。
 - [fix] 前提条件の指定不足で複数肢が同等に正解になり一意に定まらない（例 BGP経路選択でピアのAS関係未指定→MEDが比較されず正解不定／SCD Type 2で valid_to 方式と is_current フラグ方式が共に要件充足）。判定に必要な前提を明示し単一正解が一義に定まるよう修正（担保できなければ delete）。
-- [fix] MLA: サービス短縮名が汎用語と衝突し正解・解説・選択肢で曖昧（例「Ground Truth」は汎用語ground truth=正解ラベル/教師データと混同）。正式名（Amazon SageMaker Ground Truth）に統一する。
+- {MLA,AIF,AIP} [fix] MLA: サービス短縮名が汎用語と衝突し正解・解説・選択肢で曖昧（例「Ground Truth」は汎用語ground truth=正解ラベル/教師データと混同）。正式名（Amazon SageMaker Ground Truth）に統一する。

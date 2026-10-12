@@ -211,99 +211,92 @@ if [ -n "$FORCE_EXAM" ]; then
   NEXT_EXAM="$FORCE_EXAM"
   echo "指定資格: $NEXT_EXAM"
 else
-  # 問題数が最も少ない資格を選択
-  _USE_CACHE=0
-  if [ "$REBUILD_COUNTS" -eq 0 ] && [ -f "$COUNT_CACHE_FILE" ]; then
-    # 全試験分のデータが揃っていて、かつ十分に新しいときのみキャッシュ有効。
-    #
-    # 鮮度を見るのは、このキャッシュが更新されても S3 との同期で巻き戻ることがあるため。
-    # state/ は各ラッパー（local-hook-run 等）が起動時に `aws s3 sync s3://... state/` で
-    # 引き直すが、s3 sync は「サイズが違えば古い方でも上書きダウンロード」する。
-    # 夜間バッチ外（手動実行など）で更新した分は次のフックで消え、キャッシュが
-    # 古い日付のまま凍りつく。実際 2026-08-02 の値で止まり、MLA が 311問（実際は334問）
-    # と認識され続けて「最少の資格」に選ばれ続けていた。
-    # 問題数の真実は DynamoDB 側にあるので、古ければ黙って引き直す。
-    if python3 - "$COUNT_CACHE_FILE" "${COUNT_CACHE_MAX_AGE_H:-6}" "${EXAM_TYPES[@]}" << 'PYEOF' 2>/dev/null
-import json, sys
+  # ── 需要を加味して資格を選ぶ ──
+  # 以前は「問題数が最も少ない資格」を選んでいた。需要を見ないため、2026-10-10〜11 の435問が
+  # すべて解答0回の資格（DB/NW/SEC/ML）に使われた（全5,449問に対し総解答1,564回、CLF・SAA で
+  # 需要の53%）。限られたトークンを使われる資格へ回すため、次の順で選ぶ:
+  #   ① 問題数が GEN_MIN_POOL 未満の資格があれば、その中で最少のもの（新設資格の立ち上げ）
+  #   ② それ以外は「(全問の解答数 + GEN_DEMAND_PRIOR) / 問題数」が最大のもの
+  #      ＝問題1問あたりの需要が大きい資格。需要0の資格は事実上選ばれない。
+  #   ③ GEN_SKIP_BELOW_RATIO>0 で、②の最大値がそれ未満なら「供給十分」として生成しない
+  #      （トークンを検証(02)に残す。既定は 0＝無効）
+  # 解答数は Questions の globalAttempts（全ユーザー合計）。問題数・解答数は毎回 DynamoDB から
+  # 取る（以前のキャッシュは S3 同期で巻き戻り、MLA の問題数が古い値で凍った実例がある）。
+  echo "資格ごとの問題数・解答数を DynamoDB から取得中..."
+  _SCAN_TMP=$(mktemp /tmp/gen_scan_XXXX.json)
+  aws dynamodb scan --table-name Questions \
+    --projection-expression "examType, globalAttempts" --output json > "$_SCAN_TMP" 2>/dev/null || true
+  _SEL=$(GEN_MIN_POOL="${GEN_MIN_POOL:-150}" GEN_DEMAND_PRIOR="${GEN_DEMAND_PRIOR:-5}" \
+      GEN_SKIP_BELOW_RATIO="${GEN_SKIP_BELOW_RATIO:-0}" \
+      python3 - "$_SCAN_TMP" "$COUNT_CACHE_FILE" "${EXAM_TYPES[@]}" << 'PYEOF'
+import json, os, sys
 from datetime import datetime
-with open(sys.argv[1]) as f:
-    cache = json.load(f)
-max_age_h = float(sys.argv[2])
-exams_data = cache.get("exams", {})
-missing = [e for e in sys.argv[3:] if e not in exams_data]
-if missing:
-    raise SystemExit(f"missing: {missing}")
-updated = cache.get("updated_at")
-if not updated:
-    raise SystemExit("no updated_at")
-age_h = (datetime.now() - datetime.fromisoformat(updated)).total_seconds() / 3600
-if age_h > max_age_h:
-    raise SystemExit(f"stale: {age_h:.1f}h")
-PYEOF
-    then
-      _USE_CACHE=1
-    else
-      echo "問題数キャッシュが不完全または古い → DynamoDBから再取得します..."
-    fi
-  fi
-
-  if [ "$_USE_CACHE" -eq 1 ]; then
-    echo "問題数キャッシュを使用..."
-    read -r NEXT_EXAM MIN_COUNT <<< "$(python3 - "$COUNT_CACHE_FILE" "${EXAM_TYPES[@]}" << 'PYEOF'
-import json, sys
-with open(sys.argv[1]) as f:
-    cache = json.load(f)
-exams_data = cache.get("exams", {})
-exam_types = sys.argv[2:]
-min_count = 999999
-next_exam = exam_types[0]
-for e in exam_types:
-    c = exams_data.get(e, {}).get("total", 0)
-    print(f"  {e}: {c}問 (キャッシュ)", file=sys.stderr)
-    if c < min_count:
-        min_count = c
-        next_exam = e
-print(next_exam, min_count)
-PYEOF
-)"
-    echo "選択: $NEXT_EXAM (現在${MIN_COUNT}問 — 最少)"
-  else
-    # DynamoDB から取得してキャッシュを再構築
-    [ "$REBUILD_COUNTS" -eq 1 ] && echo "問題数キャッシュを再構築中..." || echo "キャッシュなし。DynamoDBから問題数を取得中..."
-    MIN_COUNT=999999
-    NEXT_EXAM="${EXAM_TYPES[0]}"
-    declare -A _TMP_COUNTS
-    for exam in "${EXAM_TYPES[@]}"; do
-      count=$(aws dynamodb query \
-        --table-name Questions \
-        --index-name examType-index \
-        --key-condition-expression "examType = :e" \
-        --expression-attribute-values "{\":e\": {\"S\": \"$exam\"}}" \
-        --select COUNT \
-        --query 'Count' \
-        --output text 2>/dev/null | awk '{s+=$1} END{print s+0}')
-      count=${count:-0}
-      echo "  $exam: ${count}問"
-      _TMP_COUNTS[$exam]=$count
-      if [ "$count" -lt "$MIN_COUNT" ]; then
-        MIN_COUNT="$count"
-        NEXT_EXAM="$exam"
-      fi
-    done
-    echo "選択: $NEXT_EXAM (現在${MIN_COUNT}問 — 最少)"
-    # キャッシュに保存（exam total のみ。domain 内訳は Phase2 クエリ後に更新）
-    python3 - "$COUNT_CACHE_FILE" << PYEOF
-import json, os
-from datetime import datetime
-f = "$COUNT_CACHE_FILE"
+scan_file, cache_file, exams = sys.argv[1], sys.argv[2], sys.argv[3:]
+with open(scan_file, encoding='utf-8') as f:
+    content = f.read()
+items, pos, dec = [], 0, json.JSONDecoder()
+while True:
+    s = content.find('{', pos)
+    if s == -1:
+        break
+    try:
+        obj, pos = dec.raw_decode(content, s)
+    except ValueError:
+        break
+    items.extend(obj.get('Items', []))
+count = {e: 0 for e in exams}
+att = {e: 0 for e in exams}
+for it in items:
+    e = it.get('examType', {}).get('S')
+    if e in count:
+        count[e] += 1
+        try:
+            att[e] += int(it.get('globalAttempts', {}).get('N', '0'))
+        except ValueError:
+            pass
+if not items:
+    print('ERROR 0')
+    sys.exit(0)
+min_pool = int(os.environ['GEN_MIN_POOL'])
+prior = float(os.environ['GEN_DEMAND_PRIOR'])
+skip_below = float(os.environ['GEN_SKIP_BELOW_RATIO'])
+ratio = {e: (att[e] + prior) / max(count[e], 1) for e in exams}
+for e in sorted(exams, key=lambda e: -ratio[e]):
+    print(f'  {e}: {count[e]}問 / 解答{att[e]}回 / 需要比 {ratio[e]:.3f}', file=sys.stderr)
+small = [e for e in exams if count[e] < min_pool]
+if small:
+    pick = min(small, key=lambda e: count[e])
+    why = f'問題数{count[pick]}問 < {min_pool}問（立ち上げ優先）'
+else:
+    pick = max(exams, key=lambda e: ratio[e])
+    why = f'需要比 {ratio[pick]:.3f} が最大（解答{att[pick]}回 / {count[pick]}問）'
+    if skip_below > 0 and ratio[pick] < skip_below:
+        print(f'SKIP {count[pick]} 最大の需要比 {ratio[pick]:.3f} < {skip_below}（供給十分）')
+        sys.exit(0)
 try:
-    with open(f) as fp: cache = json.load(fp)
-except: cache = {"exams": {}}
-$(for exam in "${!_TMP_COUNTS[@]}"; do echo "cache.setdefault('exams', {}).setdefault('${exam}', {})['total'] = ${_TMP_COUNTS[$exam]}"; done)
-cache["updated_at"] = datetime.now().isoformat()
-with open(f, 'w') as fp: json.dump(cache, fp, ensure_ascii=False, indent=2)
+    with open(cache_file) as fp:
+        cache = json.load(fp)
+except Exception:
+    cache = {'exams': {}}
+for e in exams:
+    cache.setdefault('exams', {}).setdefault(e, {})['total'] = count[e]
+cache['updated_at'] = datetime.now().isoformat()
+with open(cache_file, 'w') as fp:
+    json.dump(cache, fp, ensure_ascii=False, indent=2)
+print(f'{pick} {count[pick]} {why}')
 PYEOF
+  )
+  rm -f "$_SCAN_TMP"
+  read -r NEXT_EXAM MIN_COUNT _SEL_WHY <<< "$_SEL"
+  if [ "$NEXT_EXAM" = "ERROR" ] || [ -z "$NEXT_EXAM" ]; then
+    echo "❌ DynamoDB から問題数を取得できませんでした"
+    exit 1
   fi
+  if [ "$NEXT_EXAM" = "SKIP" ]; then
+    echo "⏭  生成をスキップ: ${_SEL_WHY}"
+    exit 0
+  fi
+  echo "選択: $NEXT_EXAM (現在${MIN_COUNT}問 — ${_SEL_WHY})"
 fi
 
 # ── ドメイン一覧を取得（examDomains.json が単一マスタ）──
@@ -392,12 +385,19 @@ COMMON_RULES=$(cat "$INSTRUCTION_DIR/_common-rules.txt")
 # 明確な技術的理由で誤り」を絶対条件とし、正確性・問題としての正当性は失わない。
 HARD_BLOCK=""
 if [ "$HARD_MODE" -eq 1 ]; then
-  HARD_BLOCK=$(cat << 'HARDEOF'
+  HARD_HEAD=$(cat << 'HARDEOF'
 
 【難易度強化（本試験の難問レベルへ）】
 この資格の出題レベルの範囲内で、表面的な知識では解けない難問にすること。
 ※絶対条件: 正解は必ず1つに定まり、不正解はいずれも「特定の技術的理由」で明確に誤りであること。複数正解・解釈次第・優劣が曖昧、になる問題は作らない。
-
+HARDEOF
+)
+  # 1. ペア構成はプロフェッショナル・専門知識（SAP/DOP/ANS/SCS）だけに課す。検証側の追加観点
+  # （_validity-extra.txt）もこの4資格だけを想定しており、入門・基礎カードにまで一律で課すと
+  # 選択肢の作り方が単調になる。それ以外の資格では 1. を付けない。
+  HARD_PAIR=""
+  case "$NEXT_EXAM" in
+    SAP|DOP|ANS|SCS) HARD_PAIR=$(cat << 'HARDEOF'
 1. ペア構成で惑わせる（本試験の最頻出パターン・必須）: 4択の選択肢を「2サービス×各2案」のペア構造にすること。
    - A・B: サービスXを使う2案（設定・構成・動作が異なる）
    - C・D: サービスYを使う2案（設定・構成・動作が異なる）
@@ -406,6 +406,11 @@ if [ "$HARD_MODE" -eq 1 ]; then
    → 5択・複数正解の場合も同様に、2〜3のサービス/アプローチを2案ずつ用意して混乱させること。
    ※ 全選択肢が1サービスだけ（例：全部 CodeDeploy）でも良いが、その場合は設定の差を極力細かくすること。
 
+HARDEOF
+)
+ ;;
+  esac
+  HARD_REST=$(cat << 'HARDEOF'
 2. 不正解も実在の妥当な機能・設定にする: いかにも正しそうに見える実在の構成にしつつ、各不正解には「要件を満たさない明確な理由」（非対応・スケール/リージョン制限・前提条件の欠落・パフォーマンスやコストの不適合など）を必ず1つ持たせる。
 
 3. 競合する複数要件を入れる: シナリオにコスト/性能/可用性/運用負荷/セキュリティ等の競合要件を複数含め、すべてを同時に満たす唯一の選択肢を問う。「最も〜（コスト効率/運用負荷最小 等）」型を活用する。
@@ -417,6 +422,11 @@ if [ "$HARD_MODE" -eq 1 ]; then
 ※解説では「なぜ正解が唯一適切か」に加え、各不正解の「具体的な失格理由」を必ず明記すること。
 HARDEOF
 )
+  HARD_BLOCK="${HARD_HEAD}
+
+${HARD_PAIR:+${HARD_PAIR}
+
+}${HARD_REST}"
   echo "🎯 難易度強化モード（--hard）有効"
 fi
 
@@ -424,13 +434,18 @@ fi
 echo ""
 echo "--- Cognito 認証中 ---"
 ADMIN_PASSWORD=$(aws ssm get-parameter --name "/quiz-app/admin-password" --with-decryption --query 'Parameter.Value' --output text)
-ID_TOKEN=$(aws cognito-idp initiate-auth \
-  --auth-flow USER_PASSWORD_AUTH \
-  --auth-parameters USERNAME=yuzuki2002110@gmail.com,PASSWORD="$ADMIN_PASSWORD" \
-  --client-id 16jjrj5m28o6s2k84og8kh2vh3 \
-  --query 'AuthenticationResult.IdToken' --output text 2>/dev/null)
+_cognito_auth() {
+  local _t
+  _t=$(aws cognito-idp initiate-auth \
+    --auth-flow USER_PASSWORD_AUTH \
+    --auth-parameters USERNAME=yuzuki2002110@gmail.com,PASSWORD="$ADMIN_PASSWORD" \
+    --client-id 16jjrj5m28o6s2k84og8kh2vh3 \
+    --query 'AuthenticationResult.IdToken' --output text 2>/dev/null)
+  [ -n "$_t" ] && [ "$_t" != "None" ] || return 1
+  ID_TOKEN="$_t"
+}
 
-if [ -z "$ID_TOKEN" ] || [ "$ID_TOKEN" = "None" ]; then
+if ! _cognito_auth; then
   echo "❌ Cognito 認証失敗"
   exit 1
 fi
@@ -446,7 +461,7 @@ aws dynamodb query \
   --index-name examType-index \
   --key-condition-expression "examType = :e" \
   --expression-attribute-values "{\":e\": {\"S\": \"$NEXT_EXAM\"}}" \
-  --projection-expression "#dom, questionText, correctAnswers" \
+  --projection-expression "#dom, questionText, correctAnswers, createdAt" \
   --expression-attribute-names '{"#dom":"domain"}' \
   --output json 2>/dev/null > "$_EXISTING_TMP" || echo '{"Items":[]}' > "$_EXISTING_TMP"
 
@@ -546,6 +561,14 @@ else:
     print('  （まだ問題がありません）')
 PYEOF
 )
+# 重複対策の既出一覧（同じ資格の全問題。question-dedup.py が判定・プロンプト用要約に使う）
+DEDUP_PY="$_d/question-dedup.py"
+_EXISTING_N=$(python3 "$DEDUP_PY" build "$_EXISTING_TMP" "$NEXT_EXAM" "$DOMAIN_STR" "$EXISTING_QS_FILE" 2>/dev/null || echo "")
+if [ -z "$_EXISTING_N" ]; then
+  # 一覧が作れなくても生成は止めない（重複判定なしの従来動作になる）
+  echo "⚠️  既出一覧の作成に失敗。重複判定なしで続行"
+  echo '[]' > "$EXISTING_QS_FILE"
+fi
 rm -f "$_EXISTING_TMP"
 echo "$TAG_COUNT_TEXT"
 
@@ -582,7 +605,7 @@ if [ "$DOMAIN_ALLOC_SKIP" -eq 0 ]; then
   echo "ドメイン別生成数（逆数重み付き割り当て）:"
 
   DOMAIN_ALLOC_JSON=$(PYTHONIOENCODING=utf-8 python3 - "$DOMAIN_STR" "$_COUNTS_TMP_EARLY" "$TOTAL_QUESTIONS" << 'PYEOF'
-import json, sys, re
+import json, os, sys, re
 
 def norm(s):
     return re.sub(r'[\s　]+', ' ', s).strip()
@@ -600,31 +623,44 @@ except Exception:
 alloc = {d: 0 for d in domains}
 remaining = total
 
+# 1ドメインあたりの上限（1回の実行で）。以前は上限が無く、600問の予算が最少の1ドメインに
+# 集中して「2問×57回」同じプロンプトで生成し、同じ論点の問題が大量にできていた
+# （DB「インデックスと性能」96問中19問が同じ複合インデックスの論点）。上限を超えた予算は使わない
+# （トークンは検証(02)に残る）。
+cap = int(os.environ.get('GEN_DOMAIN_CAP', '20') or 20)
+
 # レベル埋めアルゴリズム:
 #   最も問題数が少ないドメイン群を「次のティア」まで引き上げることを繰り返し、
-#   差を積極的に縮める（逆数重みより格差解消効果が大きい）
+#   差を積極的に縮める（逆数重みより格差解消効果が大きい）。上限に達したドメインは外す。
 def cur(d):
     return counts.get(norm(d), 0) + alloc[d]
 
 while remaining > 0:
-    min_val  = min(cur(d) for d in domains)
-    at_min   = [d for d in domains if cur(d) == min_val]
-    above    = [d for d in domains if cur(d) > min_val]
+    open_d = [d for d in domains if alloc[d] < cap]
+    if not open_d:
+        break
+    min_val  = min(cur(d) for d in open_d)
+    at_min   = [d for d in open_d if cur(d) == min_val]
+    above    = [d for d in open_d if cur(d) > min_val]
 
     if not above:
         # 全ドメイン同じ水準 → 現在の少ない順に1問ずつ配分
-        sorted_d = sorted(domains, key=lambda d: counts.get(norm(d), 0))
-        for i in range(remaining):
-            alloc[sorted_d[i % len(sorted_d)]] += 1
-        remaining = 0
+        sorted_d = sorted(open_d, key=lambda d: counts.get(norm(d), 0))
+        i = 0
+        while remaining > 0 and any(alloc[d] < cap for d in sorted_d):
+            d = sorted_d[i % len(sorted_d)]
+            if alloc[d] < cap:
+                alloc[d] += 1
+                remaining -= 1
+            i += 1
         break
 
     next_level   = min(cur(d) for d in above)
-    needed_per   = next_level - min_val
+    needed_per   = min(next_level - min_val, min(cap - alloc[d] for d in at_min))
     needed_total = needed_per * len(at_min)
 
     if needed_total <= remaining:
-        # at_min 全員を next_level まで引き上げる
+        # at_min 全員を next_level（または上限）まで引き上げる
         for d in at_min:
             alloc[d] += needed_per
         remaining -= needed_total
@@ -647,6 +683,8 @@ PYEOF
   )
   rm -f "$_COUNTS_TMP_EARLY"
   DOMAIN_ALLOC_JSON="${DOMAIN_ALLOC_JSON:-{}}"
+  # 上限で削った後の実際の予算（合計インポートの分母に使う）
+  TOTAL_QUESTIONS=$(printf '%s' "$DOMAIN_ALLOC_JSON" | python3 -c "import json,sys; print(sum(json.load(sys.stdin).values()))" 2>/dev/null || echo "$TOTAL_QUESTIONS")
 else
   rm -f "$_COUNTS_TMP_EARLY"
   DOMAIN_ALLOC_JSON="{}"
@@ -707,23 +745,13 @@ print(alloc.get(domain, default))
 PYEOF
   )
 
-  # チャンク分割（試験の情報量に合わせたサイズ）
-  # セッション枯渇前にチャンクを完走させるため小さめに設定する。
-  # チャンク2以降は最小プロンプトで送るので固定オーバーヘッドの影響は限定的。
-  # --hard（拡張思考）は出力トークンが大幅増大するため半減して上限に収める。
-  # チャンクは小さく保つ（6月下旬の高スループット時と同値）。予算は必ず途中で尽きる前提で、
-  # 尽きる「前に」完走・バンクできるチャンク数を最大化するのが狙い。大きいチャンクは完走前に落ちる。
-  # SAA は Associate だが1問あたり生成時間が重い資格帯(SAP/ANS 等)に近く(実測 約120〜207秒/問)、
-  # chunk=5 だと1ドメインが600〜1244秒かかりレート制限前に完走できず取りこぼしが多い。
-  # chunk=3 に下げて完走・バンク単位を小さくし、上限に当たる前に確保できる問題数を最大化する。
-  case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA|AIP|SAA) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
-    *) CHUNK_SIZE=5; MIN_CHUNK_Q=3 ;;
-  esac
-  if [ "$HARD_MODE" -eq 1 ]; then
-    CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
-    MIN_CHUNK_Q=1
-  fi
+  # チャンク分割。1回の呼び出しで5問。
+  # 呼び出しごとに資格別の指示書（最大約1万字）と共通ルール（約2,600字）を送り直すので、
+  # 1回あたりの問題数が少ないほど1問あたりの入力トークンが増える。以前は SAP/ANS 等を3問、
+  # --hard でさらに半減（2問・SAA 等は1問）にしていた。根拠は「1チャンク300〜700秒かかり
+  # レート制限の前に完走できない」だったが、2026-10 時点で2問約40秒になり当てはまらない。
+  # 出力は1問ずつ即インポートするので、途中でレート制限に当たっても失うのは書きかけの1問だけ。
+  CHUNK_SIZE=${GEN_CHUNK_SIZE:-5}; MIN_CHUNK_Q=3
   CHUNKS_TOTAL=$(( (Q_FOR_DOMAIN + CHUNK_SIZE - 1) / CHUNK_SIZE ))
   # 端数チャンクが最低問題数を下回る場合、最初のチャンクに吸収（チャンク数を1減らす）
   _LAST_Q=$(( Q_FOR_DOMAIN % CHUNK_SIZE ))
@@ -741,6 +769,7 @@ PYEOF
   fi
 
   DOMAIN_IMPORTED=0
+  DOMAIN_DUP=0
   STATE_UPDATED=0
   DOMAIN_RATE_LIMITED=0
 
@@ -754,16 +783,26 @@ PYEOF
       [ "$_CHUNK_Q" -gt "$CHUNK_SIZE" ] && _CHUNK_Q=$CHUNK_SIZE
     fi
 
+    # 終了時刻はチャンクごとに見る。以前はドメインの頭でしか見ておらず、1ドメインに多数の
+    # チャンクがあると終了時刻を過ぎても走り続け、ラッパー側に強制終了されて末尾の処理
+    # （キャッシュ再構築・S3同期・再ビルド予約）が飛んでいた（2026-10-12 07:30 の実行）。
+    if [ "$DEADLINE_EPOCH" -gt 0 ] && [ "$(date +%s)" -ge "$DEADLINE_EPOCH" ]; then
+      echo "⏰ デッドライン到達 (${DEADLINE} JST)。残りチャンクをスキップ"
+      TIMEOUT_HIT=1
+      break
+    fi
+
     [ "$CHUNKS_TOTAL" -gt 1 ] && echo "  チャンク ${_chunk}/${CHUNKS_TOTAL}: ${_CHUNK_Q}問 生成中..."
 
-    # ── 正解を最長にする問題をスクリプト側でランダム抽選（約25%）──────────────
-    # 「正解は最長にならない」という規則性はメタ読み（最長を除外する消去法）を
-    # 生む。LLMの確率任せにせず、各問を 0..15 の一様乱数の下位で約25%(<4)当選と
-    # して番号を明示指定し、長さと正解の相関を確実に断つ（問題IDの下1桁で判定する
-    # 発想と同等。生成時点では questionId 未採番のため $RANDOM を使う）。
+    # ── 正解を最長にする問題をスクリプト側でランダム抽選（約6%）──────────────
+    # 「正解は最長にならない」という規則性はメタ読み（最長を除外する消去法）を生む。
+    # 一方でモデルは放っておくと正解を長く書く。以前は約25%を「正解を最長に」と指定していたが、
+    # 実測（2026-10-10〜11 の435問）で正解が単独最長になった割合は39%（4択の偶然は25%）。
+    # 指定しなかった問題でも約19%が最長になっていたので、指定は約6%（0..15 の一様乱数で 0）に下げ、
+    # 合計が偶然の25%前後になるようにする。生成後の実測で調整すること。
     _LONGEST_NUMS=""
     for (( _qn=1; _qn<=_CHUNK_Q; _qn++ )); do
-      if [ $(( RANDOM % 16 )) -lt 4 ]; then
+      if [ $(( RANDOM % 16 )) -lt 1 ]; then
         _LONGEST_NUMS="${_LONGEST_NUMS:+${_LONGEST_NUMS}, }${_qn}"
       fi
     done
@@ -774,6 +813,19 @@ PYEOF
 - どの問題も、長さ以外の手がかり（正解だけ極端に長い・語調や要件語の反復）で正解を悟らせないこと。"
     else
       LONGEST_DIRECTIVE="【正解の文字数指定】この一連の問題では正解を最長の選択肢にせず、各選択肢の長さを揃える。"
+    fi
+
+    # このドメインの既出の決め手（正解肢）。今回の実行で取り込んだ分も含む（question-dedup.py が
+    # 取り込みのたびに追記する）。モデルが既存問題を知らずに同じ論点を繰り返すのを防ぐ。
+    _AVOID=$(python3 "$DEDUP_PY" avoid "$EXISTING_QS_FILE" "$domain" "${GEN_AVOID_MAX:-60}" 2>/dev/null || true)
+    AVOID_BLOCK=""
+    if [ -n "$_AVOID" ]; then
+      AVOID_BLOCK="【このドメインの既出問題の正解（新しい順・抜粋）】
+以下と同じ決め手（同じ正解・同じ判断根拠）の問題は作らないこと。言い換えやシナリオ違いも不可。
+この一覧に無い概念・サービス・観点を選び、${_CHUNK_Q}問の論点もそれぞれ別にすること。
+（指示書に「【現在のドメイン別問題数】を参考に手薄な概念を優先」とある場合は、この一覧に無い概念を優先する、と読み替える）
+${_AVOID}
+"
     fi
 
     PROMPT_FILE=$(mktemp /tmp/gen_prompt_XXXX.txt)
@@ -807,6 +859,7 @@ ${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
 - 略語が何の略かは選択肢ではなく解説側で説明する: explanation・choiceExplanations で重要な略語を初出で英語フルスペル併記して展開する（例 解説内で「BLEU(Bilingual Evaluation Understudy)」）。選択肢本文には展開を入れない
 - 選択肢が単語・用語のみ（説明文でない）の場合は、選択肢の長さバランス規則を適用しない（最長の用語が正解でもよい）
 
+${AVOID_BLOCK}
 ${LONGEST_DIRECTIVE}
 ${HARD_BLOCK}
 【品質基準】
@@ -894,15 +947,34 @@ except Exception:
     sys.exit(1)
 " 2>/dev/null) || continue
 
+      # 重複判定（決定的・Claude 不要）。既出と同じ決め手なら取り込まない。
+      # 判定を通ったものは既出一覧に追記され、以降のチャンクのプロンプトにも載る。
+      if _dup_reason=$(printf '%s' "$_validated" | python3 "$DEDUP_PY" check "$EXISTING_QS_FILE" 2>/dev/null); then
+        :
+      elif [ $? -eq 3 ]; then
+        echo "  [DUP] 重複のため破棄: ${_dup_reason}"
+        DOMAIN_DUP=$(( DOMAIN_DUP + 1 ))
+        continue
+      fi
+
       # 即インポート
-      _http_resp=$(curl -s -w "\n%{http_code}" \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer ${ID_TOKEN}" \
-        -d "$_validated" \
-        "${API_ENDPOINT}/admin/questions")
-      _http_body=$(echo "$_http_resp" | head -n -1)
-      _http_code=$(echo "$_http_resp" | tail -n 1)
+      _import() {
+        _http_resp=$(curl -s -w "\n%{http_code}" \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${ID_TOKEN}" \
+          -d "$_validated" \
+          "${API_ENDPOINT}/admin/questions")
+        _http_body=$(echo "$_http_resp" | head -n -1)
+        _http_code=$(echo "$_http_resp" | tail -n 1)
+      }
+      _import
+      # ID トークンの有効期限は1時間。長い実行で切れると以降の取り込みがすべて 401 になり、
+      # 生成済みの問題を捨てていた（2026-09-25）。401 なら1回だけ取り直して再送する。
+      if [ "$_http_code" = "401" ] && _cognito_auth; then
+        echo "  ↻ ID トークンを再取得して再送"
+        _import
+      fi
 
       if [ "$_http_code" -eq 200 ] || [ "$_http_code" -eq 201 ]; then
         _created_id=$(echo "$_http_body" | python3 -c \
@@ -982,7 +1054,7 @@ PYEOF
   # このドメインでインポートした分を必ず合計へ計上する。レート制限で中断した場合も、
   # それまでにDB登録済み(HTTP 200)の分は計上する（以前は break が下記加算を飛ばし、
   # 実際にはインポート済みでも「合計インポート: 0問」と誤表示していた）。
-  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート"
+  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート（重複で破棄 ${DOMAIN_DUP}問）"
   TOTAL_IMPORTED=$(( TOTAL_IMPORTED + DOMAIN_IMPORTED ))
   echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
 
@@ -990,6 +1062,7 @@ PYEOF
     RATE_LIMITED=1
     break
   fi
+  [ "$TIMEOUT_HIT" -eq 1 ] && break
 
   _DOMAIN_OFFSET=$(( _DOMAIN_OFFSET + 1 ))
 done
