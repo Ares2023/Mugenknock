@@ -1,7 +1,7 @@
 #!/bin/bash
 # instructions/ をローカル(git)から S3 へ push して同期する。
 #
-# 背景: 夜間ランナー(local-hook-run.sh 等)は起動時に S3→ローカルへ pull するため、
+# 背景: 夜間ランナー(local-generate-hook-run.sh / local-validity-hook-run.sh 等)は起動時に S3→ローカルへ pull するため、
 #   git だけに入れた instructions/ の手編集は次回 pull で S3 の内容に巻き戻る。
 #   手で instructions を編集・コミットしたら、本スクリプトで S3 にも反映すること。
 #

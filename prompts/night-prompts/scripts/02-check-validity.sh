@@ -81,6 +81,7 @@ Jevトリアージ:
 
 環境変数:
   JEV_TRIAGE_POOL  プール倍率（既定 3・1で無効）
+  JEV_TRIAGE_POOL_MAX  プールの上限件数（既定 360。-n を大きく取っても超えない）
   JEV_TRIAGE_BAND  スコアのバンド幅（既定 0.25＝5段階）
 EOF
 }
@@ -296,12 +297,17 @@ if _unverified:
 
 # ② 未確認でバッチが埋まらない分だけ、確認済みを Jev で並べ替える
 _slots = batch - _unclaimed_unverified
+# プールの上限。-n を大きく取っても（フックは -n 1000）、実際に処理できる件数はトークンで決まり
+# 1回あたり100〜150問程度。プールを slots×倍率（3000問）にすると Jev の予算（120秒≒700問）で
+# 途中までしかスコアが付かず、スコア無しの問題が最優先（1.0）になって事実上「古い順」に戻る。
+# 実際に処理される先頭部分を確実にスコア化するため、プールは上限で切る。
+_pool_max = int(os.environ.get('JEV_TRIAGE_POOL_MAX', '360') or 360)
 if (_triage_pool_mult > 1 and _triage_script and os.path.exists(_triage_script)
-        and _slots > 0 and len(_verified) > _slots):
+        and _slots > 0 and _verified):
     import subprocess
     _pool = [(sk, q) for sk, q in _verified
-             if q.get('questionId') not in _pre_claims][:_slots * _triage_pool_mult]
-    if len(_pool) > _slots:
+             if q.get('questionId') not in _pre_claims][:min(_slots * _triage_pool_mult, _pool_max)]
+    if len(_pool) > min(_slots, 20):
         try:
             _pr = subprocess.run(
                 [sys.executable, _triage_script],

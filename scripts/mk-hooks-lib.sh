@@ -10,7 +10,7 @@ MK_CFG="${MK_CFG:-$HOME/.config/mugenknock}"
 HOOKS_CONF="${HOOKS_CONF:-$MK_CFG/hooks.conf}"
 MK_REPO="${MK_REPO:-/home/yuzuki/aws-quiz-app}"
 
-# 初回は既存挙動(30分前=生成 / 15分前=検証)をデフォルトとして書く
+# 初回のデフォルト: 30分前=検証(最大1000問) / 20分前=生成(累計1000問まで)。どちらもピンの数分前で止まる
 hooks_seed_defaults() {
   [ -f "$HOOKS_CONF" ] && return 0
   mkdir -p "$MK_CFG"
@@ -18,8 +18,8 @@ hooks_seed_defaults() {
 # mugenknock フック設定 — ピンの何分前に何を実行するか
 # 形式: 分前|スクリプト|ラベル   ( # 行と空行は無視。分前は正整数=ピンより前 )
 # スクリプトは絶対パス、または scripts/ 配下の名前。
-30|local-hook-run.sh|問題生成(01-generate --hard)
-15|local-hook2-run.sh|妥当性検証(02-check-validity)
+30|local-validity-hook-run.sh|妥当性検証(02-check-validity・最大1000問)
+20|local-generate-hook-run.sh|問題生成(01-generate --hard・累計1000問まで)
 EOF
 }
 

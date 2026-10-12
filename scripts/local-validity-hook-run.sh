@@ -1,7 +1,9 @@
 #!/bin/bash
-# ローカルフック2実行(systemd timerから呼ばれる)
-# 各ピンサイクルの15分前に妥当性チェックを走らせ、hook(30分前)と並走してトークンを消化する。
-# claimed.json で重複処理は防がれるため hook と同時実行可能。
+# 検証フック(systemd timerから呼ばれる)
+# 各ピンサイクルの30分前に妥当性チェック(02-check-validity)を最大1000問分で走らせ、
+# トークン回復(=次のピン)の数分前で止める。生成フック(20分前)と並走する。
+# claimed.json で重複処理は防がれるため同時実行可能。
+# 実際に処理できる件数はトークンで決まる（1000問は「枠が尽きるまで止まらない」ための上限）。
 set -uo pipefail
 export TZ=Asia/Tokyo
 export PATH="/usr/local/bin:/usr/bin:/bin:$HOME/local/bin:$PATH"
@@ -24,14 +26,18 @@ AWS="$AWS" bash "$REPO/scripts/pull-claude-creds.sh" "$S3" || true
 "$AWS" s3 sync "s3://$S3/state/"        "$SC/state/"        --quiet 2>/dev/null || true
 "$AWS" s3 sync "s3://$S3/instructions/" "$SC/instructions/" --quiet 2>/dev/null || true
 
-# deadline = 次のピン(=トークン回復)の3分前で停止
-# hook2はピンの15分前に発動するため +15分 = 回復時刻。ここから MARGIN_MIN 分手前に置く。
-MARGIN_MIN=3
-DRAIN_MIN=$((15 - MARGIN_MIN))
-DEADLINE=$(date -d "+${DRAIN_MIN} min" +%H:%M 2>/dev/null || date -v+${DRAIN_MIN}M +%H:%M)
-log "妥当性チェック実行(hook2) (deadline=$DEADLINE / 回復の${MARGIN_MIN}分前で停止)..."
+# deadline = 次のピン(=トークン回復)の MARGIN_MIN 分前。next_ping から求める（mk-hook-deadline.sh）。
+# -D は「判定時に走行中のチャンクは完走」する仕様なので、そのはみ出し(1チャンク≒数十秒)も
+# 回復前に収まるよう余裕を持たせ、トークン回復後に検証が継続しないようにする。
+# shellcheck source=mk-hook-deadline.sh
+source "$REPO/scripts/mk-hook-deadline.sh"
+if ! hook_deadline 30; then
+  log "ピン直前または超過のためスキップ (締切まで${HOOK_REMAIN_MIN:-?}分)"
+  exit 0
+fi
+log "妥当性チェック実行 (最大1000問 / deadline=$HOOK_DEADLINE / 回復の${HOOK_MARGIN_MIN}分前で停止 / 締切まで${HOOK_REMAIN_MIN}分 / 基準=$HOOK_DEADLINE_SRC)..."
 cd "$REPO"
-FARGATE_MODE=1 bash prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D "$DEADLINE"
+FARGATE_MODE=1 bash prompts/night-prompts/scripts/02-check-validity.sh -n 1000 -D "$HOOK_DEADLINE"
 EC=$?
 log "完了 (exit $EC)"
 

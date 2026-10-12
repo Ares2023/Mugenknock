@@ -427,7 +427,7 @@ AWS 資格が前提とする **AWS 外の土台知識**を補う独自演習（A
   プロンプト自体を自動改良するタスクは `opus`、改行整形など機械的で軽いタスクは
   `haiku`。新しいスクリプトを追加するときも同じ基準で選ぶ。
 - 対象は `prompts/night-scripts.list` に載るスクリプトだけでなく、`prompts/run-prompts.sh`
-  の ping・texts/ 実行、`scripts/local-hook-run.sh` 等から呼ばれる経路もすべて含む。
+  の ping・texts/ 実行、`scripts/local-generate-hook-run.sh` / `scripts/local-validity-hook-run.sh` 等から呼ばれる経路もすべて含む。
 
 ### MCP: 全ての `claude -p` に `--strict-mcp-config` を付ける（2026-10-02 確定）
 
