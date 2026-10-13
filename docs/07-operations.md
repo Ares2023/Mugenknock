@@ -5,33 +5,36 @@
 
 ## 7.1 全体像
 
+**5時間ごとのピンは、このプロジェクトではなくユーザー共通のタイマー `claude-timer` が回している**
+（2026-10-14〜。本体 `~/.local/share/claude-timer/`・独立した git リポジトリ・詳細はその `README.md`）。
+mugenknock は `~/.config/claude-timer/hooks.d/mugenknock.conf` に「ピンの N 分前」のフックを登録しているだけ。
+他のプロジェクトも同じ形でフックを登録できる。
+
 ```
-                  ~/.config/mugenknock/next_ping        ← 唯一の正（次回ピン時刻）
-                                │
-                  sync-local-schedule.sh 読む
-                                │
-   ┌────────────┬───────────────┼───────────────┬────────────────┐
-   ▼            ▼               ▼               ▼                ▼
-hook-1       hook-2          localping       postping      （常設タイマー）
-(ピン30分前)  (ピン20分前)     (ピン時刻)      (ピン+10分)     canary 23:50
-妥当性検証    問題生成         claude を起こす  再同期＋夜間     mode-reset 土03:00
-02-check-    01-generate     /usage で次回   バッチ           chainwatch
-validity     (累計1000問)    時刻を再計算
-(最大1000問)
+        ~/.config/claude-timer/next_ping        ← 唯一の正（次回ピン時刻・全プロジェクト共通）
+                          │ claude-timer sync が読む
+   ┌────────────┬─────────┴──────┬──────────────┐
+   ▼            ▼                ▼              ▼
+hook-mugenknock-1  hook-mugenknock-2  prelog       ping            （mugenknock の常設タイマー）
+(ピン30分前)        (ピン20分前)        (ピン1分前)   (ピン時刻)        canary 23:50
+妥当性検証          問題生成            /usage を     claude を起こし   nightly-noai 00:05
+02-check-validity   01-generate        usage.log に  /usage で次回     mode-reset 土03:00
+(最大1000問)        (累計1000問)        記録          時刻を決めて再仕込み
 ```
 
 - すべて **one-shot 絶対時刻タイマー**（`Persistent=true`）。PC停止中に逃した発火は次回起動時に走る
-- **連鎖構造**: postping が `sync-local-schedule.sh` を呼んで次サイクルを仕込む
-- 連鎖が切れると全部止まるので `chain-watchdog.sh` が保険で監視する
+- **連鎖構造**: ピン（`claude-timer-ping`）が終わるたびに次回時刻を決め、自分とフックを仕込み直す
+- 連鎖が切れると全部止まるので、`claude-timer-watchdog`（2時間おき）が保険で監視する
 
 ### なぜこの構成か
 
 Claude のサブスクリプションは5時間単位でトークンが回復する。
 **回復直前に残量を使い切る**のが最も効率的なので、ピン（＝回復時刻）の
-30分前・15分前にフックを仕込んでトークンを消化している。これは意図的な設計。
+30分前・20分前にフックを仕込んでトークンを消化している。これは意図的な設計。
 
 以前は Fargate + EventBridge でこれを回していたが、課金を避けるため
-**Fargate はピンのみ→2026-09にローカル systemd へ全面移行**した。
+**2026-09にローカル systemd へ全面移行**し、**2026-10-14 にピン部分をユーザー共通の `claude-timer` へ切り出した**
+（ピンは5時間枠＝アカウント単位の資源で、プロジェクトに閉じる理由がないため）。
 
 ## 7.2 systemd user タイマー
 
@@ -39,14 +42,17 @@ Claude のサブスクリプションは5時間単位でトークンが回復す
 
 | ユニット | 起動 | 実行内容 |
 |---|---|---|
-| `mugenknock-localping` | 次回ピン時刻 | `local-ping-run.sh` — claude を起こし、`/usage` から次回時刻を決めて再アーム |
-| `mugenknock-hook-1` | ピン30分前 | `local-validity-hook-run.sh` — 妥当性検証（`02-check-validity -n 1000`） |
-| `mugenknock-hook-2` | ピン20分前 | `local-generate-hook-run.sh` — 問題生成（`01-generate-questions --hard` を累計1000問まで繰り返す） |
+| `claude-timer-ping` | 次回ピン時刻 | （共通）claude を起こし、`/usage` から次回時刻を決めて再仕込み |
+| `claude-timer-prelog` | ピン1分前 | （共通）枠の終わり際の `/usage` を `~/.config/claude-timer/usage.log` に記録 |
+| `claude-timer-watchdog` | 2時間おき | （共通）連鎖切れの検知・修復 |
+| `claude-timer-hook-mugenknock-1` | ピン30分前 | `local-validity-hook-run.sh` — 妥当性検証（`02-check-validity -n 1000`） |
+| `claude-timer-hook-mugenknock-2` | ピン20分前 | `local-generate-hook-run.sh` — 問題生成（`01-generate-questions --hard` を累計1000問まで繰り返す） |
 
-フックの番号は `~/.config/mugenknock/hooks.conf` の行順（`ct hooks list`）。どちらのフックも
-**締切は次のピンの3分前**で、`next_ping` から求める（`scripts/mk-hook-deadline.sh`）。発動時刻を
-`hooks.conf` で変えても締切が追従する。以前は「自分は30分前（15分前）に発動する」と仮定した固定値で、
-発動時刻を変えると締切がずれた。ピンの直前に発動した場合（遅延起動など）は何もせずスキップする。
+フックの番号は `hooks.d/mugenknock.conf` の行順（`ct hooks list`）。`ct off` のとき（`hooks_enabled` が無いとき）は
+conf の `require=` により仕込まれない。どちらのフックも
+**締切は次のピンの3分前**で、`next_ping` から求める（`scripts/mk-hook-deadline.sh`。パスは claude-timer が
+`CLAUDE_TIMER_NEXT_PING_FILE` で渡す）。発動時刻を conf で変えても締切が追従する。
+ピンの直前に発動した場合（遅延起動など）は何もせずスキップする。
 `next_ping` が読めないときだけ、発動からの先行分（検証30分・生成20分）で代用する。
 2つは並走し、トークンは共有する。1000問は「枠が尽きるまで止まらない」ための上限で、実際に処理できる
 件数はトークンで決まる（検証は1回100〜150問程度）。
@@ -54,31 +60,44 @@ Claude のサブスクリプションは5時間単位でトークンが回復す
 **検証が先、生成が後になった影響（2026-10-12〜）。** 以前は生成（30分前）→検証（15分前）で、同じ
 サイクルで作った問題が同じサイクルのうちに検証・公開された。今は検証が先なので、生成した問題が公開
 されるのは**次のサイクルの検証**（約5時間後）になる。未確認の問題は検証で最優先なので、そこで確実に拾われる。
-| `mugenknock-postping` | ピン+10分 | `local-postping-run.sh` — 再同期 ＋ 夜間サイクルなら夜間バッチ |
+
+| ユニット | 起動 | 実行内容 |
+|---|---|---|
 | `mugenknock-canary` | 毎日 23:50 | Playwright カナリアテスト → S3 |
 | `mugenknock-nightly-noai` | 毎日 00:05 | AI 不要の夜間処理 |
 | `mugenknock-mode-reset` | 土 03:00 | `ct` のモードを既定へ戻す |
-| `mugenknock-chainwatch` | 定期 | 連鎖切れの検知・修復 |
+
+**夜間バッチ（`local-postping-run.sh`・ピン+10分）は登録していない**（トークン節約のため停止中）。
+conf にコメントアウトした行があり、`#` を外して `ct sync` すれば再開する。基準は**直前のピン**の+10分で、
+そのピンが 0〜4時台なら夜間サイクルとして夜間バッチを実行する。
+> 旧構成の `mugenknock-postping` は「次回ピン+10分」に仕込んでいたため、ピンのたびに先送りされて
+> **2026-10-06 を最後に一度も発火していなかった**（夜間バッチが止まっていた実際の原因）。claude-timer では
+> ピン後のフックを直前のピン基準で仕込むので、この問題は起きない。
 
 ### 制御コマンド `ct`（`scripts/ct.sh`）
 
+`ct` は claude-timer の mugenknock 用の窓口。ピン関連の操作は claude-timer に委ねる。
+
 ```bash
-ct              # 状況表示
-ct on / off     # フック（hook/hook2/夜間バッチ）の有効・無効。ピンは常時
-ct set HH:MM    # 次回ピン時刻を変更（以降は /usage の回復時刻に自動追従）
-ct cancel       # 完全停止（ピンも止める）
+ct              # 状況表示（claude-timer の状態 + mugenknock のフック）
+ct on / off     # mugenknock のフックの有効・無効。ピンは常時
+ct set HH:MM    # 次回ピン時刻を変更（= claude-timer set。以降は /usage の回復時刻に自動追従）
+ct cancel       # 完全停止（= claude-timer cancel。**全プロジェクト共通のピンが止まる**）
 ct resume       # 再開（次回 = now+5h）
-ct sync         # 時計に合わせてタイマー再同期
-ct skip         # 次回のフックだけスキップ
-ct run          # 今すぐピン実行
-ct log [-f|-n|-d DATE]
-ct hooks list / add <分前> <スクリプト> [ラベル] / rm <#>
+ct sync         # 時計に合わせてタイマー再同期（= claude-timer sync）
+ct skip         # 次回の mugenknock のフックだけスキップ
+ct run          # 今すぐピン実行（= claude-timer run）
+ct log [-f|-n|-d DATE]   # ピン履歴（claude-timer）/ -n 夜間 / -d 日付
+ct hooks list / add <分前> <スクリプト> [ラベル] / rm <#> / edit
 ```
 
-フラグファイル:
-- `~/.config/mugenknock/ping_disabled` — `ct cancel`（完全停止）
-- `~/.config/mugenknock/hooks_enabled` — `ct on/off`（フックのみ切替）
-- `~/.config/mugenknock/hooks.conf` — フック定義（`分前|スクリプト|ラベル`）。`ct` と `sync` が共用
+ファイル:
+- `~/.config/claude-timer/hooks.d/mugenknock.conf` — フック定義（`符号付き分|スクリプト|ラベル`）。`ct hooks` が読み書きする
+- `~/.config/mugenknock/hooks_enabled` — `ct on/off`（mugenknock のフックのみ切替）
+- `~/.config/claude-timer/disabled` — `ct cancel`（完全停止）
+- `~/.config/claude-timer/usage.log` — 使用量ログ（旧パス `~/.config/mugenknock/usage.log` はシンボリックリンク）。
+  集計は `claude-timer report`
+- `~/.config/claude-timer/mail.conf` → `~/.mugenknock_mail.conf`（ピン失敗の通知メール）
 
 ### 状態の同期（S3）
 
@@ -520,7 +539,7 @@ S3 `mugenknock-error-logs/canary-logs/` にアップロードする。
 | 症状 | 確認すること |
 |---|---|
 | 夜間バッチが動いていない | `systemctl --user list-timers` で `Trigger: n/a` が無いか。`ct sync` で張り直す |
-| メールが来ない | 上と同じ（連鎖切れが最も多い原因）。`chain-watchdog.sh` のログも見る |
+| メールが来ない | 上と同じ（連鎖切れが最も多い原因）。`journalctl --user -u claude-timer-watchdog` のログも見る |
 | リリースノートが生成されない | **529 エラーは自己修復されない。** 手動で `generate-release-note.sh <日付>` を再実行する（2026-09-15 に delay=0→60 へ変更し発生頻度は軽減見込みだが未検証） |
 | 管理画面の変更が出題に反映されない | Lambda のウォームキャッシュ（最大10分）。[02-architecture.md](02-architecture.md) 2.7 |
 | 本番だけ挙動が古い | `deploy-lambda.sh prod` を打ち忘れていないか |
