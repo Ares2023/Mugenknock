@@ -1,0 +1,101 @@
+[
+  {
+    "d": 1,
+    "q": "注文のない顧客も含めて、顧客ごとの2024年の注文件数を出したい。次のクエリは意図どおりに動かない。\n\nSELECT c.id, COUNT(o.id)\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.order_date >= '2024-01-01'\n  AND o.order_date < '2025-01-01'\nGROUP BY c.id;\n\n原因と修正方法として最も適切なものはどれか。",
+    "a": ["WHERE が補完されたNULL行を除外し内部結合と同じ結果になる。日付条件を ON 句へ移す"],
+    "w": ["COUNT(o.id) がNULLを数えないのが原因である。COUNT(*) に変更すれば注文のない顧客も0件で出力される", "集計の単位が足りないのが原因である。GROUP BY に o.order_date を追加すれば注文のない顧客も出力される", "結合の向きが悪いのが原因である。LEFT JOIN を RIGHT JOIN に書き換えれば注文のない顧客も出力される"],
+    "ea": ["WHERE の日付条件は補完行のNULLを偽とするため、ON 句へ移すと注文のない顧客の行が残る。"],
+    "ew": ["COUNT(*) への変更は、除外の原因である WHERE を残し、補完行を1件と数える誤りも生む。", "GROUP BY への列の追加は集計単位を変えるだけで、WHERE による行の除外は変わらない。", "RIGHT JOIN への書き換えは注文側の行を保持する向きとなり、顧客を保持できなくなる。"],
+    "x": "外部結合の右側の表への条件を WHERE に書くと、補完されたNULL行が除外されて内部結合と同じになる。条件は ON 句に書く。"
+  },
+  {
+    "d": 1,
+    "q": "ブラックリストに載っていない顧客を抽出するため、次のSQLを実行した。\n\nSELECT id FROM customers\nWHERE id NOT IN (SELECT customer_id FROM blacklist);\n\nblacklist.customer_id にNULLを含む行が1件あるとき、結果はどうなるか。",
+    "a": ["NULLとの比較が真にならずUNKNOWNとなるため、すべての顧客で条件が満たされず1行も返らない"],
+    "w": ["NULLの行だけが無視され、それ以外のブラックリスト該当者が除外されて正しく抽出される", "NULLとの比較は真として扱われ、ブラックリストの除外が働かずすべての顧客が返る", "NULLを含む列はサブクエリに使えないため、構文エラーとなって実行できない"],
+    "ea": ["NOT IN は各値との不一致を AND で結ぶため、NULLとの比較がUNKNOWNだと全体が真にならない。"],
+    "ew": ["NULL行が単独で無視される動作はなく、その行との比較が全体の判定に影響する。", "NULLとの比較は真ではなくUNKNOWNで、WHEREは真の行のみ返すため全顧客が返ることはない。", "NULLを含む列も構文上はサブクエリに使え、エラーではなく結果が空になる点が問題となる。"],
+    "x": "NOT IN の結果にNULLが含まれると判定がUNKNOWNになり0行になる。NOT EXISTS を使うか、NULLを除外して回避する。"
+  },
+  {
+    "d": 1,
+    "q": "注文が1件もない顧客を抽出したい。orders.customer_id にはNULLが含まれる可能性がある。結果が正しくなるSQLを2つ選べ。",
+    "a": ["SELECT c.id FROM customers c WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)", "SELECT c.id FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id IS NULL"],
+    "w": ["SELECT c.id FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.customer_id = NULL", "SELECT c.id FROM customers c INNER JOIN orders o ON o.customer_id = c.id WHERE o.id IS NULL", "SELECT c.id FROM customers c WHERE c.id NOT IN (SELECT o.customer_id FROM orders o)"],
+    "ea": ["NOT EXISTS は、一致する注文の有無だけを判定し、NULLの影響を受けずに未注文の顧客を返す。", "LEFT JOIN と IS NULL は、一致しない顧客に補われるNULL行を検出する典型的なアンチ結合である。"],
+    "ew": ["= NULL は常にUNKNOWNとなり、条件を満たす行が1行も返らない。IS NULL が必要である。", "INNER JOIN では一致しない顧客の行自体が出力されず、o.id がNULLの行は存在しない。", "NOT IN は、orders.customer_id にNULLがあると判定がUNKNOWNになり、結果が空になりうる。"],
+    "x": "アンチ結合は NOT EXISTS か LEFT JOIN + IS NULL で書く。NOT IN は対象列にNULLがあると誤る。"
+  },
+  {
+    "d": 1,
+    "q": "sales(shop_id, sold_on, amount) から、2024年の売上のみを対象に、店舗ごとの合計が100万円を超える店舗を抽出したい。条件の書き方として最も適切なものはどれか。",
+    "a": ["WHERE で2024年の行を絞り、GROUP BY の後の HAVING で合計 > 1000000 を指定する"],
+    "w": ["GROUP BY shop_id の後の HAVING だけで、日付の条件と合計の条件の両方を指定する", "WHERE だけで、日付の条件と SUM(amount) > 1000000 の両方を指定してから GROUP BY する", "GROUP BY shop_id で2024年の行に絞り込み、その後の HAVING で合計の条件を指定する"],
+    "ea": ["WHERE は集計前の行を、HAVING は集計後の合計を絞るため、両方の条件を正しく適用できる。"],
+    "ew": ["HAVING に集計されない日付列を条件として書くと、GROUP BY の対象外としてエラーになる。", "WHERE は集計前に評価されるため、集計関数 SUM を条件に書くことはできない。", "GROUP BY は行をグループ化するだけで、行の絞り込みを行う句ではない。"],
+    "x": "行の絞り込みは WHERE（集計前）、集計結果の絞り込みは HAVING（集計後）で行う。"
+  },
+  {
+    "d": 1,
+    "q": "テーブル t(id, v) に (1, 10), (2, NULL), (3, 30), (4, NULL) の4行がある。SELECT COUNT(*), COUNT(v), AVG(v) FROM t の結果として正しいものはどれか。",
+    "a": ["4, 2, 20"],
+    "w": ["4, 4, 10", "2, 2, 20", "4, 2, 10"],
+    "ea": ["COUNT(*) は全行の4、COUNT(v) はNULLを除く2、AVG(v) は10と30の平均20になる。"],
+    "ew": ["COUNT(v) はNULLを数えないため4にならず、AVG もNULLを0とみなさないため10にならない。", "COUNT(*) はNULLの行を含む全行を数えるため、2ではなく4になる。", "AVG(v) はNULLを除いた2件で平均するため、0扱いで4件割った10にはならない。"],
+    "x": "COUNT(*) は全行、COUNT(列) とAVGなどの集計はNULLを除外して計算する。"
+  },
+  {
+    "d": 1,
+    "q": "scores(name, point) に (A, 90), (B, 85), (C, 85), (D, 70) の4行がある。point の降順で順位を付けたとき、D の順位として DENSE_RANK() と RANK() が返す値の組み合わせはどれか。",
+    "a": ["DENSE_RANK() は3、RANK() は4"],
+    "w": ["DENSE_RANK() は4、RANK() は3", "DENSE_RANK() も RANK() も3", "DENSE_RANK() も RANK() も4"],
+    "ea": ["同点を同順位とした後、DENSE_RANK は順位を詰めて3、RANK は同点の数だけ飛ばして4になる。"],
+    "ew": ["順位を詰める DENSE_RANK のほうが小さい値になり、RANK より大きくなることはない。", "RANK は同点の2件の分だけ次の順位を飛ばすため、Dの順位は3ではなく4になる。", "DENSE_RANK は順位を飛ばさないため、Dの順位は4ではなく3になる。"],
+    "x": "同点を同順位にした後の扱いが異なる。DENSE_RANK は連続、RANK は同点の数だけ飛ぶ。"
+  },
+  {
+    "d": 1,
+    "q": "events(user_id, created_at, action) から、ユーザーごとに最新の1行だけを取得したい。同じ created_at の行が存在しても、必ず1ユーザーにつき1行だけを返す方法として最も適切なものはどれか。",
+    "a": ["ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) を付け、1の行を外側のクエリで抽出する"],
+    "w": ["RANK() OVER (PARTITION BY user_id ORDER BY created_at DESC) を付け、1の行を外側のクエリで抽出する", "user_id で GROUP BY し、MAX(created_at) と action を同じ SELECT 句に並べて取得する", "全体を created_at の降順に並べ、DISTINCT user_id を付けて先頭の行を残して取得する"],
+    "ea": ["ROW_NUMBER は同値でも一意の連番を振るため、パーティションごとに必ず1行だけ選べる。"],
+    "ew": ["RANK は同値に同じ順位を付けるため、同時刻の行が複数あると1位が複数行になる。", "GROUP BY でグループ化されていない action を SELECT に含めるとエラーになる。", "DISTINCT は結果行の重複を除くだけで、どの行を残すかを最新に指定できない。"],
+    "x": "グループごとの最新1行は、ROW_NUMBER で連番を振り1を取るのが定石。同値があっても1行に決まる。"
+  },
+  {
+    "d": 1,
+    "q": "社員テーブル emp(id, name, manager_id) で、id = 1 の社員を起点に、直接・間接を問わずその部下をすべて取得したい。階層の深さは不定である。標準SQLで最も適切な方法はどれか。",
+    "a": ["WITH RECURSIVE で id = 1 を起点に、前回の結果を manager_id で繰り返し結合する"],
+    "w": ["emp を自己結合し、manager_id = id の条件で1回結合して直属の部下から末端までを取得する", "manager_id で GROUP BY し、各管理者の下にいる社員数を集計して階層の深さを数える", "emp を id の昇順に並べ、manager_id が小さい順に先頭から必要な行数を取り出す"],
+    "ea": ["再帰CTEは起点の行から結合を繰り返し、深さが不定の階層も1つのクエリで辿れる。"],
+    "ew": ["自己結合を1回行うだけでは直属の部下しか取得できず、深さが不定の階層は辿れない。", "GROUP BY で社員数を数えても、部下の行そのものを取得することはできない。", "id や manager_id の並べ替えは階層の親子関係を辿らず、部下の抽出とは無関係である。"],
+    "x": "深さ不定の階層(木構造)は再帰CTE(WITH RECURSIVE)で辿る。起点を初期項、結合を再帰項に書く。"
+  },
+  {
+    "d": 1,
+    "q": "2つのテーブルから取得した結果を縦に結合する。重複行の除去は不要で、大量データのため性能を優先したい。使用する演算として最も適切なものはどれか。",
+    "a": ["UNION ALL。重複除去のためのソートやハッシュ処理が不要になるため"],
+    "w": ["UNION。重複を除去する代わりに、行数が多いほど高速に処理できるため", "INTERSECT。両方の結果に共通する行だけを返すため、処理対象が減って高速になるため", "UNION DISTINCT。ALL を付けた場合より、内部の処理が簡略化されるため"],
+    "ea": ["UNION ALL は結果をそのまま連結し、重複除去の追加処理が不要で、大量データでも高速である。"],
+    "ew": ["UNION は重複除去のためにソートやハッシュを行うため、ALL より処理が重くなる。", "INTERSECT は共通行だけを返す別の集合演算で、全行を結合する要件と一致しない。", "UNION DISTINCT は UNION と同じ意味で重複を除去するため、処理は簡略化されない。"],
+    "x": "重複除去が不要なら UNION ALL を使う。UNION は重複除去のためのソートやハッシュのコストが加わる。"
+  },
+  {
+    "d": 1,
+    "q": "NULLの扱いについて正しい記述を2つ選べ。",
+    "a": ["NULL = NULL の評価結果は真ではなく、UNKNOWN(不明)になる", "WHERE 句の条件の評価結果がUNKNOWNになった行は、結果に含まれない"],
+    "w": ["NULL + 1 の結果は、NULLを0とみなして1になる", "ORDER BY の昇順では、NULLは常に最小値として扱われ先頭に並ぶ", "COUNT(列名) は、その列がNULLの行も1件として数える"],
+    "ea": ["NULLを含む比較はUNKNOWNを返し、同士でも真にならないため、判定には IS NULL を使う。", "WHEREは真と評価された行だけを返すため、偽だけでなくUNKNOWNの行も取り除かれる。"],
+    "ew": ["NULLを含む算術演算の結果はNULLであり、0とはみなされない。", "NULLの並び順は実装や NULLS FIRST/LAST の指定に依存し、常に先頭になるわけではない。", "COUNT(列名) はNULLの行を数えない。NULLも含め全行を数えるのは COUNT(*) である。"],
+    "x": "SQLは3値論理(真・偽・UNKNOWN)。NULLを含む比較はUNKNOWNで、WHEREでは真の行だけが残る。"
+  },
+  {
+    "d": 1,
+    "q": "customers(10行) と orders(200行) を、結合条件を書き忘れて FROM customers, orders のように結合した。結果は何行になるか。また、customers.id = orders.customer_id の条件を追加し、すべての注文がいずれかの顧客に紐づく場合は何行になるか。",
+    "a": ["2000行、200行"],
+    "w": ["210行、10行", "2000行、10行", "200行、2000行"],
+    "ea": ["結合条件なしは直積で10×200の2000行、条件を追加すると各注文が1顧客に一致し200行になる。"],
+    "ew": ["210行は和であり、直積(積)ではない。条件追加後も顧客の数ではなく注文の数になる。", "条件追加後は各注文が1顧客に一致するため、顧客数の10行ではなく注文数の200行になる。", "直積の行数は積の2000行で、条件の追加で行数が増えることはない。"],
+    "x": "結合条件がないと直積(10×200=2000行)になる。外部キーで各注文が1行の顧客と結び付くと、注文数の200行になる。"
+  }
+]
